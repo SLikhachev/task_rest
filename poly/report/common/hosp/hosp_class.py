@@ -137,7 +137,7 @@ class HospEir:
         s = [ self.fields[f][1](val) for f, val in enumerate(data) ]
         if s[0] is None: # nap num must be int
             return None
-        #return s
+        return s
         
     def close(self):
         self.qurs.close()
