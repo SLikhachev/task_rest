@@ -39,7 +39,7 @@ def make_report(year, month, app_cfg):
     xlr = os.path.join( base_dir, config.TPL_DIR, (file + '.xlsx'))
     xlw = os.path.join( base_dir, config.REPORT_DIR , (file + '_%s.xlsx' % ( mnt )))
     #year = date.today().isocalendar()[0]
-    period = 'За %s %s года' % (config.MONTHS[mnt], year)
+    period = 'За %s %s года' % (config.MONTHS[mnt-1], year)
     
     wb = load_workbook(filename = xlr)
     wb.active
