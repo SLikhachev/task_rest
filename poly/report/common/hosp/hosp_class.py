@@ -134,7 +134,9 @@ class HospEir:
         '''
         
         #return ', '.join( [ self.fields[ f[1](val) ]  for f, val in enumerate(data) ] )
-        return [ self.fields[f][1](val) for f, val in enumerate(data) ]
+        s = [ self.fields[f][1](val) for f, val in enumerate(data) ]
+        if s[0] is None: # nap num must be int
+            return None
         #return s
         
     def close(self):

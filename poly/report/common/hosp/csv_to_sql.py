@@ -26,6 +26,8 @@ def csv_to_sql(csv_file, csvClass, test=1, clear=False, logger=None):
         for ln in lines:
             #data = '%s%s' % (insert, procClass.getData(ln) ) 
             data = procClass.getData(ln)
+            if data is None:
+                continue
             if test > 0:
                 rc += 1
                 #print (data);
