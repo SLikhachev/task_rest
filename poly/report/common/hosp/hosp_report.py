@@ -8,6 +8,8 @@ from openpyxl.styles import Border, Side, colors, Font
 from . import hosp_config as config 
 
 def extract(row):
+    if row.nap_num is None:
+        return None
     d = [ '' for i in range(8)]
     fam = row.fam or ''
     im = row.im or ' '
@@ -22,7 +24,7 @@ def extract(row):
         d[6] = 'ЭКСТР'
     if row.usl_ok == 2:
         d[7] = 'ДНЕВНОЙ'
-
+    
     return d
     
 def make_report(year, month, app_cfg):
@@ -79,6 +81,8 @@ def make_report(year, month, app_cfg):
         for _hosp in qurs.fetchall():
             total_mo += 1
             data = extract(_hosp)
+            if data is None:
+                continue
             for xcol, val in enumerate(data):
                 sheet.cell(column=xcol+1, row=rowXls, value=val )
             rowXls += 1
