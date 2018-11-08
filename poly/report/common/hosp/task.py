@@ -33,7 +33,7 @@ class MakeReport(Resource):
         if dm != "":
             dm = dm.split('-')
         else:
-            dm = [ date.today().isocalendar()[0],  date.today().isocalendar()[1]]
+            dm = [ int(s) for s in date.today().isoformat().split('-')]
         year, month = dm[0], dm[1]
         
         files = request.files.get('file', None)
@@ -44,8 +44,8 @@ class MakeReport(Resource):
         if files:
             filename = secure_filename(files.filename)
             if not self.allowed_file(files.filename):
-                result = self.result(filename, "File type not allowed")
-            
+                return self.result(filename, " File type not allowed", False), current_app.config['CORS']
+
             else:
                 # save file to disk
                 up_file = os.path.join(catalog, filename)
@@ -55,7 +55,7 @@ class MakeReport(Resource):
                 if tst:
                     test = 1
                 test, rc, errors = csv_to_sql(up_file, HospEir, test, True, current_app.logger)
-                msg = 'Режим БД '
+                msg = 'Режим обработки файла '
                 if test > 0:
                     msg = 'Тестовый режим '
                 if errors > 0:

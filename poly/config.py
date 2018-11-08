@@ -7,12 +7,17 @@ class BaseConfig(object):
     TESTING = False
     NEW_CONFIG_VARIABLE = 'my value'
     DATA_FOLDER = 'data'
+    LOGGING_FOLDER = 'logging'
     UPLOAD_FOLDER = ''
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024 # 50MB
     ALLOWED_EXTENSIONS = set(['txt','rar','zip','7zip', 'csv', 'xlsx'])
     ALLOWED_EIR_FILE = set(['csv'])
     IGNORED_FILES = set(['.gitignore'])
     CORS = {'Access-Control-Allow-Origin': '*'}
+    MONTH = ['Январь', 'Февраль', 'Март',
+             'Апрель', 'Май', 'Июнь',
+             'Июль', 'Август', 'Сентябрь',
+             'Октябрь', 'Ноябрь', 'Декабрь']
    
 class DevelopConfig(BaseConfig):
     'Development environment specific config'

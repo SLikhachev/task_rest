@@ -1,4 +1,5 @@
 import os
+import logging
 from flask import Flask
 from poly.config import DevelopConfig
 
@@ -18,6 +19,14 @@ def create_app(static_dir, config_class=DevelopConfig):
     app.config['UPLOAD_FOLDER'] = os.path.join(static_dir, app.config['DATA_FOLDER'])
     #print('from app create -> ', static_dir)
     #print('from app create -> ', app.config['UPLOAD_FOLDER'])
+    log_file = os.path.join(static_dir, app.config['LOGGING_FOLDER'], 'my_log.log')
+    file_handler = logging.FileHandler(log_file)
+    console_handler = logging.StreamHandler()
+    file_handler.setLevel(logging.DEBUG)
+    console_handler.setLevel(logging.DEBUG)
+
+    app.logger.addHandler(file_handler)
+    app.logger.addHandler(console_handler)
     
        
     from poly.utils import bp as utils_bp
