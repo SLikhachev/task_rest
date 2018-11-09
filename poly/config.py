@@ -12,6 +12,7 @@ class BaseConfig(object):
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024 # 50MB
     ALLOWED_EXTENSIONS = set(['txt','rar','zip','7zip', 'csv', 'xlsx'])
     ALLOWED_EIR_FILE = set(['csv'])
+    ALLOWED_DBF_FILE = set(['dbf'])
     IGNORED_FILES = set(['.gitignore'])
     CORS = {'Access-Control-Allow-Origin': '*'}
     MONTH = ['Январь', 'Февраль', 'Март',
@@ -24,6 +25,10 @@ class DevelopConfig(BaseConfig):
     DEBUG = True
     TESTING = True
     SECRET_KEY = 'Another random secret key'
+    DB_NAME = 'prive'
+    DB_USER = 'postgrest'
+    DB_PASS = 'boruh'
+
 
 """
 class StagConfig(BaseConfig):
