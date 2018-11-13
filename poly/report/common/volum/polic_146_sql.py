@@ -44,6 +44,8 @@ class Report(object):
 
     RR_INSURERS = 'SELECT DISTINCT c_insur FROM %s'
 
+    STOM_PROF = '85'
+
     def __init__(self, rr_table):
 
         self.get_table = Report.GET_TABLE
@@ -59,35 +61,38 @@ class Report(object):
 
         self.ins_total = Report.INS_TOTAL
         self.upd_total = Report.UPD_TOTAL
-        
+
+        self.stom_prof = Report.STOM_PROF
+
         self.rr_insurers = Report.RR_INSURERS % rr_table
 
         # ambulance
         _pers = 'SELECT COUNT (*) FROM ( SELECT DISTINCT card FROM %s ' % rr_table
-        _fnusl = ' WHERE ist_fin=1 AND nusl < %s '
-        _snusl = ' AND nusl > %s '
+        _oms = ' WHERE ist_fin=1 '
+        _no_stom = ' AND profil <> %s ' % self.stom_prof
+        _stom = ' AND profil = %s ' % self.stom_prof
         _vpol = ' AND q_u = 2 '
         _vstac = ' AND q_u = 3 '
         _ins = ' AND c_insur = %s '
-        _ins_not = ' AND c_insur IS NOT NULL '
+        #_ins_not = ' AND c_insur IS NOT NULL '
 
         _viz_pol = 'SELECT SUM(visit_pol) AS pol, SUM(visit_hom) AS hom FROM %s ' % rr_table
         _viz_stac = 'SELECT SUM(visit_ds) AS ds, SUM(visit_hs) AS hs FROM %s ' % rr_table
         _viz_travm = 'SELECT SUM(visit_pol) AS vpol FROM %s ' % rr_table
 
         # persons and vizit to polic with def insurer
-        self.pers_vpol = _pers + _fnusl + _ins + _vpol + ') AS pambul'
-        self.viz_vpol = _viz_pol + _fnusl + _ins + _vpol
+        self.pers_vpol = _pers + _oms + _no_stom + _vpol + _ins +') AS pambul'
+        self.viz_vpol = _viz_pol + _oms + _no_stom + _vpol +_ins
 
-        self.pers_travm = _pers + _fnusl +_ins + ') AS ptravm'
-        self.viz_travm = _viz_travm + _fnusl + _ins
+        self.pers_travm = _pers + _oms + _ins + ') AS ptravm'
+        self.viz_travm = _viz_travm + _oms + _ins
 
         # persons and vizit to home and/or day stacionar with def insurer
-        self.pers_stac = _pers + _fnusl + _ins + _vstac + ') AS pstac'
-        self.viz_stac = _viz_stac + _fnusl + _ins + _vstac
+        self.pers_stac = _pers + _oms + _vstac + _ins + ') AS pstac'
+        self.viz_stac = _viz_stac + _oms + _vstac + _ins
 
         # persons stomatology with def insurer
-        self.pers_stom = _pers + _fnusl + _snusl + _ins + ') AS pstom'
+        self.pers_stom = _pers + _oms + _stom + _ins + ') AS pstom'
 
         self.report_insurers = Report.REPORT_INSURERS
 
@@ -107,8 +112,8 @@ class FillReportTable(Report):
         self.stac = stac  # bool flag to calculate stacionar
         self.write = write #bool flag to write results to db table
 
-        self.stomStart = 500000 # stom talon start number
-        self.errorLast = 1000000 # records from last month (last month errors)
+        #self.stomStart = 500000  # stom talon start number
+        #self.errorLast = 1000000  # records from last month (last month errors)
 
         self.total = '999' # virtual insurer for tatal numbers
         self.table = '%s_%s_%s_%s' # rr(s, p)_mo_month(2)_year(2)
@@ -172,7 +177,7 @@ class FillReportTable(Report):
         uet_rs = (uetq % self.rs_table) + where
 
         _pers = '''SELECT nusl FROM %s 
-            WHERE ist_fin=1 AND nusl < %s AND nusl > %s ''' % (self.rr_table, self.errorLast, self.stomStart)
+            WHERE ist_fin=1 AND profil = %s ''' % (self.rr_table, self.stom_prof)
 
         if insurer is not None:
             pers = _pers + 'AND c_insur = %s'
@@ -199,9 +204,9 @@ class FillReportTable(Report):
 
     def set_ambul(self, insurer):
         # ambulance
-        self._qurs.execute(self.pers_vpol, (self.stomStart, insurer))
+        self._qurs.execute(self.pers_vpol, (insurer,))
         pers = self._qurs.fetchone()[0]
-        self.qurs.execute(self.viz_vpol, (self.stomStart, insurer))
+        self.qurs.execute(self.viz_vpol, (insurer,))
         v = self.qurs.fetchone()
 
         pol = v.pol or 0
@@ -235,9 +240,9 @@ class FillReportTable(Report):
 
     def set_travm(self, insurer):
         # ambulance travma
-        self._qurs.execute(self.pers_travm, (self.errorLast, insurer))
+        self._qurs.execute(self.pers_travm, (insurer,))
         pers = self._qurs.fetchone()[0]
-        self.qurs.execute(self.viz_travm, (self.errorLast, insurer))
+        self.qurs.execute(self.viz_travm, (insurer,))
         v = self.qurs.fetchone()
 
         viz = v.vpol or 0
@@ -267,9 +272,9 @@ class FillReportTable(Report):
 
     def set_stac(self, insurer):
         # day stacionar
-        self._qurs.execute(self.pers_stac, (self.stomStart, insurer))
+        self._qurs.execute(self.pers_stac, (insurer,))
         pers = self._qurs.fetchone()[0]
-        self.qurs.execute(self.viz_stac, (self.stomStart, insurer))
+        self.qurs.execute(self.viz_stac, (insurer,))
         v = self.qurs.fetchone()
 
         ds = v.ds or 0
@@ -289,7 +294,7 @@ class FillReportTable(Report):
 
     def set_stom(self, insurer):
         # stomatolog
-        self._qurs.execute(self.pers_stom, (self.errorLast, self.stomStart, insurer))
+        self._qurs.execute(self.pers_stom, (insurer,))
         pers = self._qurs.fetchone()[0]
         #total_pers_stom += pers
         uet = self.stom_uet(insurer)
@@ -333,13 +338,13 @@ class FillReportTable(Report):
                 total_uet += uet
 
         # -- test -- 
-        """
-        self.app.logger.debug(' TOTAL ---')
-        self.app.logger.debug(' -- pers vpols %s -- visits %s --' % (total_pers_vpol, total_vpol))
-        self.app.logger.debug(' -- pers stac %s -- days %s --' % (total_pers_stac, total_stac))
-        self.app.logger.debug(' -- pers stom %s -- uet %0.2f --' % (total_pers_stom, total_uet))
-        return " Done ambul test "
-    """
+
+        #self.app.logger.debug(' TOTAL ---')
+        #self.app.logger.debug(' -- pers vpols %s -- visits %s --' % (total_pers_vpol, total_vpol))
+        #self.app.logger.debug(' -- pers stac %s -- days %s --' % (total_pers_stac, total_stac))
+        #self.app.logger.debug(' -- pers stom %s -- uet %0.2f --' % (total_pers_stom, total_uet))
+        #return " Done ambul test "
+
         # -- test --
         if not self.write:
             return "Рассчитана поликлиника "
@@ -378,11 +383,15 @@ class FillReportTable(Report):
             total_pers_travm += pers
             total_travm += viz
 
+        #self.app.logger.debug(' TOTAL TRAVM---')
+        #self.app.logger.debug(' -- pers travm %s -- visits travm %s --' % (total_pers_travm, total_travm))
+        #return " Done travm test "
+
         if not self.write:
             return " Рассчитана травма "
         if self.total in self.report_insur_list:
             try:
-                self._qurs.execute(self.upd_travm, (total_vpol, total_pers_vpol,
+                self._qurs.execute(self.upd_travm, (total_travm, total_pers_travm,
                         self.year, self.month, self.total))
                 self.db.commit()
                 # pass

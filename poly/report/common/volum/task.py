@@ -32,10 +32,11 @@ class MakeReport(Resource):
             dm = [ int(s) for s in date.today().isoformat().split('-')]
         year, month = dm[0], dm[1]
         msg = "Рассчет объемов за %s %s -- " % (current_app.config['MONTH'][month-1], year)
-        qonn = psycopg2.connect("dbname=prive user=postgres password=boruh")
+        db = psycopg2.connect(current_app.config['DB_CONF'])
+        #qonn = psycopg2.connect("dbname=prive user=postgres password=boruh")
         #__init__(self, app, db, mo, month, year, stom=False, stac=False, write=False):
         
-        fill_rep_ambul = FillReportTable(current_app, qonn, '228', month, year, stom=True, stac=True, write=write_flag)
+        fill_rep_ambul = FillReportTable(current_app, db, '228', month, year, stom=True, stac=True, write=write_flag)
         #fill_rep.test()
         if fill_rep_ambul.table_test():
             msg += fill_rep_ambul.set_total_ambul()
@@ -43,8 +44,9 @@ class MakeReport(Resource):
             msg += ' Не найден отчет поликлиники %s ' % fill_rep_ambul.rr_table
         del fill_rep_ambul
         
-        fill_rep_travm = FillReportTable(current_app, qonn, '229', month, year, write=write_flag)
+        fill_rep_travm = FillReportTable(current_app, db, '229', month, year, stom=False, stac=False, write=write_flag)
         if fill_rep_travm.table_test():
+            #pass
             msg += fill_rep_travm.set_total_travm()
         else:
             msg += ' Не найден отчет трвавмпункта %s ' % fill_rep_travm.rr_table

@@ -19,7 +19,7 @@ THIS_YEAR = '''select insurer,
     sum(pol_ambul_persons) as pol_ambul_persons, sum(pol_stac_persons) as pol_stac_persons,
     sum(pol_stom_persons) as pol_stom_persons,
     sum(travma_ambul_visits) as travma_ambul_visits, sum(travma_ambul_persons) as travma_ambul_persons 
-    from p146_report where this_year=%s group by insurer order by insurer DESC ;'''
+    from p146_report where this_year=%s and this_month < %s group by insurer order by insurer DESC ;'''
 
 _ROW = {'this_year':0, 'this_month':1, 'insurer':2,
     'pol_ambul_visits':3, 'pol_stac_visits':4, 'pol_stom_uet':5,

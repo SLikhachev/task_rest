@@ -68,7 +68,7 @@ def make_report(app, db, month, year):
         row += 2
     row += 3
 
-    qur.execute(config.THIS_YEAR, (year,))
+    qur.execute(config.THIS_YEAR, (year, month + 1))
     offset = config.TOTAL_OFFSET
     for r in qur.fetchall():
         insurer = r[ config._ROW['insurer'] - offset]

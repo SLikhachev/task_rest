@@ -37,7 +37,7 @@ def make_report(year, month, app_cfg):
     mnt = int(month)
     base_dir = os.path.join( app_cfg['UPLOAD_FOLDER'],  config.BASE_DIR )
     xlr = os.path.join( base_dir, config.TPL_DIR, (file + '.xlsx'))
-    xlw = os.path.join( base_dir, config.REPORT_DIR , (file + '_%s.xlsx' % ( mnt )))
+    xlw = os.path.join( base_dir, config.REPORT_DIR , (file + '_0%s.xlsx' % ( mnt )))
     #year = date.today().isocalendar()[0]
     period = 'За %s %s года' % (config.MONTHS[mnt-1], year)
     
@@ -62,9 +62,10 @@ def make_report(year, month, app_cfg):
         color='FF000000')
     total_font = Font(name='Arial', size=13, bold=True)
     
-    qonn = psycopg2.connect("dbname=prive user=postgres password=boruh")
-    qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    
+    #qonn = psycopg2.connect("dbname=prive user=postgres password=boruh")
+    db = psycopg2.connect(app_cfg['DB_CONF'])
+    qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+
     
     # begin from 6 string
     rowXls = 6
@@ -97,6 +98,6 @@ def make_report(year, month, app_cfg):
     wb.save(xlw)
     wb.close()
     qurs.close()
-    qonn.close()
+    db.close()
     
     return xlw

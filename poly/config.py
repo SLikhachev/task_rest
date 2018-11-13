@@ -5,6 +5,7 @@ class BaseConfig(object):
     SECRET_KEY = 'A random secret key'
     DEBUG = True
     TESTING = False
+    MO_CODE = ['228', '229']
     NEW_CONFIG_VARIABLE = 'my value'
     DATA_FOLDER = 'data'
     LOGGING_FOLDER = 'logging'
@@ -26,7 +27,7 @@ class DevelopConfig(BaseConfig):
     TESTING = True
     SECRET_KEY = 'Another random secret key'
     DB_NAME = 'prive'
-    DB_USER = 'postgrest'
+    DB_USER = 'postgres'
     DB_PASS = 'boruh'
 
 

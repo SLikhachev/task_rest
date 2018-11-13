@@ -13,4 +13,4 @@ app = create_app(STATIC_DIR)
 
 if __name__ == "__main__":
     #app = create_app()
-    app.run(debug=True)
+    app.run(debug=True, port=8787)

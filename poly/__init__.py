@@ -1,6 +1,6 @@
 import os
 import logging
-import psycopg2
+#import psycopg2
 from flask import Flask
 from poly.config import DevelopConfig
 
@@ -29,8 +29,10 @@ def create_app(static_dir, config_class=DevelopConfig):
     app.logger.addHandler(file_handler)
     app.logger.addHandler(console_handler)
 
-    db_conf = f'dbname={app.config["DB_NAME"]} user={app.config["DB_USER"]} password={app.config["DB_PASS"]}'
-    app.config.db = psycopg2.connect(db_conf)
+    app.config['DB_CONF'] = 'dbname=%s user=%s password=%s' % (
+        app.config['DB_NAME'], app.config['DB_USER'], app.config['DB_PASS']
+    )
+    #app.config.db = psycopg2.connect(db_conf)
        
     from poly.utils import bp as utils_bp
     app.register_blueprint(utils_bp)
@@ -38,7 +40,7 @@ def create_app(static_dir, config_class=DevelopConfig):
     from poly.report import bp as report_bp
     app.register_blueprint(report_bp)
 
-    from poly.reestr import bp as resstr_bp
+    from poly.reestr import bp as reestr_bp
     app.register_blueprint(reestr_bp)
     #from poly.clinic import bp as clinic_bp
     #app.register_blueprint(clinic_bp)
