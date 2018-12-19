@@ -1,0 +1,7 @@
+app.logger writes to static/loggong/my_log.txt
+
+dont starts case of psycopg2 in global site packages
+flask_conf.bat
+--next
+runs.bat
+

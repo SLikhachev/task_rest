@@ -44,7 +44,7 @@ class Report(object):
 
     RR_INSURERS = 'SELECT DISTINCT c_insur FROM %s'
 
-    STOM_PROF = '85'
+    STOM_PROF = '(85, 86, 87, 88, 89, 90)'
 
     def __init__(self, rr_table):
 
@@ -69,8 +69,8 @@ class Report(object):
         # ambulance
         _pers = 'SELECT COUNT (*) FROM ( SELECT DISTINCT card FROM %s ' % rr_table
         _oms = ' WHERE ist_fin=1 '
-        _no_stom = ' AND profil <> %s ' % self.stom_prof
-        _stom = ' AND profil = %s ' % self.stom_prof
+        _no_stom = ' AND profil NOT IN %s ' % self.stom_prof
+        _stom = ' AND profil IN %s ' % self.stom_prof
         _vpol = ' AND q_u = 2 '
         _vstac = ' AND q_u = 3 '
         _ins = ' AND c_insur = %s '
@@ -155,6 +155,7 @@ class FillReportTable(Report):
             self.stom = True
         else:
             self.stom = False
+        #self.app.logger.debug(' stom is %s' % self.stom)
         if self.check_table(self.rr_table):
             self.report_insur_list = self.get_insur_list(self.report_insurers, int(self.year), self.month)
             self.rr_insur_list = self.get_insur_list(self.rr_insurers)
@@ -177,7 +178,7 @@ class FillReportTable(Report):
         uet_rs = (uetq % self.rs_table) + where
 
         _pers = '''SELECT nusl FROM %s 
-            WHERE ist_fin=1 AND profil = %s ''' % (self.rr_table, self.stom_prof)
+            WHERE ist_fin=1 AND profil IN %s ''' % (self.rr_table, self.stom_prof)
 
         if insurer is not None:
             pers = _pers + 'AND c_insur = %s'
@@ -198,7 +199,7 @@ class FillReportTable(Report):
                 uet += urp
             if urs:
                 uet += urs
-
+        #self.app.logger.debug(' stom: insur=%s uet=%s' % ( insurer, uet) )
         #qurs.close()
         return uet
 
@@ -349,10 +350,15 @@ class FillReportTable(Report):
         if not self.write:
             return "Рассчитана поликлиника "
         if self.total in self.report_insur_list:
+            #UPD_TOTAL = '''UPDATE p146_report SET
+            #pol_ambul_visits=%s, pol_stac_visits=%s, pol_stom_uet=%s, 
+            #pol_ambul_persons=%s, pol_stac_persons=%s, pol_stom_persons=%s 
+            #WHERE this_year=%s AND this_month=%s AND insurer=%s;'''
             try:
-                self._qurs.execute(self.upd_total, (total_vpol, total_pers_vpol,
-                        total_stac, total_pers_stac, total_uet, total_pers_stom,
-                        self.year, self.month, self.total))
+                self._qurs.execute(self.upd_total, (
+                    total_vpol, total_stac, total_uet,
+                    total_pers_vpol, total_pers_stac, total_pers_stom,
+                    self.year, self.month, self.total))
                 self.db.commit()
                 # pass
             except Exception as e:
