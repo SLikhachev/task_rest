@@ -59,15 +59,15 @@ class MakeReport(Resource):
                 if test > 0:
                     msg = 'Тестовый режим '
                 if errors > 0:
-                    msg += 'обнаружено ошибок %s' % errors
+                    msg += 'обнаружено ошибок %s (игнорируем) ' % errors
                 msg += 'обработано записей %s' % rc
                 
-                if test > 0 or errors > 0:
+                if test > 0: #or errors > 0:
                     os.remove(up_file)
                     return self.result(filename, msg, False), current_app.config['CORS']
                 
                 report = make_report(year, month, current_app.config)
-                msg = 'Обработан файл %s Записей %s' % (filename, rc)
+                msg = 'Обработан файл %s Записей %s Ошибок %s (игнорируем)' % (filename, rc, errors)
                 os.remove(up_file)
                 #files.close()
                 
