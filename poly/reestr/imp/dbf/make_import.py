@@ -2,7 +2,7 @@ import sys
 import pyodbc
 import psycopg2
 #from datetime import date
-from poly.reestr.imp.reestr import config
+from poly.reestr.imp.dbf import config
 
 
 def dbf_to_sql (app, dbf_dir, dbf_file, month, year, test):
@@ -67,7 +67,7 @@ def dbf_to_sql (app, dbf_dir, dbf_file, month, year, test):
 
     for r in curs.execute(select_dbf % dbf_file):
         wc += 1
-        vv = []
+        vv = ['default']
         for i, v in enumerate(r):
             if v is None:
                 vq = 'NULL'
@@ -94,6 +94,7 @@ def dbf_to_sql (app, dbf_dir, dbf_file, month, year, test):
             app.logger.debug( 'Err: %s' % e)
             if not test:
                 db.rollback()
+            #break    
 
     db.commit()
     qurs.close()

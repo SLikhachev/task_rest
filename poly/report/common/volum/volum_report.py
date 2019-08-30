@@ -39,7 +39,7 @@ def make_report(app, db, month, year):
         strike=False,
         color='FF000000')
     total_font = Font(name='Arial', size=14, bold=True)
-    c = ws['F2']
+    c = ws['G2']
     c.value = period
     c.font = total_font
 

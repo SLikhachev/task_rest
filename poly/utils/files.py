@@ -11,6 +11,10 @@ from flask_restful import Resource
 from werkzeug import secure_filename
 from poly.utils.uploadfile import uploadfile
 
+def allowed_file(filename, config):
+        return '.' in filename and \
+            filename.rsplit('.', 1)[1].lower() in config['ALLOWED_EXTENSIONS']
+
 """
 def create_thumbnail(image):
     try:

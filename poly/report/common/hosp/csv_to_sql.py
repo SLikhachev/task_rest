@@ -23,18 +23,37 @@ def csv_to_sql(csv_file, csvClass, test=1, clear=False, logger=None):
         lines = csv.reader(csvfile, delimiter=';', quotechar='"')
         cd = 5
         rc = 0
+        wc = 0
+        start = True
         for ln in lines:
-            #data = '%s%s' % (insert, procClass.getData(ln) ) 
-            data = procClass.getData(ln)
-            if data is None:
+            if start: # ignore first line
+                start = False
                 continue
+            #data = '%s%s' % (insert, procClass.getData(ln) ) 
+            rc += 1
+            try:
+                data = procClass.getData(ln)
+                print('rec %s' % rc, end='\r' )
+                if data is None:
+                    s = f'None string num {rc}'
+                    if logger:
+                        logger.debug(s)
+                    else:
+                        print(s)
+                    continue
+            except Exception as e:
+                if logger:
+                    logger.debug(s)
+                else:
+                    print(s)
+            
             if test > 0:
-                rc += 1
+                #rc += 1
                 #print (data);
                 
-                cd -= 1
-                if cd == 0:
-                    break
+                #cd -= 1
+                #if cd == 0:
+                #    break
                 
                 #print (' -- rows -- %s' % rc, end="\r" )
                 continue
@@ -42,7 +61,7 @@ def csv_to_sql(csv_file, csvClass, test=1, clear=False, logger=None):
             try:
                 qur.execute(insert, data)
                 qonn.commit()
-                rc += qur.rowcount
+                wc += qur.rowcount
                 #print (' -- rows -- %s' % rc, end="\r" )
             except Exception as e:
                 qonn.rollback()
@@ -55,7 +74,7 @@ def csv_to_sql(csv_file, csvClass, test=1, clear=False, logger=None):
     procClass.close()
     qonn.close()
     
-    return test, rc, errors
+    return test, rc, wc, errors
     
     #sys.exit()
     

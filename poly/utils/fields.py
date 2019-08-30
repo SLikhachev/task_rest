@@ -1,7 +1,7 @@
 from datetime import date
 
 
-def month_filed(val):
+def month_field(val):
     if val != '':
         try:
             dm = [int(s) for s in val.split('-')]

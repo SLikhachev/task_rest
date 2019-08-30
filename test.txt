@@ -1,0 +1,13 @@
+
+
+static
+http://localhost:8787/static/data/volum/tpl/volumes.xlsx
+
+http://localhost:8787/utils/listdir/hosp/csv
+
+test
+http://localhost:8787/utils/test
+
+# GET DELETE 
+http://localhost:8787/utils/file/hosp/report/test.txt
+

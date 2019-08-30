@@ -9,7 +9,8 @@ RR_FLOAT = []
 
 CREATE_RR = '''
 CREATE TABLE IF NOT EXISTS rr%s (
-    nusl int PRIMARY KEY,
+    id serial PRIMARY KEY,
+    nusl int,
     card int NOT NULL,
     fam varchar(32) NOT NULL,
     imya varchar(32),
@@ -77,11 +78,18 @@ CREATE TABLE IF NOT EXISTS rr%s (
     dr_p date, 
     dost_p varchar(15),
     mr varchar(127),
-    i_type smallint
+    i_type smallint,
+    code char(3),
+    tarif numeric(10,2),
+    para numeric(8,2),
+    stom numeric(8,2),
+    foms_price numeric(8,2)
+    
 )
 '''
 CREATE_RP = '''
 CREATE TABLE IF NOT EXISTS rp%s (
+    id serial PRIMARY KEY,
     nusl int NOT NULL,
     code_usl varchar(7),
     kol_usl smallint DEFAULT 1,
@@ -94,7 +102,8 @@ CREATE TABLE IF NOT EXISTS rp%s (
     prvs varchar(9),
     iddokt varchar(17),
     profil smallint,
-    code_nom	varchar(15)
+    code_nom	varchar(15),
+    price numeric(8,2)
 )
 '''
 CREATE_IND_RP = '''
@@ -105,6 +114,7 @@ RP_FLOAT = [4]
 
 CREATE_RS= '''
 CREATE TABLE IF NOT EXISTS rs%s (
+    id serial PRIMARY KEY,
     nusl int NOT NULL,
     code_usl varchar(8),
     zub char(3),
@@ -115,7 +125,8 @@ CREATE TABLE IF NOT EXISTS rs%s (
     lpu	varchar(7),
     prvs varchar(9),
     iddokt	varchar(16),
-    profil smallint
+    profil smallint,
+    uet numeric(5,2)
 )
 '''
 RS_INT = [ 1, 4, 11]

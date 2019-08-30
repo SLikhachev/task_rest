@@ -4,10 +4,10 @@ from datetime import datetime
 from flask import request, current_app
 from werkzeug import secure_filename
 from flask_restful import Resource
-from poly.utils.fields import month_filed
-from poly.reestr.imp.reestr.make_import import dbf_to_sql as to_sql
+from poly.utils.fields import month_field
+from poly.reestr.imp.dbf.make_import import dbf_to_sql as to_sql
 
-class ImportReestr(Resource):
+class ImportDbf(Resource):
 
     def result(self, filename, message, detail=None):
         return dict(
@@ -25,7 +25,7 @@ class ImportReestr(Resource):
         time1 = datetime.now()
 
         tst = request.form.get('test', None)
-        year, month = month_filed( request.form.get('month', '') )
+        year, month = month_field( request.form.get('month', '') )
 
         files = request.files.get('file', None)
         if files is None:

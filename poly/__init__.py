@@ -1,15 +1,17 @@
 import os
 import logging
-#import psycopg2
+import psycopg2
 from flask import Flask
-from poly.config import DevelopConfig
+#from poly.config import DevelopConfig
+#from poly.config import Lpu228Config as Config
+from poly.config import Lpu796Config as Config
 
 # without Blueprint and factory
 #app = Flask(__name__)
 #import poly.clinic.views
 
 # with Blueprint and factory
-def create_app(static_dir, config_class=DevelopConfig):
+def create_app(static_dir, config_class=Config):
 
     app = Flask(__name__)
     #print(config_class.IGNORED_FILES)
@@ -32,7 +34,7 @@ def create_app(static_dir, config_class=DevelopConfig):
     app.config['DB_CONF'] = 'dbname=%s user=%s password=%s' % (
         app.config['DB_NAME'], app.config['DB_USER'], app.config['DB_PASS']
     )
-    #app.config.db = psycopg2.connect(db_conf)
+    app.config.db = lambda: psycopg2.connect(app.config['DB_CONF'])
        
     from poly.utils import bp as utils_bp
     app.register_blueprint(utils_bp)

@@ -1,4 +1,5 @@
 from . import hosp_config as config
+#import hosp_config as config # for test
 from datetime import date
 
 class HospEir:

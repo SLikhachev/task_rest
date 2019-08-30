@@ -4,6 +4,11 @@ from flask_restful import Api
 bp = Blueprint('utils', __name__, url_prefix='/utils')
 api = Api(bp)
 
+from poly.utils.test import Test
+# GET /utils/test
+api.add_resource(Test, '/test', endpoint='test')
+
+
 from poly.utils.files import ListDir, TakeFile
 # GET /utils/files/listdir/hosp/csv
 api.add_resource(ListDir, '/listdir/<path:dir>/<path:subdir>', endpoint='list_dir')

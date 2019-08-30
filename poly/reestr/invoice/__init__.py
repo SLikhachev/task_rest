@@ -15,7 +15,3 @@ api.add_resource(xml_pack.MakeXml, '/xml/pack', endpoint='xml_pack')
 # parce vmxml pack
 from poly.reestr.xml.vmx import task as vmx_pars
 api.add_resource(vmx_pars.XmlVmx, '/xml/vmx', endpoint='vmx_pars')
-
-# import/export BARS invoice
-from poly.reestr.invoice.impex import task as inv_impex
-api.add_resource(inv_impex.InvImpex, '/inv/impex', endpoint='inv_impex')

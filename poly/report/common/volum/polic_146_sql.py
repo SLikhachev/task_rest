@@ -19,18 +19,27 @@ class Report(object):
     UPD_AMBUL = '''UPDATE p146_report SET
             pol_ambul_visits=%s, pol_ambul_persons=%s   
             WHERE this_year=%s AND this_month=%s AND insurer=%s;'''
+    
+    INS_PROF = '''INSERT INTO p146_report
+            (this_year, this_month, insurer, pol_prof_visits, pol_prof_persons)   
+            VALUES (%s, %s, %s, %s, %s)'''
+    UPD_PROF = '''UPDATE p146_report SET
+            pol_prof_visits=%s, pol_prof_persons=%s   
+            WHERE this_year=%s AND this_month=%s AND insurer=%s;'''
+    
     UPD_STAC = '''UPDATE p146_report SET pol_stac_visits=%s, pol_stac_persons=%s 
             WHERE this_year=%s AND this_month=%s AND insurer=%s;'''
     UPD_STOM = '''UPDATE p146_report SET pol_stom_uet=%s, pol_stom_persons=%s 
             WHERE this_year=%s AND this_month=%s AND insurer=%s;'''
+    
     INS_TOTAL = '''INSERT INTO p146_report 
             (this_year, this_month, insurer, 
-            pol_ambul_visits, pol_stac_visits, pol_stom_uet, 
-            pol_ambul_persons, pol_stac_persons, pol_stom_persons) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'''
+            pol_ambul_visits, pol_prof_visits, pol_stac_visits, pol_stom_uet, 
+            pol_ambul_persons, pol_prof_persons, pol_stac_persons, pol_stom_persons) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
     UPD_TOTAL = '''UPDATE p146_report SET
-            pol_ambul_visits=%s, pol_stac_visits=%s, pol_stom_uet=%s, 
-            pol_ambul_persons=%s, pol_stac_persons=%s, pol_stom_persons=%s 
+            pol_ambul_visits=%s, pol_prof_visits=%s, pol_stac_visits=%s, pol_stom_uet=%s, 
+            pol_ambul_persons=%s, pol_prof_persons=%s, pol_stac_persons=%s, pol_stom_persons=%s 
             WHERE this_year=%s AND this_month=%s AND insurer=%s;'''
 
     INS_TRAVMA = '''INSERT INTO p146_report
@@ -53,6 +62,9 @@ class Report(object):
         self.ins_ambul = Report.INS_AMBUL
         self.upd_ambul = Report.UPD_AMBUL
 
+        self.upd_prof = Report.UPD_PROF
+        self.ins_prof = Report.INS_PROF
+
         self.ins_travm = Report.INS_TRAVMA
         self.upd_travm = Report.UPD_TRAVMA
 
@@ -72,6 +84,8 @@ class Report(object):
         _no_stom = ' AND profil NOT IN %s ' % self.stom_prof
         _stom = ' AND profil IN %s ' % self.stom_prof
         _vpol = ' AND q_u = 2 '
+        _ambul = ' AND purp <> 21 '
+        _prof = ' AND purp = 21 '
         _vstac = ' AND q_u = 3 '
         _ins = ' AND c_insur = %s '
         #_ins_not = ' AND c_insur IS NOT NULL '
@@ -81,9 +95,14 @@ class Report(object):
         _viz_travm = 'SELECT SUM(visit_pol) AS vpol FROM %s ' % rr_table
 
         # persons and vizit to polic with def insurer
-        self.pers_vpol = _pers + _oms + _no_stom + _vpol + _ins +') AS pambul'
-        self.viz_vpol = _viz_pol + _oms + _no_stom + _vpol +_ins
+        self.pers_vpol = _pers + _oms + _no_stom + _vpol + _ambul + _ins +') AS pambul'
+        self.viz_vpol = _viz_pol + _oms + _no_stom + _vpol +_ambul + _ins
 
+        # persons and vizit to profosmotr with def insurer
+        self.pers_prof = _pers + _oms + _no_stom + _vpol + _prof + _ins +') AS pambul'
+        self.viz_prof = _viz_pol + _oms + _no_stom + _vpol + _prof + _ins
+ 
+        # persons and vizit to travma with def insurer
         self.pers_travm = _pers + _oms + _ins + ') AS ptravm'
         self.viz_travm = _viz_travm + _oms + _ins
 
@@ -192,9 +211,15 @@ class FillReportTable(Report):
         for r in rr:
             nusl = r[0]
             self.qurs.execute(uet_rp, (nusl,))
-            urp = float( self.qurs.fetchone()[0] )
+            try:
+                urp = float( self.qurs.fetchone()[0] )
+            except Exception as e:
+                urp = 0.0
             self.qurs.execute(uet_rs, (nusl,))
-            urs = float( self.qurs.fetchone()[0] )
+            try:
+                urs = float( self.qurs.fetchone()[0] )
+            except Exception as e:
+                urp = 0.0
             if urp:
                 uet += urp
             if urs:
@@ -203,11 +228,23 @@ class FillReportTable(Report):
         #qurs.close()
         return uet
 
-    def set_ambul(self, insurer):
+    def set_ambul_prof(self, insurer, prof=False):
+        # prof 
+        if prof:
+            q_pers= self.pers_prof
+            q_viz= self.viz_prof
+            q_upd=self.upd_prof
+            q_ins=self.ins_prof
         # ambulance
-        self._qurs.execute(self.pers_vpol, (insurer,))
+        else:
+            q_pers= self.pers_vpol
+            q_viz= self.viz_vpol
+            q_upd=self.upd_ambul
+            q_ins=self.ins_ambul
+            
+        self._qurs.execute(q_pers, (insurer,))
         pers = self._qurs.fetchone()[0]
-        self.qurs.execute(self.viz_vpol, (insurer,))
+        self.qurs.execute(q_viz, (insurer,))
         v = self.qurs.fetchone()
 
         pol = v.pol or 0
@@ -221,19 +258,19 @@ class FillReportTable(Report):
         if insurer in self.report_insur_list:
             # first record either inserted or updated (if exists), other update only
             try:
-                self._qurs.execute(self.upd_ambul, (viz, pers, self.year, self.month, insurer))
+                self._qurs.execute(q_upd, (viz, pers, self.year, self.month, insurer))
                 self.db.commit()
                 # pass
             except Exception as e:
-                self.app.logger.error('set ambul db error %s' % e)
+                self.app.logger.error('set ambul/prof db error %s' % e)
                 self.db.rollback()
                 #sys.exit()
         else:
             try:
-                self._qurs.execute(self.ins_ambul, (self.year, self.month, insurer, viz, pers))
+                self._qurs.execute(q_ins, (self.year, self.month, insurer, viz, pers))
                 self.db.commit()
             except Exception as e:
-                self.app.logger.error('set ambul db error %s' % e)
+                self.app.logger.error('set ambul/prof db error %s' % e)
                 self.db.rollback()
                 #sys.exit()
 
@@ -295,6 +332,7 @@ class FillReportTable(Report):
 
     def set_stom(self, insurer):
         # stomatolog
+        #print(self.pers_stom)
         self._qurs.execute(self.pers_stom, (insurer,))
         pers = self._qurs.fetchone()[0]
         #total_pers_stom += pers
@@ -316,6 +354,9 @@ class FillReportTable(Report):
         total_pers_vpol = 0
         total_vpol = 0
 
+        total_pers_prof = 0    
+        total_prof = 0
+
         total_pers_stac = 0
         total_stac = 0
 
@@ -324,10 +365,14 @@ class FillReportTable(Report):
         
         for ico in self.rr_insur_list:
             insurer = ico
-            viz, pers = self.set_ambul(insurer)
+            viz, pers = self.set_ambul_prof(insurer)
             total_pers_vpol += pers
             total_vpol += viz
-
+            
+            viz, pers = self.set_ambul_prof(insurer, prof=True)
+            total_pers_prof += pers
+            total_prof += viz
+            
             if self.stac:
                 days, pers = self.set_stac(insurer)
                 total_pers_stac += pers
@@ -351,13 +396,13 @@ class FillReportTable(Report):
             return "Рассчитана поликлиника "
         if self.total in self.report_insur_list:
             #UPD_TOTAL = '''UPDATE p146_report SET
-            #pol_ambul_visits=%s, pol_stac_visits=%s, pol_stom_uet=%s, 
-            #pol_ambul_persons=%s, pol_stac_persons=%s, pol_stom_persons=%s 
+            #pol_ambul_visits=%s, pol_prof_visits=%s, pol_stac_visits=%s, pol_stom_uet=%s, 
+            #pol_ambul_persons=%s, pol_prof_persons=%s, pol_stac_persons=%s, pol_stom_persons=%s 
             #WHERE this_year=%s AND this_month=%s AND insurer=%s;'''
             try:
                 self._qurs.execute(self.upd_total, (
-                    total_vpol, total_stac, total_uet,
-                    total_pers_vpol, total_pers_stac, total_pers_stom,
+                    total_vpol, total_prof, total_stac, total_uet,
+                    total_pers_vpol, total_pers_prof, total_pers_stac, total_pers_stom,
                     self.year, self.month, self.total))
                 self.db.commit()
                 # pass
@@ -369,8 +414,8 @@ class FillReportTable(Report):
             try:
                  self._qurs.execute(self.ins_total,
                     (self.year, self.month, self.total,
-                     total_vpol, total_stac, total_uet,
-                     total_pers_vpol, total_pers_stac, total_pers_stom)
+                     total_vpol, total_prof, total_stac, total_uet,
+                     total_pers_vpol, total_pers_prof, total_pers_stac, total_pers_stom)
                   )
                  self.db.commit()
             except Exception as e:
