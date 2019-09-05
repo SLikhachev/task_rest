@@ -13,6 +13,10 @@ from poly.reestr.xml.pack.xml_class.utils import DataObject
 
 class HmData(DataObject):
     
+    PROF= (21, 22)
+    STOM= (85, 86, 87, 88, 89, 90)
+    SESTRY= (82, 83)
+
     def __init__(self, ntuple):
         super().__init__(ntuple)
         self.smo= f'250{self.smo}'
@@ -33,16 +37,35 @@ class HmData(DataObject):
     def _os_sluch(self):
         if self.ot is None:
             self.os_sluch = 2
+        
+    def __idsp(self):
+        # neotl
+        if self.for_pom == 2:
+            return 29
+        #stom
+        if self.profil in HmData.STOM:
+            # stom inokray
+            if self.smo == 0:
+                if (self.visit_pol + self.visit_hom) == 1:
+                    return 29
+                return 30
+            # just stom
+            return 28
+        # prof
+        if self.purp in HmData.PROF or ( self.smo == 0 and self.profil in HmData.SESTRY ):
+            return 28
+        # day stac
+        if self.usl_ok == 2:
+            return 33
+        # pocesh
+        if (self.visit_pol + self.visit_hom) == 1:
+            return 29
+        # obrash
+        return 30
 
     def _idsp(self):
-        if self.usl_ok == 3:
-            if (self.visit_pol + self.visit_hom) == 1:
-                self.idsp = 29
-            else:
-                self.idsp = 30
-        else:
-            self.idsp = 33
-
+        self.idsp= self.__idsp()
+    
     def _pcel(self):
         def pcel(for_pom, purp):
             if for_pom == 2:
@@ -65,7 +88,7 @@ class HmData(DataObject):
     def _vidpom(self):
         if self.profil in (78, 82):
             self.vidpom = 11
-        elif self.prvs in (76) and self.profil in (97, 160):
+        elif self.prvs in (76, ) and self.profil in (97, 160):
             self.vidpom = 12
         else:
             self.vidpom = 13

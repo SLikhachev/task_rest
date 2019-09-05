@@ -19,3 +19,7 @@ api.add_resource(vmx_pars.XmlVmx, '/xml/vmx', endpoint='vmx_pars')
 # import/export BARS invoice
 from poly.reestr.invoice.impex import task as inv_impex
 api.add_resource(inv_impex.InvImpex, '/inv/impex', endpoint='inv_impex')
+
+# calculate reestr ourselves
+from poly.reestr.invoice.calc import task as inv_calc
+api.add_resource(inv_calc.InvCalc, '/inv/calc', endpoint='inv_calc')

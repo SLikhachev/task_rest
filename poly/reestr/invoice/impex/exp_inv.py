@@ -9,6 +9,29 @@ from openpyxl.compat import range
 from openpyxl.styles import Border, Side, colors
 from poly.reestr.invoice.impex import config
 
+def get_mo_smo_name(app, qurs, smo, cfg):
+    
+    mo_code= app.config['MO_CODE'][0] 
+    qurs.execute(cfg.GET_MO_NAME, ( mo_code, ) )
+    mq= qurs.fetchone()
+    if mq:
+        mo_name= mq[0]
+    else:
+        mo_name= cfg.STUB_MO
+    if len(smo) > 0:
+        ins= 250000 + int(smo)
+        qurs.execute(cfg.GET_SMO_NAME, ( ins, ))
+        mq= qurs.fetchone()
+        if mq:
+            smo_name=  mq[0]
+        else:
+            smo_name= cfg.STUB_SMO
+    else:
+        smo_name= ''
+    
+    return mo_name, smo_name
+    
+
 def extract(row):
     d = [ '' for i in range(20)]
     d[0] = row.nhistory
@@ -74,12 +97,13 @@ def for_foms(dex, rc):
 
     return d
 
-def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path: str ) -> (int, str):
+def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path: str, is_calc='' ) -> (int, str):
     
     # insurer: string ( 11, 16 )
     # month: string 01-12
-    # typ: 1-4
+    # typ: 1-5
     # inv_path: string path to
+    # is_calc: str if non empty then calculatede reestr
     
     m= int(month)
     
@@ -88,7 +112,7 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     #m_2 = '{0:02d}'.format( m+1 )
     
     tpl= config.TYPE[typ-1][2]
-    _data= config.GET_INV_ROW
+    _data= config.GET_ROW_BARS if len(is_calc) == 0 else config.GET_ROW_MO
     
     qonn= app.config.db()
     qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
@@ -98,25 +122,9 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     xtpl = f'{tpl}.xlsx'
     xlr = os.path.join(inv_path, 'tpl', xtpl)   
     
-    mo_code= app.config['MO_CODE'][0] 
-    qurs.execute(config.GET_MO_NAME, ( mo_code, ) )
-    mq= qurs.fetchone()
-    if mq:
-        mo_name= mq[0]
-    else:
-        mo_name= config.STUB_MO
-    if len(insurer) > 0:
-        ins= 250000 + int(insurer)
-        qurs.execute(config.GET_SMO_NAME, ( ins, ))
-        mq= qurs.fetchone()
-        if mq:
-            smo_name=  mq[0]
-        else:
-            smo_name= config.STUB_SMO
-    else:
-        smo_name= ''
+    mo_name, smo_name = get_mo_smo_name(app, qurs, insurer, config)
     
-    xout = f'{tpl}_0{insurer}_{month}-{yar}.xlsx'
+    xout = f'{tpl}{is_calc}_0{insurer}_{month}-{yar}.xlsx'
     xlw = os.path.join(inv_path, xout)   
     #year = '%s' % date.today().isocalendar()[0]
     #y = year[3]

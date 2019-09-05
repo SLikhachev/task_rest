@@ -6,6 +6,7 @@ from werkzeug import secure_filename
 from flask_restful import Resource
 from poly.reestr.invoice.impex.imp_inv import imp_inv
 from poly.reestr.invoice.impex.exp_inv import exp_inv
+from poly.reestr.invoice.impex.correct_ins import correct_ins
 from poly.reestr.invoice.impex import config 
 from poly.utils.files import allowed_file
 
@@ -43,8 +44,10 @@ class InvImpex(Resource):
                 if len(res) == 1:
                     current_app.logger.debug( config.FAIL[ abs( res[0] ) ] )
                     return self.result( '', config.FAIL[ abs( res[0] ) ], False), current_app.config['CORS']
-                
                 rc, smo, mon, yar= res 
+                
+                dc= correct_ins(current_app, smo)
+                
                 wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)
             except Exception as e:
                 raise e
@@ -53,7 +56,7 @@ class InvImpex(Resource):
                 
             time2 = datetime.now()
             #msg = f'Счет {filename} Записей считано {rc}. Время: {(time2-time1)}'
-            msg = f'Счет {filename} Записей в счете {rc}, записей в реестре {wc}. Время: {(time2-time1)}'
+            msg = f'Счет {filename} Записей в счете {rc}, записей в реестре {wc}. Corr: {dc[0]}.  Время: {(time2-time1)}'
             os.remove(up_file)
             #files.close()
                 

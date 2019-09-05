@@ -76,7 +76,7 @@ class TagMix:
                 if tag in self.cnt:
                     val = self.next_item()
                 elif tag in self.required:
-                    raise AttributeError(f'Absent required Tag {tag}')
+                    raise AttributeError(f'Нет тега: {tag} в талоне: {obj.idcase}')
                 else:
                     return None
 

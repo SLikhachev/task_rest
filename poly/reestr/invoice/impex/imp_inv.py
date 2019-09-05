@@ -20,28 +20,10 @@ sn= types.SimpleNamespace(
         ))
     ),
     
-    zapq= '''INSERT INTO invoice (
-        "n_zap", "id_pac", "spolis", "npolis",
-        "usl_ok", "vidpom", "for_pom", "date_z_1", "date_z_2", "rslt", "ishod",
-        "profil", "nhistory", "ds1", "prvs",
-        "idsp", "sumv", "sank_it"
-    ) VALUES (
-        %s, %s, %s, %s,
-        %s, %s, %s, %s, %s, %s, %s,
-        %s, %s, %s, %s,
-        %s, %s, %s
-    )''',
-    
     pers= ( 'id_pac', 'fam', 'im', 'ot', 'w', 'dr'),
-    
-    persq= 'UPDATE invoice SET fam=%s, im=%s, ot=%s, w=%s, dr=%s WHERE id_pac=%s;',
 
-    trunc_inv= 'TRUNCATE TABLE invoice;',
-    trunc_meta= 'TRUNCATE TABLE invoice_meta;',
-    count= 'SELECT count(n_zap) FROM invoice;',
-    
     zp_tags = ('ZAP', 'PERS',),
-    
+
     meta= {}
  )
 
@@ -63,11 +45,11 @@ def get_zp(elem: ET.Element, tags: tuple, rec: list) -> None:
 def set_zp(rec: list, upd: str) -> None:
     global sn
     if upd == 'ZAP':
-        sn.qurs.execute(sn.zapq, rec)
+        sn.qurs.execute(config.INS_BARS, rec)
     else:
         # first el is id_pac
         rec.append( rec.pop(0) )        
-        sn.qurs.execute(sn.persq, rec)
+        sn.qurs.execute(config.PERSQ, rec)
 
 def zp_xml(xml: str, tags: tuple) -> None:
     global sn
@@ -120,7 +102,7 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
     _hm= ''
     with ZipFile(file) as zfile:
         for nz in zfile.namelist():
-            if nz.startswith('HM') or nz.startswith('CM'):
+            if nz.startswith('HM') or nz.startswith('CM') or nz.startswith('DOM'):
                 
                 #get_meta(current_app, nz, typ)
                 if not get_meta(app, nz, typ):
@@ -128,10 +110,11 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
                 
                 zfile.extract(nz)
                 _hm= nz
-                if nz[0] == 'H':
-                    _lm= nz.replace('H', 'L')
+                c= nz[0]
+                if c in('H', 'D'):
+                    _lm= nz.replace(c, 'L')
                 else:
-                    _lm= nz.replace('CM', 'LCM')
+                    _lm= nz.replace(c, 'LC')
                 zfile.extract(_lm)
 
     if len(_hm) == 0:
@@ -140,8 +123,8 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
     qonn = app.config.db()
     sn.qurs = qonn.cursor()
     #sn.qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    sn.qurs.execute(sn.trunc_inv)
-    sn.qurs.execute(sn.trunc_meta)
+    sn.qurs.execute(config.TRUNC_INV_BARS)
+    #sn.qurs.execute(sn.trunc_meta)
     qonn.commit()
     
     # 2. process files
@@ -150,13 +133,15 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
         zp_xml(f, r)
         qonn.commit()
     
-    sn.qurs.execute(sn.count)
+    sn.qurs.execute(config.COUNT_BARS)
     rc= sn.qurs.fetchone()
     
+    '''
     sn.qurs.execute(config.SET_META, (
         sn.meta['lpu'], sn.meta['smo'], sn.meta['yar'], sn.meta['mon'], sn.meta['typ'])
     )
     qonn.commit()
+    '''
     
     sn.qurs.close()
     qonn.close()

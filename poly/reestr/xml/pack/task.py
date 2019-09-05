@@ -9,11 +9,11 @@ from poly.reestr.xml.pack.sql_xml import make_xml
 
 class MakeXml(Resource):
 
-    def result(self, filename, message, detail=None):
+    def result(self, filename, message, done=False):
         return dict(
             file=filename.split('\\')[-1],
             message=message,
-            detail=detail
+            done=done
         )
     
     def post(self):
@@ -30,10 +30,10 @@ class MakeXml(Resource):
             ph, lm, file = make_xml(current_app, year, month, pack, sent)
         except Exception as e:
             current_app.logger.debug(e)
-            return self.result('', 'PROCESSING ERROR', detail='see log'), current_app.config['CORS']
+            return self.result('', f'Исключение: {e}', False), current_app.config['CORS']
         
         time2 = datetime.now()
         msg = f'Сформировано {ph} PHМ записей, {lm} LM записей время: {(time2 - time1)} '
 
-        return self.result(file, msg, detail=None), current_app.config['CORS']
+        return self.result(file, msg, True), current_app.config['CORS']
 
