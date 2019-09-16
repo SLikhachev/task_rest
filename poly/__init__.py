@@ -3,8 +3,8 @@ import logging
 import psycopg2
 from flask import Flask
 #from poly.config import DevelopConfig
-#from poly.config import Lpu228Config as Config
-from poly.config import Lpu796Config as Config
+from poly.config import Lpu228Config as Config
+#from poly.config import Lpu796Config as Config
 
 # without Blueprint and factory
 #app = Flask(__name__)
