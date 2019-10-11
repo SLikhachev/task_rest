@@ -60,7 +60,12 @@ def extract(row):
     d[16] = price = row.sumv
     #d[17] = row.foms_price
     if row.sank_it:
-        price -= row.sank_it
+        #price -= row.sank_it
+        if price:
+            d[5]= 'МЭК'
+        else:
+            d[5]= 'ХЭК'
+        price= 0.00
     d[17] = price 
     
     d[18] = row.rslt

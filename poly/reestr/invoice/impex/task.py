@@ -45,8 +45,8 @@ class InvImpex(Resource):
                     current_app.logger.debug( config.FAIL[ abs( res[0] ) ] )
                     return self.result( '', config.FAIL[ abs( res[0] ) ], False), current_app.config['CORS']
                 rc, smo, mon, yar= res 
-                if len(smo) > 0:
-                    dc= correct_ins(current_app, smo)
+                if len(smo) > 0:  dc= (0,)
+                    #dc= correct_ins(current_app, smo)
                 else:
                     dc= (0,)
                 wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)

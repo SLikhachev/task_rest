@@ -2,6 +2,7 @@
 #import pyodbc
 #import datetime
 #import json
+from collections import namedtuple
 import psycopg2
 import psycopg2.extras
 import xml.etree.cElementTree as ET
@@ -80,6 +81,7 @@ cmt text
 """
 
 talon= config.GET_TALON % ('talonz_clin', 'cardz_clin') + config.TAL
+Tal=namedtuple('Tal', ('tal_num', 'open_date', 'close_date', 'crd_num', 'fam'))
 
 def get_talon(qurs, tal_num):
     global talon
@@ -88,8 +90,9 @@ def get_talon(qurs, tal_num):
 
 def write_error(qurs, res):
     tal = get_talon(qurs, res[0][0] )
-    if not tal:
-        return None
+    if tal is None:
+        tal= Tal(res[0][0], None, None, '', '')
+        #return None
     for err in res:
         qurs.execute( config.WRITE_ERROR,
             ( tal.tal_num,  tal.open_date, tal.close_date, tal.crd_num, tal.fam, err[2], err[3])
@@ -113,8 +116,8 @@ def to_sql(current_app, file, ignore, errors='ignore'):
             res = process(root, ignore, errors)
             if res is not None:
                 r= write_error(qurs, res)
-                if res:
-                    cnt += 1
+                qonn.commit()
+                cnt += 1
             root.clear()
     
     qonn.commit()
