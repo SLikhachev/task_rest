@@ -41,7 +41,7 @@ class InvCalc(Resource):
             msg = f'Расчет {config.TYPE[typ-1][1]} Записей в в файле {wc}. Время: {(time2-time1)}'
             return self.result(xreestr, msg, True), current_app.config['CORS']
         
-        # reestr 
+        # reestr NOT IMPLEMENTED YET calc_inv returns (-1,)  
         try: 
             res= calc_inv(current_app, mon, int(smo), typ)
             if len(res) == 1:
