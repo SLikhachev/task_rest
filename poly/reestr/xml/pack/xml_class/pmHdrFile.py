@@ -8,10 +8,13 @@ from poly.reestr.xml.pack.xml_class.utils import DataObject
 
 
 class PmData(DataObject):
-    
+    # here we set all params
     def __init__(self, ntuple):
         super().__init__(ntuple)
-        self.type_pay= 1
+        # 1 - invoice
+        # 2 - by soul 
+        self.type_pay= 1 # yet
+        
 """        
     @property
     def type_pay(self):
@@ -26,7 +29,7 @@ class PmUsl(DataObject):
         self.executor= self.fmt_000(mo) + self.fmt_000(self.podr) + self.fmt_000(self.spec)
         self.ex_spec= self.fmt_000(self.npr_mo) + self.fmt_000(self.npr_spec)
 
-
+# posechenue obraschenie 
 class PmUsp(DataObject):
     """ USP
         tal.open_date as date_usl,
@@ -126,6 +129,7 @@ class PmSluch(TagMix):
         else:
             _u = usl_list
         u_list = [ PmUsl(self.mo, u) for u in _u ]
+        # append posesh obrasch codes
         u_list.append( PmUsp(u_list[-1], usp) )
         
         setattr(self, tag, u_list)

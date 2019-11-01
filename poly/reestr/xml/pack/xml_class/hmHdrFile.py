@@ -19,10 +19,40 @@ class HmData(DataObject):
 
     def __init__(self, ntuple):
         super().__init__(ntuple)
-        self.smo= f'250{self.smo}'
+        #self.smo= f'250{self.smo}'
+        """
+        tal.smo as tal_smo, 
+        tal.polis_type,
+        tal.polis_ser,
+        tal.polis_num,
+        tal.smo_okato,
+        
+        crd.smo as smo
+        crd.polis_type as vpolis,
+        crd.polis_num as npolis,
+        crd.polis_ser as spolis,
+        crd.st_okato,
+        crd.smo_ogrn,
+        crd.smo_okato as smo_ok, 
+        crd.smo_name as smo_nam,
+        """
+        # if polis defined in talon then we use it as polis on date
+        if self.polis_type is not None and self.polis_num is not None:
+            
+            self.vpolis= self.polis_type
+            self.npolis= self.polis_num
+            self.spolis= self.polis_ser
+            self.smo= self.tal_smo
+            self.smo_ok= self.smo_okato
+            
         self.npr_mo= f'250{self.npr_mo}'
         self.iddokt= self.iddokt.replace(" ", "-")
-
+        self.for_pom= 2 if bool(self.urgent) else 3
+        #self.os_sluch= 2 if self.dost.find('1') > 0 else None
+        self.pr_nov= 1 if bool(self.mek) else 0
+        self.ishod += self.usl_ok * 100
+        self.rslt += self.usl_ok * 100
+        
         self.calc = (
             self._os_sluch,
             self._idsp,
@@ -184,7 +214,7 @@ class HmZap(TagMix):
         self.stom = None
         self.ksg_kpg = None
         self.sl_id = 1
-        self.pr_nov = 0
+        #self.pr_nov = 0
         self.vers_spec = 'V021'
         self.det = 0
         self.novor= 0
@@ -201,18 +231,18 @@ class HmZap(TagMix):
         
         self.pacient_tags = (
             'id_pac', #tal.crd_num
-            'vpolis', #crd.polis_type
-            'spolis', #crd.polis_ser
-            'npolis', #crd.polis_num
-            'st_okato', #crd.st_okato
-            'smo', # crd.smo
-            'smo_ogrn', #crd.smo_ogrn
-            'smo_ok', #crd.smo_okato
+            'vpolis', #crd.polis_type || tal.polis_type
+            'spolis', #crd.polis_ser || tal.polis_ser
+            'npolis', #crd.polis_num || tal.polis_num
+            'st_okato', #crd.st_okato 
+            'smo', # crd.smo || tal.smo
+            'smo_ogrn', #crd.smo_ogrn 
+            'smo_ok', #crd.smo_okato || tal.smo_okato
             'smo_nam', #crd.smo_name
             'inv', # ignore
             'mse', #ignore
             'novor',
-            'vnov_d', #igmore
+            'vnov_d', #ignore
         )
         
         self.sl_koef_tags = (
@@ -290,7 +320,7 @@ class HmZap(TagMix):
             'idcase', #tal.tal_num
             'usl_ok', #tal.usl_ok
             'vidpom', #vidpom
-            'for_pom', #tal.for_pom
+            'for_pom', # in tal.for_pom only urgent if set
             'npr_mo', #tal.npr_mo
             'npr_date', #tal.npr_date
             'lpu', #self.lpu
@@ -300,7 +330,7 @@ class HmZap(TagMix):
             'vnov_m', #ignore
             'rslt', #tal.rslt
             'ishod', #tal.ishod
-            'os_sluch', # self.os_sluch
+            'os_sluch', # self.os_sluch # d_type = 5 (os_sl= 2)
             'vb_p', # ignore
             ('sl', self.sl_tags), # tuple
             'idsp', #self.idsp

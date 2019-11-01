@@ -34,17 +34,28 @@ SELECT
     tal.close_date as date_2,
     tal.crd_num as card,
     tal.crd_num AS id_pac,
-    tal.smo,
+    
+    tal.mek,
+    
+    tal.smo as tal_smo,
+    tal.polis_type,
+    tal.polis_ser,
+    tal.polis_num,
+    tal.smo_okato,
+    
     tal.doc_spec as specfic,
+    
     tal.purp,
     tal.usl_ok,
-    tal.for_pom,
+    tal.for_pom as urgent,
     tal.rslt,
     tal.ishod,
+    
     tal.visit_pol, 
     tal.visit_home as visit_hom,
+    
     tal.npr_mo,
-    tal.open_date as npr_date,
+    tal.npr_date,
     tal.npr_mo as from_firm,
     tal.naprlech,
     tal.nsndhosp,
@@ -58,6 +69,7 @@ SELECT
     doc.snils as iddokt,
     
 -- PACIENT
+    crd.smo as smo
     crd.polis_type as vpolis,
     crd.polis_num as npolis,
     crd.polis_ser as spolis,
@@ -70,10 +82,11 @@ SELECT
     crd.ot,
     crd.gender as pol,
     crd.birth_date as dr
+    crd.dost as dost
     
         
 FROM
-    talonz_clin as tal, 
+    talonz_clin_%s as tal, 
     cardz_clin as crd, 
     spec_prvs_profil as spec,
     doctor as doc
@@ -86,6 +99,7 @@ WHERE
     tal.talon_month=%s
 order by tal.tal_num; --limit 1
 """
+
 """
 select
 vpom.vidpom, 
@@ -110,14 +124,15 @@ SELECT
     tal.npr_spec,
     tar.tarif as sumv_usl
 FROM
-    para_clin as usl, 
-    talonz_clin as tal,
+    para_clin_%s as usl, 
+    talonz_clin_%s as tal,
     tarifs_pmu_vzaimoras as tar
 WHERE
     tal.tal_num = usl.tal_num AND
     tar.code = usl.code_usl AND
     tal.tal_num=%s
 '''
+
 get_spec_usl = '''
 SELECT
     tal.open_date as date_usl,
@@ -128,7 +143,7 @@ SELECT
     tal.doc_spec as spec,
     tal.doc_code as doc
 FROM
-    talonz_clin as tal, profil as prof, spec_prvs_profil as spp
+    talonz_clin_%s as tal, profil as prof, spec_prvs_profil as spp
 WHERE 
     tal.doc_spec = spp.spec AND
     prof.id = spp.profil AND 

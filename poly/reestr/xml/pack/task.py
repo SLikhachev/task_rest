@@ -23,7 +23,7 @@ class MakeXml(Resource):
         year, month = month_field( request.form.get('month', '') )
         # pack number
         pack = request.form.get('pack', '01')
-        # if sent is None ignore already sent, produce full pack
+        # if SENT is None ignore already sent, produce full pack
         sent = request.form.get('sent', None)
         #current_app.logger.debug(year, month, pack, sent)
         try:

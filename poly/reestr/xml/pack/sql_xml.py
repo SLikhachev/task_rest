@@ -122,6 +122,7 @@ def write_data(mo, year, month, pack, xmldir, qurs, qurs1, stom=False, nusl=None
     for rdata in qurs:
         qurs1.execute(_sql.get_usl, ( rdata.idcase, ) )
         _usl = qurs1.fetchall()
+        # specaial usl for posesh obrasch
         qurs1.execute(_sql.get_spec_usl, (rdata.idcase, ) )
         _usp = qurs1.fetchone()
         _stom= list()
