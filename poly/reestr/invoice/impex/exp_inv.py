@@ -5,7 +5,7 @@ from pathlib import Path
 import psycopg2
 import psycopg2.extras
 from openpyxl import load_workbook
-from openpyxl.compat import range
+#from openpyxl.compat import range
 from openpyxl.styles import Border, Side, colors
 from poly.reestr.invoice.impex import config
 

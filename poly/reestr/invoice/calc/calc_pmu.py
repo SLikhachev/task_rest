@@ -6,7 +6,7 @@ from collections import defaultdict
 import psycopg2
 import psycopg2.extras
 from openpyxl import load_workbook
-from openpyxl.compat import range
+#from openpyxl.compat import range
 from openpyxl.styles import Border, Side, colors
 from poly.reestr.invoice.impex.exp_inv import get_mo_smo_name
 from poly.reestr.invoice.impex import config as imp_cfg

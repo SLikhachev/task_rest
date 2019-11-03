@@ -1,7 +1,7 @@
 import os
 import sys
 from openpyxl import load_workbook
-from openpyxl.compat import range as xls_range
+#from openpyxl.compat import range as xls_range
 from openpyxl.styles import Border, Side, colors, Font
 import psycopg2
 import psycopg2.extras

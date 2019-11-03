@@ -1,8 +1,8 @@
-import os, sys
+import os.path, sys
 import psycopg2
 import psycopg2.extras
 from openpyxl import load_workbook
-from openpyxl.compat import range as xls_range
+#from openpyxl.compat import range as xls_range
 from openpyxl.styles import Border, Side, colors, Font
 #from datetime import date
 from . import hosp_config as config 
