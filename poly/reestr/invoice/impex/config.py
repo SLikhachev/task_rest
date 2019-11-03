@@ -1,7 +1,7 @@
 
 TYPE= (
     ('ambul', 'Амбулаторный', 'reestr_amb'),
-    ('onko' 'Онкология', 'reestr_onk'),
+    ('onko', 'Онкология', 'reestr_onk'),
     ('dsc', 'Дневной стационар', 'reestr_dsc'),
     ('prof', 'Профосмотр', 'reestr_pro'),
     ('foms', 'Инокраевые', 'reestr_foms'),
