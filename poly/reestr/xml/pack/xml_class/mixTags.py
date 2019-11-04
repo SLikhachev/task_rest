@@ -118,7 +118,7 @@ class HdrMix(TagMix):
     def __init__(self, mo, year, month, pack):
         super().__init__(mo)
         self.xmlVer= '<?xml version="1.0" encoding="windows-1251"?>'
-        self.version = '3.2'
+        self.version = '3.1'
         self.lpu= mo
         self.year= f'{year}'
         self.month= month

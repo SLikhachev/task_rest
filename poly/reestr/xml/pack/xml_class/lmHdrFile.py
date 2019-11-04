@@ -38,6 +38,7 @@ class LmHdr(HdrMix):
         self.endTag = '</PERS_LIST>'
         self.filename = self.l_file
         self.filename1 = self.h_file
+        self.version='3.2'
 
         self.zglv_tags= (
             'version',
@@ -54,6 +55,9 @@ class LmPers(TagMix):
     
     def __init__(self, mo):
         super().__init__(mo)
+        self.doc=['doctype', 'docser', 'docdate', 'docorg']
+        # clear doc if empty number
+
         self.uniq= set()
         self.pers_tags = (
             'id_pac',
@@ -74,6 +78,8 @@ class LmPers(TagMix):
             'doctype',
             'docser',
             'docnum',
+            'docdate',
+            'docorg',
             'snils',
             'okatog',
             'okatop',
@@ -88,10 +94,16 @@ class LmPers(TagMix):
         )
         self.pers=('pers', self.pers_tags)
 
+    def clr_doc(self, data):
+        self.doc.map( lambda d: setattr(data, d, None))
+
+
     def get_pers(self, data):
 
         if data.id_pac in self.uniq:
             return None
+        if data.docnum is None:
+            self.clr_doc(data)
 
         self.uniq.add(data.id_pac)
         return self.make_el(self.pers, data)

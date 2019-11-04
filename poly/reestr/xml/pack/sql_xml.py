@@ -87,19 +87,19 @@ def write_pers(data, file, lm):
         file.write('\n')
 
 
-#def write_data(mo, year, month, nusl, pmFile, hmFile, qurs, qurs1, stom=False ):
-def write_data(mo, year, month, pack, xmldir, qurs, qurs1, stom=False, nusl=None ):
+def write_data(mo, year, month, pack, sent, xmldir, qurs, qurs1, stom=False, nusl=None ):
 
-    '''
-    :: String -> String -> String -> String -> Bool -> Int
+    """
     # mo: string(3) head MO code
     # year: string(2) year 2 last digits
     # month: string(2) month 2 digits
+    #sent: bool if true ignore already sent records else not
+    # xmldir: string working xml directory
+    # qurs/1 : db cursor
+    # stom bool for use stom pmu table in the prosess
     # nusl: string for AND condition of SQL SELECT statement or ''
-    # pmFile:  PM file object to write
-    # hmFile: HM file object to write
-    # stom bool for use RS table in the prosess
-    '''
+
+    """
     
     pmSluch = PmSluch(mo)
     hmZap = HmZap(mo)
@@ -107,8 +107,12 @@ def write_data(mo, year, month, pack, xmldir, qurs, qurs1, stom=False, nusl=None
     rc = 0
     
     #print('-- WRITE HPL DATA --\n')
-    
-    qurs.execute(_sql.get_hpm_data, (month, ))
+
+    query= _sql.get_hpm_data % year
+    if sent:
+        query= f'{query}{_sql.sent}'
+    query=f'{query}{_sql.month}'
+    qurs.execute(query, (month, ))
 
 
     #pmFile= open( f'{xmldir}pm.xml', 'r+')
@@ -136,8 +140,11 @@ def write_data(mo, year, month, pack, xmldir, qurs, qurs1, stom=False, nusl=None
         write_zap(_data, hmFile, hmZap, _usl, _usp)
         _data = LmData(rdata)
         write_pers(_data, lmFile, lmPers)
-        
+
+        # mark as sent
+        qurs1.execute(_sql.set_as_sent, (year, rdata.idcase))
         rc += 1
+
         #print(' rec %s ' % rc, end='\r')
     to_zip=[]
     for f, h in ((hmFile, HmHdr), (pmFile, PmHdr), (lmFile, LmHdr)):
@@ -164,10 +171,11 @@ def make_xml(current_app, year, month, pack, sent):
     qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     qurs1 = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     
-    ph_recs, l_recs, zfile = write_data(mo, year, month, pack, xmldir,  qurs, qurs1, stom=False, nusl=None)
+    ph_recs, l_recs, zfile = write_data(mo, year, month, pack, sent, xmldir,  qurs, qurs1, stom=False, nusl=None)
     
     qurs.close()
     qurs1.close()
+    qonn.commit()
     qonn.close()
 
     return ph_recs, l_recs, zfile

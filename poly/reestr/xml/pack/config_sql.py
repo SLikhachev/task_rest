@@ -35,7 +35,7 @@ SELECT
     tal.crd_num as card,
     tal.crd_num AS id_pac,
     
-    tal.mek,
+    tal.mek, -- as pr_nov,
     
     tal.smo as tal_smo,
     tal.polis_type,
@@ -69,7 +69,7 @@ SELECT
     doc.snils as iddokt,
     
 -- PACIENT
-    crd.smo as smo
+    crd.smo as smo,
     crd.polis_type as vpolis,
     crd.polis_num as npolis,
     crd.polis_ser as spolis,
@@ -81,9 +81,13 @@ SELECT
     crd.im,
     crd.ot,
     crd.gender as pol,
-    crd.birth_date as dr
-    crd.dost as dost
-    
+    crd.birth_date as dr,
+    crd.dost as dost,
+    crd.dul_type as doctype,
+    crd.dul_serial as docser,
+    crd.dul_number as docnum,
+    crd.dul_date as docdate,
+    crd.dul_org as docorg
         
 FROM
     talonz_clin_%s as tal, 
@@ -96,9 +100,10 @@ WHERE
     doc.spec=tal.doc_spec AND 
     doc.code=tal.doc_code AND 
     crd.crd_num=tal.crd_num and
-    tal.talon_month=%s
-order by tal.tal_num; --limit 1
 """
+sent= ' tal.talon_type=1 and '
+month= ' tal.talon_month=%s order by tal.tal_num; --limit 1;'
+
 
 """
 select
@@ -151,3 +156,5 @@ WHERE
 '''
 
 get_stom = ''
+
+set_as_sent='UPDATE talonz_clin_%s SET talon_type=2 WHERE tal_num=%s'
