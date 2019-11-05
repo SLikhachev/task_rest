@@ -95,7 +95,7 @@ class LmPers(TagMix):
         self.pers=('pers', self.pers_tags)
 
     def clr_doc(self, data):
-        self.doc.map( lambda d: setattr(data, d, None))
+        map( lambda d: setattr(data, d, None), self.doc)
 
 
     def get_pers(self, data):

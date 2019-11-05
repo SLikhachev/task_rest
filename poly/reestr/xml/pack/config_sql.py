@@ -117,7 +117,7 @@ vpom.mo_scode = % s and
 """
 #tal_num, date_usl, code_usl, kol_usl, exec_spec, exec_doc, exec_podr#
 # PM USL idserv, executor, ex_spec (from talon), rl
-get_usl = '''
+get_usl = """
 SELECT
     usl.date_usl,
     usl.code_usl, 
@@ -136,9 +136,9 @@ WHERE
     tal.tal_num = usl.tal_num AND
     tar.code = usl.code_usl AND
     tal.tal_num=%s
-'''
+"""
 
-get_spec_usl = '''
+get_spec_usl = """
 SELECT
     tal.open_date as date_usl,
     prof.one_visit as code_usl1,
@@ -153,8 +153,8 @@ WHERE
     tal.doc_spec = spp.spec AND
     prof.id = spp.profil AND 
     tal.tal_num=%s
-'''
+"""
 
 get_stom = ''
 
-set_as_sent='UPDATE talonz_clin_%s SET talon_type=2 WHERE tal_num=%s'
+set_as_sent="UPDATE talonz_clin_%s SET talon_type=2 WHERE tal_num=%s"

@@ -107,8 +107,8 @@ def write_data(mo, year, month, pack, sent, xmldir, qurs, qurs1, stom=False, nus
     rc = 0
     
     #print('-- WRITE HPL DATA --\n')
-
-    query= _sql.get_hpm_data % year
+    ya= int(str(year)[2:])
+    query= _sql.get_hpm_data % ya
     if sent:
         query= f'{query}{_sql.sent}'
     query=f'{query}{_sql.month}'
@@ -124,10 +124,10 @@ def write_data(mo, year, month, pack, sent, xmldir, qurs, qurs1, stom=False, nus
     lmFile = tmpf(mode="r+", encoding='1251')
 
     for rdata in qurs:
-        qurs1.execute(_sql.get_usl, ( rdata.idcase, ) )
+        qurs1.execute(_sql.get_usl, ( ya, ya, rdata.idcase, ) )
         _usl = qurs1.fetchall()
         # specaial usl for posesh obrasch
-        qurs1.execute(_sql.get_spec_usl, (rdata.idcase, ) )
+        qurs1.execute(_sql.get_spec_usl, (ya, rdata.idcase, ) )
         _usp = qurs1.fetchone()
         _stom= list()
         if stom:
@@ -142,7 +142,7 @@ def write_data(mo, year, month, pack, sent, xmldir, qurs, qurs1, stom=False, nus
         write_pers(_data, lmFile, lmPers)
 
         # mark as sent
-        qurs1.execute(_sql.set_as_sent, (year, rdata.idcase))
+        qurs1.execute(_sql.set_as_sent, (ya, rdata.idcase))
         rc += 1
 
         #print(' rec %s ' % rc, end='\r')
