@@ -6,10 +6,12 @@ from poly.reestr.xml.pack.xml_class.utils import DataObject
 class LmData(DataObject):
     def __init__(self, ntuple):
         super().__init__(ntuple)
+        self.doc=['doctype', 'docnum', 'docser', 'docdate', 'docorg']
         self.dost= []
         self.calc = (
             self._pol,
             self._dost,
+            self._doc
         )
 
         for func in self.calc:
@@ -28,8 +30,12 @@ class LmData(DataObject):
             self.dost.append(2)
         if self.im is None:
             self.dost.append(3)
-
-
+    
+    def _doc(self):
+        if not bool(self.docnum) or len(self.docnum) == 0:
+            for d in self.doc:
+                setattr(self, d, None)
+        
 class LmHdr(HdrMix):
     
     def __init__(self, mo, year, month, pack, sd_z=None, summ=None):
@@ -55,9 +61,7 @@ class LmPers(TagMix):
     
     def __init__(self, mo):
         super().__init__(mo)
-        self.doc=['doctype', 'docser', 'docdate', 'docorg']
-        # clear doc if empty number
-
+        self.dubl=[]
         self.uniq= set()
         self.pers_tags = (
             'id_pac',
@@ -94,16 +98,12 @@ class LmPers(TagMix):
         )
         self.pers=('pers', self.pers_tags)
 
-    def clr_doc(self, data):
-        map( lambda d: setattr(data, d, None), self.doc)
-
 
     def get_pers(self, data):
 
         if data.id_pac in self.uniq:
+            self.dubl.append(data.id_pac)
             return None
-        if data.docnum is None:
-            self.clr_doc(data)
 
         self.uniq.add(data.id_pac)
         return self.make_el(self.pers, data)

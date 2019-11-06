@@ -302,7 +302,7 @@ class HmZap(TagMix):
             'ds0', # ignore
             'ds1', # data.ds1
             'ds2', # data.ds2
-            'c_zab' # self.c_zab
+            'c_zab', # data.c_zab
             'dn',	# ignore
             'code_mes1', #ignore
             'code_mes2', #ignore

@@ -121,14 +121,14 @@ class HdrMix(TagMix):
         self.version = '3.1'
         self.lpu= mo
         self.year= f'{year}'
-        self.month= month
+        self.month= "{0:02d}".format( month )
         self.pack= int(pack)
         self.pack_num= "{0:02d}".format( self.pack )
         self.code_mo= '250%s' % mo
         self.startTag = '%s\n<ZL_LIST>' % self.xmlVer
         self.endTag = '\n</ZL_LIST>'
         self.data = date.today().isoformat()
-        self.file = f'M{self.code_mo}T25_{self.year[2:]}{month}{mo}{self.pack}.xml'
+        self.file = f'M{self.code_mo}T25_{self.year[2:]}{self.month}{mo}{self.pack}'
         self.p_file= f'P{self.file}'
         self.h_file= f'H{self.file}'
         self.l_file= f'L{self.file}'

@@ -25,7 +25,7 @@ from poly.reestr.xml.pack import config_sql as _sql
 
 def write_hdr(hdr, mo, year, month, pack, xmldir, fm_temp, sd_z=None, summ=None):
     _hdr = hdr(mo, year, month, pack, sd_z, summ)
-    _name = '%s\\%s' % (xmldir, _hdr.filename,)
+    _name = '%s\\%s%s' % (xmldir, _hdr.filename, '.xml')
     _file = open(_name, 'w', encoding='1251')
     _file.write( '%s\n' % _hdr.startTag )
         
@@ -46,7 +46,7 @@ def write_hdr(hdr, mo, year, month, pack, xmldir, fm_temp, sd_z=None, summ=None)
     # (file object, hdr instance)
     _file.close()
     #print (_name)
-    return f'{_hdr.filename}'
+    return f'{_hdr.filename}.xml'
 
 
 def write_sluch(data, file, pm, usl, usp, stom=None):
@@ -81,13 +81,13 @@ def write_zap(data, file, hm, usl, usp, stom=None):
 
 
 def write_pers(data, file, lm):
-    pers= lm. get_pers( data )
+    pers= lm.get_pers( data )
     if pers:
         ET.ElementTree( pers ).write(file, encoding="unicode" )
         file.write('\n')
 
 
-def write_data(mo, year, month, pack, sent, xmldir, qurs, qurs1, stom=False, nusl=None ):
+def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None ):
 
     """
     # mo: string(3) head MO code
@@ -100,6 +100,10 @@ def write_data(mo, year, month, pack, sent, xmldir, qurs, qurs1, stom=False, nus
     # nusl: string for AND condition of SQL SELECT statement or ''
 
     """
+    
+    qonn = _app.config.db()
+    qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    qurs1 = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     
     pmSluch = PmSluch(mo)
     hmZap = HmZap(mo)
@@ -158,7 +162,14 @@ def write_data(mo, year, month, pack, sent, xmldir, qurs, qurs1, stom=False, nus
     with zipfile.ZipFile(zfile, 'w', compression=zipfile.ZIP_DEFLATED) as zipH:
         for f in to_zip:
             zipH.write(f)
-
+    
+    _app.logger.debug(lmPers.dubl)    
+    
+    qurs.close()
+    qurs1.close()
+    qonn.commit()
+    qonn.close()
+    
     return rc, len(lmPers.uniq), os.path.join(xmldir, zfile)
 
 
@@ -167,15 +178,7 @@ def make_xml(current_app, year, month, pack, sent):
     mo = current_app.config['MO_CODE'][0]
     xmldir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'xml')
     #current_app.logger.debug(xmldir)
-    qonn = current_app.config.db()
-    qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    qurs1 = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     
-    ph_recs, l_recs, zfile = write_data(mo, year, month, pack, sent, xmldir,  qurs, qurs1, stom=False, nusl=None)
-    
-    qurs.close()
-    qurs1.close()
-    qonn.commit()
-    qonn.close()
+    return write_data(current_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None)
 
-    return ph_recs, l_recs, zfile
+
