@@ -6,6 +6,11 @@ from poly.reestr.xml.pack.xml_class.utils import DataObject
 class LmData(DataObject):
     def __init__(self, ntuple):
         super().__init__(ntuple)
+        # polis in talon
+        if self.polis_type is not None and self.polis_num is not None:
+            self.id_pac= self.polis_num
+        
+        self.id_pac= int(self.id_pac)
         self.doc=['doctype', 'docnum', 'docser', 'docdate', 'docorg']
         self.dost= []
         self.calc = (

@@ -23,7 +23,7 @@ class XmlVmx(Resource):
         type= request.form.get('type', 1)
         files= request.files.get('file', None)
         if files is None:
-            return self.result( 'Нет файла ', 'Передан пустой запрос на обработку', False), current_app.config['CORS']
+            return self.result( '', 'Передан пустой запрос на обработку', False), current_app.config['CORS']
         
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')   
         if files:
@@ -33,14 +33,17 @@ class XmlVmx(Resource):
 
             else:
                 # save file to disk
+                ym= filename.split('_')[1]
+                ya= ym[:2]
+                mn= ym[2:]
                 up_file = os.path.join(catalog, filename)
                 files.save(up_file)
                 rc= wc= errors= 0
                 try:
-                    rc= to_sql(current_app, up_file, [], 'ignore')
+                    rc= to_sql(current_app, up_file, ya, [], 'ignore')
                 except Exception as e:
                     current_app.logger.debug(e)
-                    return self.result(filename, 'PROCESSING ERROR (see log)', False), current_app.config['CORS']
+                    return self.result(filename, 'Ошибка обработки (подробно в журнале)', False), current_app.config['CORS']
                 
                 time2 = datetime.now()
                 msg = f'VM файл {filename} Записей считано {rc}. Время: {(time2-time1)}'

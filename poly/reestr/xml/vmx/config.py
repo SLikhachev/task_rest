@@ -18,3 +18,5 @@ select tal_num, crd_num, fam, open_date, close_date, error, cmt from vmx_errors 
 '%s' With CSV 
 DELIMITER ';' HEADER QUOTE '"' FORCE QUOTE * ENCODING 'win1251'
 '''
+
+MARK_TALON= "UPDATE %s SET talon_type=1 WHERE tal_num="

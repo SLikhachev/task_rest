@@ -33,7 +33,7 @@ SELECT
     tal.open_date as date_1,
     tal.close_date as date_2,
     tal.crd_num as card,
-    tal.crd_num AS id_pac,
+    -- tal.crd_num AS id_pac,
     
     tal.mek, -- as pr_nov,
     
@@ -47,7 +47,7 @@ SELECT
     
     tal.purp,
     tal.usl_ok,
-    tal.for_pom as urgent,
+    tal.for_pom,
     tal.rslt,
     tal.ishod,
     
@@ -72,6 +72,7 @@ SELECT
     crd.smo as smo,
     crd.polis_type as vpolis,
     crd.polis_num as npolis,
+    crd.polis_num as id_pac,
     crd.polis_ser as spolis,
     crd.st_okato,
     crd.smo_ogrn,

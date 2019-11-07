@@ -29,7 +29,7 @@ class MakeXml(Resource):
         try:
             ph, lm, file = make_xml(current_app, year, month, pack, sent)
         except Exception as e:
-            #raise e
+            raise e
             current_app.logger.debug(e)
             return self.result('', f'Исключение: {e}', False), current_app.config['CORS']
         

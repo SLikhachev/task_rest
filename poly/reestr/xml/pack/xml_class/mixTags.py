@@ -132,5 +132,5 @@ class HdrMix(TagMix):
         self.p_file= f'P{self.file}'
         self.h_file= f'H{self.file}'
         self.l_file= f'L{self.file}'
-        self.pack_name=f'H{self.code_mo}{self.year[-1]}{month}{self.pack_num}.zip'
+        self.pack_name=f'H{self.code_mo}{self.year[-1]}{self.month}{self.pack_num}.zip'
         #print(self.year)

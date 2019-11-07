@@ -44,14 +44,19 @@ class HmData(DataObject):
             self.spolis= self.polis_ser
             self.smo= self.tal_smo
             self.smo_ok= self.smo_okato
+            self.id_pac= self.polis_num
             
         self.npr_mo= f'250{self.npr_mo}'
         self.iddokt= self.iddokt.replace(" ", "-")
-        self.for_pom= 2 if bool(self.urgent) else 3
         #self.os_sluch= 2 if self.dost.find('1') > 0 else None
         self.pr_nov= 1 if bool(self.mek) else 0
         self.ishod += self.usl_ok * 100
         self.rslt += self.usl_ok * 100
+        try:
+            self.id_pac= int(self.id_pac)
+        except ValueError:
+            raise ValueError('Номер полиса не целое число. Талон №%s' % self.tal_num)
+        
         
         self.calc = (
             self._os_sluch,

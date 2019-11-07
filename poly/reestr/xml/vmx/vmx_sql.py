@@ -1,4 +1,4 @@
-#import sys
+import types
 #import pyodbc
 #import datetime
 #import json
@@ -7,6 +7,13 @@ import psycopg2
 import psycopg2.extras
 import xml.etree.cElementTree as ET
 from poly.reestr.xml.vmx import config
+
+sn= types.SimpleNamespace(
+    Tal=namedtuple('Tal', ('tal_num', 'open_date', 'close_date', 'crd_num', 'fam')),
+    Terr= set()
+)
+
+
 
 """
  <?xml version="1.0" encoding="utf-8" ?> 
@@ -80,31 +87,44 @@ error int,
 cmt text
 """
 
-talon= config.GET_TALON % ('talonz_clin', 'cardz_clin') + config.TAL
-Tal=namedtuple('Tal', ('tal_num', 'open_date', 'close_date', 'crd_num', 'fam'))
 
 def get_talon(qurs, tal_num):
-    global talon
-    qurs.execute(talon, (tal_num,))
+    global sn
+    qurs.execute(sn.talon, (tal_num,))
     return qurs.fetchone()
 
 def write_error(qurs, res):
-    tal = get_talon(qurs, res[0][0] )
+    global sn
+    tal = get_talon(qurs, res[0][0])
     if tal is None:
-        tal= Tal(res[0][0], None, None, '', '')
+        tal= sn.Tal(res[0][0], None, None, '', '')
         #return None
+    else:
+        sn.Terr.add( int(tal.tal_num) )
     for err in res:
         qurs.execute( config.WRITE_ERROR,
             ( tal.tal_num,  tal.open_date, tal.close_date, tal.crd_num, tal.fam, err[2], err[3])
         )
     return tal
 
-def to_sql(current_app, file, ignore, errors='ignore'):
+def mark_talons(qurs):
+    global sn
+    for t in sn.Terr:
+        qurs.execute(sn.mark, (t,))
+    sn.Terr.clear()    
+
+def to_sql(current_app, file, year, ignore, errors='ignore'):
+    
+    global sn
     
     qonn = current_app.config.db()
     qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     qurs.execute(config.TRUNCATE_ERROR)
     qonn.commit()
+    
+    tal_tbl= 'talonz_clin_%s' % year
+    sn.talon= config.GET_TALON % (tal_tbl, 'cardz_clin') + config.TAL
+    sn.mark= config.MARK_TALON % tal_tbl + '%s;'
     
     context = ET.iterparse(file, events=("start", "end"))
     event, root = next(context)
@@ -119,6 +139,8 @@ def to_sql(current_app, file, ignore, errors='ignore'):
                 qonn.commit()
                 cnt += 1
             root.clear()
+    
+    mark_talons(qurs)
     
     qonn.commit()
     qurs.close()

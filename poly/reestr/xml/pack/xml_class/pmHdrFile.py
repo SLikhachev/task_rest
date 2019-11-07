@@ -40,11 +40,11 @@ class PmUsp(DataObject):
         tal.doc_spec as spec,
         tal.doc_code as doc,
     """
-    def __init__(self, usl, ntuple):
+    def __init__(self, mo, ex_spec, ntuple):
         super().__init__(ntuple)
-        self.mo = usl.mo
-        self.executor= self.fmt_000(usl.mo) + self.fmt_000(self.podr) + self.fmt_000(self.spec)
-        self.ex_spec= usl.ex_spec
+        self.mo = mo
+        self.executor= self.fmt_000(mo) + self.fmt_000(self.podr) + self.fmt_000(self.spec)
+        self.ex_spec= ex_spec
         
 
 class PmHdr(HdrMix):
@@ -129,8 +129,13 @@ class PmSluch(TagMix):
         else:
             _u = usl_list
         u_list = [ PmUsl(self.mo, u) for u in _u ]
+        if len(u_list) == 0: # no PMU
+            ex_spec= None
+        else:
+            ex_spec= u_list[-1].ex_spec
+        
         # append posesh obrasch codes
-        u_list.append( PmUsp(u_list[-1], usp) )
+        u_list.append( PmUsp(self.mo, ex_spec, usp) )
         
         setattr(self, tag, u_list)
         return self
