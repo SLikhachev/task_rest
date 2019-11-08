@@ -132,7 +132,8 @@ class PmSluch(TagMix):
         if len(u_list) == 0: # no PMU
             ex_spec= None
         else:
-            ex_spec= u_list[-1].ex_spec
+            #last ex_spec if any 
+            ex_spec= getattr(u_list[-1], 'ex_spec', None) 
         
         # append posesh obrasch codes
         u_list.append( PmUsp(self.mo, ex_spec, usp) )

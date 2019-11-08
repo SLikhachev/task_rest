@@ -50,7 +50,7 @@ class TagMix:
         self.next = val
     
     def el(self, tag, val):
-        if val is None:
+        if val is None or len( str(val) ) == 0:
             return None
         e = ET.Element(tag.upper())
         e.text = '%s' % val

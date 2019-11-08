@@ -6,8 +6,8 @@ import xml.etree.cElementTree as ET
 from pathlib import Path
 from zipfile import ZipFile
 from poly.reestr.invoice.impex import config
-#import psycopg2
-#import psycopg2.extras
+from poly.reestr.invoice.impex.utils import get_text
+from poly.reestr.invoice.impex.imp_usl import imp_usl
 
 sn= types.SimpleNamespace(
     zap= ( 
@@ -21,17 +21,11 @@ sn= types.SimpleNamespace(
     ),
     
     pers= ( 'id_pac', 'fam', 'im', 'ot', 'w', 'dr'),
-
+    
     zp_tags = ('ZAP', 'PERS',),
 
     meta= {}
  )
-
-def get_text(elem: ET.Element, tag: str) -> str:
-    e= elem.find(tag)
-    if hasattr(e, 'text'):
-        return e.text
-    return None
 
 # here may be generator yelding next text chunk
 def get_zp(elem: ET.Element, tags: tuple, rec: list) -> None:
@@ -45,7 +39,7 @@ def get_zp(elem: ET.Element, tags: tuple, rec: list) -> None:
 def set_zp(rec: list, upd: str) -> None:
     global sn
     if upd == 'ZAP':
-        sn.qurs.execute(config.INS_BARS, rec)
+        sn.qurs.execute(config.INS_INV, rec)
     else:
         # first el is id_pac
         rec.append( rec.pop(0) )        
@@ -106,6 +100,7 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
                 
                 #get_meta(current_app, nz, typ)
                 if not get_meta(app, nz, typ):
+                    # MO_CODE is not in this codes # alien MO
                     return (0,)
                 
                 zfile.extract(nz)
@@ -118,12 +113,17 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
                 zfile.extract(_lm)
 
     if len(_hm) == 0:
+        #bad invoice file name  
         return (-1,)
-
+    
+    # import PMUs with tarifs
+    if typ == 6:
+        return imp_usl(app, _hm),  sn.meta['smo'], sn.meta['mon'],  sn.meta['yar'] 
+    
     qonn = app.config.db()
     sn.qurs = qonn.cursor()
     #sn.qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    sn.qurs.execute(config.TRUNC_INV_BARS)
+    sn.qurs.execute(config.TRUNC_TBL_INV)
     #sn.qurs.execute(sn.trunc_meta)
     qonn.commit()
     
@@ -133,7 +133,7 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
         zp_xml(f, r)
         qonn.commit()
     
-    sn.qurs.execute(config.COUNT_BARS)
+    sn.qurs.execute(config.COUNT_INV)
     rc= sn.qurs.fetchone()
     
     '''

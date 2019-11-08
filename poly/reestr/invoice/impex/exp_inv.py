@@ -117,7 +117,7 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     #m_2 = '{0:02d}'.format( m+1 )
     
     tpl= config.TYPE[typ-1][2]
-    _data= config.GET_ROW_BARS if len(is_calc) == 0 else config.GET_ROW_MO
+    _data= config.GET_ROW_INV if len(is_calc) == 0 else config.GET_ROW_MO
     
     qonn= app.config.db()
     qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)

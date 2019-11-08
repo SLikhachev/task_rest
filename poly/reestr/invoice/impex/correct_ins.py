@@ -11,13 +11,13 @@ def correct_ins(app: object, smo: str) -> int:
     qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     qurs1= qonn.cursor()
     
-    qurs1.execute(config.GET_ROW_INV)
+    qurs1.execute(config.GET_ROW_INV_TAL)
     dc= 0
-    
+    # dont USE this error 
     for row in qurs1.fetchall():
         tal_num= row[0]
         tal_smo= int(smo)
-        crd_smo= tal_smo + 250000
+        crd_smo= tal_smo + 25000
         qurs.execute(config.GET_TALON, (tal_num,))
         tal= qurs.fetchone()
         if tal is None:
