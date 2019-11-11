@@ -43,9 +43,9 @@ def csv_to_sql(csv_file, csvClass, test=1, clear=False, logger=None):
                     continue
             except Exception as e:
                 if logger:
-                    logger.debug(s)
+                    logger.debug(e)
                 else:
-                    print(s)
+                    print(e)
             
             if test > 0:
                 #rc += 1
