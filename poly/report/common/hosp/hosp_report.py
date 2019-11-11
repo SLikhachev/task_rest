@@ -27,7 +27,7 @@ def extract(row):
     
     return d
     
-def make_report(year, month, app_cfg):
+def make_report(year, month, app):
     
     sh1 = 'ЕИР'
 
@@ -63,8 +63,8 @@ def make_report(year, month, app_cfg):
     total_font = Font(name='Arial', size=13, bold=True)
     
     #qonn = psycopg2.connect("dbname=prive user=postgres password=boruh")
-    db = psycopg2.connect(app_cfg['DB_CONF'])
-    qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    qonn = app.config.db()
+    qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 
     
     # begin from 6 string
@@ -98,6 +98,6 @@ def make_report(year, month, app_cfg):
     wb.save(xlw)
     wb.close()
     qurs.close()
-    db.close()
+    qonn.close()
     
     return xlw

@@ -68,7 +68,7 @@ class MakeReport(Resource):
                     return self.result(filename, msg, False), current_app.config['CORS']
                 
                
-                report = make_report(year, month, current_app.config)
+                report = make_report(year, month, current_app)
                 msg = 'Обработан файл %s Записей считано %s, записано %s. Ошибок %s (игнорируем)' % (
                     filename, rc, wc, errors)
                 os.remove(up_file)
