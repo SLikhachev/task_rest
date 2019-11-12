@@ -27,7 +27,7 @@ def extract(row):
     
     return d
     
-def make_report(year, month, app):
+def make_report(app, year, month):
     
     sh1 = 'ЕИР'
 
@@ -35,7 +35,7 @@ def make_report(year, month, app):
     _data = config.GET_HOSP
    
     mnt = int(month)
-    base_dir = os.path.join( app_cfg['UPLOAD_FOLDER'],  config.BASE_DIR )
+    base_dir = os.path.join( app.config['UPLOAD_FOLDER'],  config.BASE_DIR )
     xlr = os.path.join( base_dir, config.TPL_DIR, (file + '.xlsx'))
     xlw = os.path.join( base_dir, config.REPORT_DIR , (file + '_0%s.xlsx' % ( mnt )))
     #year = date.today().isocalendar()[0]

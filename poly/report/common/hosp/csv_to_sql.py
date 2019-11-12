@@ -1,17 +1,16 @@
 import sys
-import psycopg2
 import csv
 
-def csv_to_sql(csv_file, csvClass, test=1, clear=False, logger=None):
+def csv_to_sql(app, csv_file, csvClass, test=1, clear=False):
      
-    #csv_file = input[0] # csv file
+    #csv_file = csv file
     #procClass class instance for transform list to data insert
     #test if > 0 no actually insert print data only
 
-    qonn = psycopg2.connect("dbname=prive user=postgres password=boruh")
-    qur = qonn.cursor()
+    qonn = app.config.db()
+    qurs = qonn.cursor()
     
-    procClass = csvClass(qonn, logger)
+    procClass = csvClass(qonn, app.logger)
     if clear:
         procClass.clear_tbl()
     
@@ -21,7 +20,6 @@ def csv_to_sql(csv_file, csvClass, test=1, clear=False, logger=None):
     errors = 0
     with open(csv_file, 'r') as csvfile:
         lines = csv.reader(csvfile, delimiter=';', quotechar='"')
-        cd = 5
         rc = 0
         wc = 0
         start = True
@@ -29,48 +27,23 @@ def csv_to_sql(csv_file, csvClass, test=1, clear=False, logger=None):
             if start: # ignore first line
                 start = False
                 continue
-            #data = '%s%s' % (insert, procClass.getData(ln) ) 
             rc += 1
             try:
                 data = procClass.getData(ln)
-                print('rec %s' % rc, end='\r' )
                 if data is None:
-                    s = f'None string num {rc}'
-                    if logger:
-                        logger.debug(s)
-                    else:
-                        print(s)
+                    app.logger.debug(f'Error in CSV line num {rc}')
+                    errors += 1
                     continue
-            except Exception as e:
-                if logger:
-                    logger.debug(e)
-                else:
-                    print(e)
-            
-            if test > 0:
-                #rc += 1
-                #print (data);
-                
-                #cd -= 1
-                #if cd == 0:
-                #    break
-                
-                #print (' -- rows -- %s' % rc, end="\r" )
-                continue
-        
-            try:
-                qur.execute(insert, data)
-                qonn.commit()
+                if test > 0:
+                    continue
+                qurs.execute(insert, data)
                 wc += qur.rowcount
-                #print (' -- rows -- %s' % rc, end="\r" )
             except Exception as e:
-                qonn.rollback()
-                errors += 1
-                if logger:
-                    logger.error(e)
+                app.logger.debug('Exception in csv line %s', rc)
+                raise e
     
     qonn.commit()
-    qur.close()
+    qurs.close()
     procClass.close()
     qonn.close()
     

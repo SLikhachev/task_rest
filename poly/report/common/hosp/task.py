@@ -54,7 +54,7 @@ class MakeReport(Resource):
                 test = 0
                 if tst:
                     test = 1
-                test, rc, wc, errors = csv_to_sql(up_file, HospEir, test, True, current_app.logger)
+                test, rc, wc, errors = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
                 msg = 'Режим обработки файла '
                 if test > 0:
                     msg = 'Тестовый режим '
@@ -68,7 +68,7 @@ class MakeReport(Resource):
                     return self.result(filename, msg, False), current_app.config['CORS']
                 
                
-                report = make_report(year, month, current_app)
+                report = make_report(current_app, year, month)
                 msg = 'Обработан файл %s Записей считано %s, записано %s. Ошибок %s (игнорируем)' % (
                     filename, rc, wc, errors)
                 os.remove(up_file)
