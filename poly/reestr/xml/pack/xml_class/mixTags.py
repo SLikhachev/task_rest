@@ -1,7 +1,7 @@
 
 import xml.etree.cElementTree as ET
 from datetime import date
-
+from poly.utils.exept import TagError
 
 class TagMix:
     
@@ -84,7 +84,7 @@ class TagMix:
         if isinstance(val, list):
             return [self.el(tag, v) for v in val]
         else:
-            return [self.el(tag, val)]
+            return [ self.el(tag, val) ]
 
     def make_el(self, tags, obj):
         root, body = tags
@@ -93,8 +93,13 @@ class TagMix:
             els = self._els(tag, obj)
             if els is None:
                 continue
-            for el in els:
-                proot.append(el)
+            try:
+                for el in els:
+                    if isinstance (el, ET.Element): 
+                        proot.append(el)
+            except Exception as e:
+                t= f'TagError tal: {obj.idcase}, root: {root}, tag: {tag}, el: {el} '
+                raise TagError(t, e)
 
         return proot
 

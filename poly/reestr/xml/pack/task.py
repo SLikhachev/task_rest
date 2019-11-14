@@ -5,6 +5,7 @@ from flask import request, current_app
 #from werkzeug import secure_filename
 from flask_restful import Resource
 from poly.utils.fields import month_field
+from poly.utils.exept import printException
 from poly.reestr.xml.pack.sql_xml import make_xml
 
 class MakeXml(Resource):
@@ -29,8 +30,9 @@ class MakeXml(Resource):
         try:
             ph, lm, file = make_xml(current_app, year, month, pack, sent)
         except Exception as e:
-            raise e
-            current_app.logger.debug(e)
+            #raise e
+            #ex= printException()
+            current_app.logger.debug( e )
             return self.result('', f'Исключение: {e}', False), current_app.config['CORS']
         
         time2 = datetime.now()
