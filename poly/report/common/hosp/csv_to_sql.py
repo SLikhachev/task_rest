@@ -31,15 +31,18 @@ def csv_to_sql(app, csv_file, csvClass, test=1, clear=False):
             try:
                 data = procClass.getData(ln)
                 if data is None:
-                    app.logger.debug(f'Error in CSV line num {rc}')
+                    app.logger.debug(f'Error in CSV line num {rc},{ln}' )
                     errors += 1
                     continue
                 if test > 0:
                     continue
+                app.logger.debug(f'{insert} {data}')
                 qurs.execute(insert, data)
-                wc += qur.rowcount
+                wc += qurs.rowcount
+                qonn.commit()
             except Exception as e:
-                app.logger.debug('Exception in csv line %s', rc)
+                app.logger.debug( insert, str(data) )
+                #app.logger.debug('Exception in csv line %s', rc)
                 raise e
     
     qonn.commit()
@@ -49,5 +52,4 @@ def csv_to_sql(app, csv_file, csvClass, test=1, clear=False):
     
     return test, rc, wc, errors
     
-    #sys.exit()
-    
+
