@@ -37,42 +37,48 @@ class MakeReport(Resource):
         year, month = dm[0], dm[1]
         
         files = request.files.get('file', None)
-        if files is None:
+        if files is None or files == '':
             return self.result( 'Нет файла ', 'Передан пустой запрос на обработку', False), current_app.config['CORS']
         
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'hosp', 'csv')   
-        if files:
-            filename = secure_filename(files.filename)
-            if not self.allowed_file(files.filename):
-                return self.result(filename, " File type not allowed", False), current_app.config['CORS']
+        filename = secure_filename(files.filename)
+        if not self.allowed_file(files.filename):
+            return self.result(filename, " File type not allowed", False), current_app.config['CORS']
 
-            else:
-                # save file to disk
-                up_file = os.path.join(catalog, filename)
-                files.save(up_file)
-                
-                test = 0
-                if tst:
-                    test = 1
-                test, rc, wc, errors = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
-                msg = 'Режим обработки файла '
-                if test > 0:
-                    msg = 'Тестовый режим '
-                if errors > 0:
-                    msg += 'обнаружено ошибок %s (игнорируем) ' % errors
-                msg += 'обработано записей %s' % rc
-                current_app.logger.debug(msg)
-                
-                if test > 0: #or errors > 0:
-                    os.remove(up_file)
-                    return self.result(filename, msg, False), current_app.config['CORS']
-                
-               
-                report = make_report(current_app, year, month)
-                msg = 'Обработан файл %s Записей считано %s, записано %s. Ошибок %s (игнорируем)' % (
-                    filename, rc, wc, errors)
-                os.remove(up_file)
-                #files.close()
-                
-            return self.result(report, msg, True), current_app.config['CORS']
+        # save file to disk
+        up_file = os.path.join(catalog, filename)
+        files.save(up_file)
+
+        test = 1 if tst else 0
+        """
+     try:
+         test, rc, wc, errors = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
+     except Exception as e:
+         current_app.logger.debug(e)
+         raise e
+         #return self.result('', f'Исключение: {e}', False), current_app.config['CORS']
+     """
+
+        test, rc, wc, errors = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
+
+        msg = 'Режим обработки файла '
+        if test > 0:
+            msg = 'Тестовый режим '
+        if errors > 0:
+            msg += 'обнаружено ошибок %s (игнорируем) ' % errors
+        msg += 'обработано записей %s' % rc
+        current_app.logger.debug(msg)
+
+        if test > 0: #or errors > 0:
+            os.remove(up_file)
+            return self.result(filename, msg, False), current_app.config['CORS']
+
+
+        report = make_report(current_app, year, month)
+        msg = 'Обработан файл %s Записей считано %s, записано %s. Ошибок %s (игнорируем)' % (
+            filename, rc, wc, errors)
+        os.remove(up_file)
+        #files.close()
+
+        return self.result(report, msg, True), current_app.config['CORS']
 

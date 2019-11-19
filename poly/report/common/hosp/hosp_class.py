@@ -1,3 +1,4 @@
+import re
 from . import hosp_config as config
 #import hosp_config as config # for test
 from datetime import date
@@ -106,15 +107,14 @@ class HospEir:
     def get_doc(self, val):
         if val == '' or len(val) < 4:
             return None
-        sp = None
-        if val.find('.') > -1:
-            sp = '.'
-        if val.find('/') > -1:
-            sp = '/'
-        if sp is None:
-            spec, code = val[:2], val[2:]
+        d= re.split('[ ,./]', val)
+        if len(d) == 1:
+            if len(val) > 4:
+                spec, code = val[:3], val[3:]
+            else:
+                spec, code = val[:2], val[2:]
         else:
-            spec, code = val.split(sp)
+            spec, code = d
         try:
             spec, code = int(spec), int(code)
             q = 'select family from doctor where spec = %i and code = %i' % (spec, code) 
