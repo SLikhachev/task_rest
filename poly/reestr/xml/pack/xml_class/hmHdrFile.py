@@ -172,8 +172,8 @@ class HmHdr(HdrMix):
     def __init__(self, mo, year, month, pack, sd_z, sumv):
         super().__init__(mo, year, month, pack)
         self.sd_z = '%s' % sd_z
-        self.code = '%s%s%s' % (mo, year, month)
-        self.nschet = self.code + '01'
+        self.code = '%s%s%s' % (mo, year[2:], month)
+        self.nschet = self.code + "{0:02d}".format(pack)
         self.dschet = self.data
         self.summav = sumv
         self.filename= self.h_file
