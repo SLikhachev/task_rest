@@ -86,13 +86,25 @@ def write_pers(data, file, lm):
         ET.ElementTree( pers ).write(file, encoding="unicode" )
         file.write('\n')
 
-
+def get_npr_mo(qurs, rdata):
+    if bool(rdata.cons_mo):
+        _nmo= rdata.cons_mo
+    elif bool(rdata.hosp_mo):
+        _nmo= rdata.hosp_mo
+    else:
+        return None
+    qurs.execute(_sql.get_npr_mo, (_nmo,))
+    m= qurs.fetchone()
+    if m:
+        return m.code
+    return None
+    
 def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None ):
 
     """
     # mo: string(3) head MO code
-    # year: string(2) year 2 last digits
-    # month: string(2) month 2 digits
+    # year: int year 4 digit 
+    # month: int month 2 digits
     #sent: bool if true ignore already sent records else not
     # xmldir: string working xml directory
     # qurs/1 : db cursor
@@ -128,6 +140,7 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
     lmFile = tmpf(mode="r+", encoding='1251')
 
     for rdata in qurs:
+        _nmo= get_npr_mo(qurs1, rdata)
         qurs1.execute(_sql.get_usl, ( ya, ya, rdata.idcase, ) )
         _usl = qurs1.fetchall()
         # specaial usl for posesh obrasch
@@ -140,7 +153,7 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
         
         _data = PmData(rdata)
         write_sluch(_data, pmFile, pmSluch, _usl, _usp, _stom)
-        _data = HmData(rdata)
+        _data = HmData(rdata, _nmo)
         write_zap(_data, hmFile, hmZap, _usl, _usp)
         _data = LmData(rdata)
         write_pers(_data, lmFile, lmPers)

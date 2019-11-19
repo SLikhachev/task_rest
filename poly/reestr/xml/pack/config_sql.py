@@ -54,9 +54,9 @@ SELECT
     tal.visit_pol, 
     tal.visit_home as visit_hom,
     
-    tal.npr_mo,
     tal.npr_date,
-    tal.npr_mo as from_firm,
+    tal.npr_mo as cons_mo,
+    tal.hosp_mo,
     tal.naprlech,
     tal.nsndhosp,
     tal.d_type,
@@ -100,11 +100,12 @@ WHERE
     spec.spec=tal.doc_spec AND 
     doc.spec=tal.doc_spec AND 
     doc.code=tal.doc_code AND 
-    crd.crd_num=tal.crd_num and
+    crd.crd_num=tal.crd_num AND
 """
 sent= ' tal.talon_type=1 and '
 month= ' tal.talon_month=%s order by tal.tal_num; --limit 1;'
 
+get_npr_mo= 'SELECT code FROM mo_local WHERE scode=%s;'
 
 """
 select

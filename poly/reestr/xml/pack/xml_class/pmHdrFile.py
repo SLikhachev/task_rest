@@ -15,6 +15,13 @@ class PmData(DataObject):
         # 2 - by soul 
         self.type_pay= 1 # yet
         
+        if bool(self.cons_mo):
+            self.from_firm= f'{self.cons_mo}'
+        elif bool(self.hosp_mo):
+            self.from_firm= f'{self.hosp_mo}'
+        else:
+            self.from_firm= None
+            
 """        
     @property
     def type_pay(self):

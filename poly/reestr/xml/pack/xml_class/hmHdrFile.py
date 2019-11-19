@@ -17,7 +17,7 @@ class HmData(DataObject):
     STOM= (85, 86, 87, 88, 89, 90)
     SESTRY= (82, 83)
 
-    def __init__(self, ntuple):
+    def __init__(self, ntuple, nmo= None):
         super().__init__(ntuple)
         #self.smo= f'250{self.smo}'
         """
@@ -45,8 +45,15 @@ class HmData(DataObject):
             self.smo= self.tal_smo
             self.smo_ok= self.smo_okato
             self.id_pac= self.polis_num
+        
+        if bool(nmo):
+            self.npr_mo= f'{nmo}'
+            if not bool(self.npr_date):
+                self.npr_date= self.date_1 if bool(self.cons_mo) else self.date_2
+        else:
+            self.npr_mo= self.npr_date=  None
             
-        self.npr_mo= f'250{self.npr_mo}'
+        
         self.iddokt= self.iddokt.replace(" ", "-")
         #self.os_sluch= 2 if self.dost.find('1') > 0 else None
         self.pr_nov= 1 if bool(self.mek) else 0
@@ -224,7 +231,9 @@ class HmZap(TagMix):
         self.det = 0
         self.novor= 0
         self.tariff= None
-
+        
+        
+        
         self.ksg_class_inst = type('Ksg', (object, ), {})()
         setattr(self.ksg_class_inst, 'ver_ksg', '2018')
         setattr(self.ksg_class_inst, 'ksg_pg', 0)
