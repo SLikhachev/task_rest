@@ -28,7 +28,7 @@ class MakeXml(Resource):
         sent = bool( request.form.get('sent', None) )
         current_app.logger.debug(year, month, pack, sent)
         try:
-            ph, lm, file = make_xml(current_app, year, month, pack, sent)
+            ph, lm, file, errors = make_xml(current_app, year, month, pack, sent)
         except Exception as e:
             #raise e
             #ex= printException()
@@ -36,6 +36,8 @@ class MakeXml(Resource):
             return self.result('', f'Исключение: {e}', False), current_app.config['CORS']
         
         time2 = datetime.now()
+        if errors:
+            pass
         msg = f'Сформировано {ph} PHМ записей, {lm} LM записей время: {(time2 - time1)} '
 
         return self.result(file, msg, True), current_app.config['CORS']

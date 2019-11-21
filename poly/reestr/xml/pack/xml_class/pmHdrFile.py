@@ -21,6 +21,10 @@ class PmData(DataObject):
             self.from_firm= f'{self.hosp_mo}'
         else:
             self.from_firm= None
+        id= f'{self.idcase}'
+        assert self.purp, f'{id} -- Нет цели' 
+        assert self.visit_pol, f'{id} -- 0 VISIT_POL' # yet
+        assert self.nsndhosp or self.naprlech and self.from_firm, f'{id} -- Нет МО направления'
             
 """        
     @property
@@ -29,13 +33,27 @@ class PmData(DataObject):
 """
 
 class PmUsl(DataObject):
-    
-    def __init__(self, mo, ntuple):
+    """ -- data
+        usl.date_usl,
+        usl.code_usl, 
+        usl.kol_usl, 
+        usl.exec_spec as spec, 
+        usl.exec_doc as doc,
+        usl.exec_podr as podr,
+        tal.npr_mo,
+        tal.npr_spec,
+        tar.tarif as sumv_usl
+    """ 
+    def __init__(self, mo, tal, ntuple):
         super().__init__(ntuple)
         self.mo = mo
+        assert self.spec and self.podr, f'{tal.idcase} -- Нет PODR, SPEC в ПМУ {self.code_usl}'
         self.executor= self.fmt_000(mo) + self.fmt_000(self.podr) + self.fmt_000(self.spec)
-        self.ex_spec= self.fmt_000(self.npr_mo) + self.fmt_000(self.npr_spec)
-
+        if  tal.naprlech:
+            assert self.npr_mo and self.npr_spec,  f'{tal.idcase} -- Нет NPR_MO, NPR_SPEC' 
+            self.ex_spec= self.fmt_000(self.npr_mo) + self.fmt_000(self.npr_spec)
+        
+        
 # posechenue obraschenie 
 class PmUsp(DataObject):
     """ USP
@@ -78,7 +96,7 @@ class PmHdr(HdrMix):
     
 class PmSluch(TagMix):
     
-    def __init__(self, mo):
+    def __init__(self, mo, tal):
         super().__init__(mo)
         self.usl = None
         self.stom = None
@@ -129,18 +147,18 @@ class PmSluch(TagMix):
 
         )
     
-    def set_usl(self, tag, usl_list, usp):
+    def set_usl(self, tag, tal, usl_list, usp):
         
         if not isinstance(usl_list, list):
             _u = [usl_list]
         else:
             _u = usl_list
-        u_list = [ PmUsl(self.mo, u) for u in _u ]
+        u_list = [ PmUsl(self.mo, tal, u) for u in _u ]
         if len(u_list) == 0: # no PMU
             ex_spec= None
         else:
             #last ex_spec if any 
-            ex_spec= getattr(u_list[-1], 'ex_spec', None) 
+            ex_spec= getattr(u_list[-1], 'ex_spec', None)
         
         # append posesh obrasch codes
         u_list.append( PmUsp(self.mo, ex_spec, usp) )
@@ -149,6 +167,5 @@ class PmSluch(TagMix):
         return self
     
     def get_sluch(self, data):
-        #return self.wrap_tags( self.sluch[0], self.sluch[1:], data)
-         return self.make_el( self.sluch, data)
+        return self.make_el( self.sluch, data)
     

@@ -13,30 +13,43 @@ from poly.reestr.xml.pack.xml_class.utils import DataObject
 
 class HmData(DataObject):
     
+    # this gets from data
+    
     PROF= (21, 22)
     STOM= (85, 86, 87, 88, 89, 90)
     SESTRY= (82, 83)
 
     def __init__(self, ntuple, nmo= None):
         super().__init__(ntuple)
+        id= self.idcase
         #self.smo= f'250{self.smo}'
         """
-        tal.smo as tal_smo, 
-        tal.polis_type,
-        tal.polis_ser,
-        tal.polis_num,
-        tal.smo_okato,
-        
-        crd.smo as smo
-        crd.polis_type as vpolis,
-        crd.polis_num as npolis,
-        crd.polis_ser as spolis,
-        crd.st_okato,
-        crd.smo_ogrn,
-        crd.smo_okato as smo_ok, 
-        crd.smo_name as smo_nam,
+            tal.open_date as date_1,
+            tal.close_date as date_2,
+            tal.crd_num as card,
+            -- tal.crd_num AS id_pac,
         """
-        # if polis defined in talon then we use it as polis on date
+        assert self.date_1 and self.date_2, f'{id} -- Нет даты талона'
+        assert self.card, f'{id} -- Нет карты талона' 
+        """
+            tal.mek, -- as pr_nov,
+            
+            tal.smo as tal_smo,
+            tal.polis_type,
+            tal.polis_ser,
+            tal.polis_num,
+            tal.smo_okato,
+        
+            crd.smo as smo,
+            crd.polis_type as vpolis,
+            crd.polis_num as npolis,
+            crd.polis_num as id_pac,
+            crd.polis_ser as spolis,
+            crd.st_okato,
+            crd.smo_ogrn,
+            crd.smo_okato as smo_ok, 
+            crd.smo_name as smo_nam,
+        """
         if self.polis_type is not None and self.polis_num is not None:
             
             self.vpolis= self.polis_type
@@ -45,14 +58,76 @@ class HmData(DataObject):
             self.smo= self.tal_smo
             self.smo_ok= self.smo_okato
             self.id_pac= self.polis_num
-        
+            
+        assert self.vpolis, f'{id} -- Тип полиса не указан'
+        assert self.polis_num, f'{id} -- Номер полиса не указан'
+        assert self.polis_ser and self.polis_num and self.vpolis == 1, f'{id} -- Тип полиса не старый'
+        assert len(self.polis_num) < 16 and self.vpolis == 2, f'{id} -- Полис не времянка'
+        assert len(self.polis_num) == 16 and self.vpolis == 3, f'{id} -- Полис не ЕНП'
+        assert self.smo or self.smo_ok, f'{id} -- Нет ни СМО ни СМО ОКАТО' 
+        """
+            tal.doc_spec as specfic,
+            
+            tal.purp,
+            tal.usl_ok,
+            tal.for_pom,
+            tal.rslt,
+            tal.ishod,
+        """
+        assert self.doc_spec, f'{id} -- SPECFIC не указан'
+        assert self.usl_ok, f'{id} -- USL_OK не указан'
+        assert self.for_pom, f'{id} -- FOR_POM не указан'
+        assert self.rslt and self.ishod, f'{id} -- RESULT/ISHOD не указан'
+        """
+            tal.visit_pol, 
+            tal.visit_home as visit_hom,
+        """
+            
+        """
+            tal.npr_date,
+            tal.npr_mo as cons_mo,
+            tal.hosp_mo,
+            tal.naprlech,
+            tal.nsndhosp,
+            tal.d_type,
+            tal.ds1,
+            tal.ds2,
+            tal.char1 as c_zab,
+        """
+        assert self.nsndhosp or self.naprlech and nmo, f'{id} -- Нет кода МО направления'
         if bool(nmo):
             self.npr_mo= f'{nmo}'
             if not bool(self.npr_date):
                 self.npr_date= self.date_1 if bool(self.cons_mo) else self.date_2
         else:
             self.npr_mo= self.npr_date=  None
+        
+        """
+            spec.prvs,
+            spec.profil,
+            doc.snils as iddokt,
+        """
+        assert self.prvs and self.profil, f'{id} -- Нет PRVS | PROFIL'
+        assert self.iddokt, f'{id} -- Нет СНИЛС у доктора'
+        """
             
+        -- PACIENT
+            crd.fam, 
+            crd.im,
+            crd.ot,
+            crd.gender as pol,
+            crd.birth_date as dr,
+            crd.dost as dost,
+            crd.dul_type as doctype,
+            crd.dul_serial as docser,
+            crd.dul_number as docnum,
+            crd.dul_date as docdate,
+            crd.dul_org as docorg
+        """
+        assert self.fam, f'{id} -- Нет Фамилии'
+        assert self.dr, f'{id} -- Нет дня рождения'
+        assert self.vpolis != 3 and self.doctype and self.docnum and self.docser and \
+            self.docdate and self.docorg, f'{id} -- Не ЕНП и неуказан полностью ДУЛ'
         
         self.iddokt= self.iddokt.replace(" ", "-")
         #self.os_sluch= 2 if self.dost.find('1') > 0 else None
@@ -62,7 +137,7 @@ class HmData(DataObject):
         try:
             self.id_pac= int(self.id_pac)
         except ValueError:
-            raise ValueError('Номер полиса не целое число. Талон №%s' % self.tal_num)
+            raise ValueError(f'{id} -- Номер полиса не целое число' )
         
         
         self.calc = (
@@ -219,6 +294,8 @@ class HmHdr(HdrMix):
 
         
 class HmZap(TagMix):
+    
+    # this calcs ourself
     
     def __init__(self, mo):
         super().__init__(mo)
@@ -498,7 +575,8 @@ class HmZap(TagMix):
         #self.pacient = [data]
         #self.z_sl = self.pacient
         #self.sl = self.pacient
-
+        
+        assert 
 
         #return self.wrap_tags( self.zap[0], self.zap[1:], data)
         return self.make_el( self.zap, data)

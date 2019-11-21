@@ -51,12 +51,14 @@ def write_hdr(hdr, mo, year, month, pack, xmldir, fm_temp, sd_z=None, summ=None)
 
 def write_sluch(data, file, pm, usl, usp, stom=None):
 #def write_sluch(data, pm, usl, stom=None):
-    
-    pm.set_usl('usl', usl, usp)
+
+    pm.set_usl('usl', data, usl, usp)
     if stom and len(stom) > 0:
         pm.set_usl('stom', stom)
     
-    ET.ElementTree( pm.get_sluch( data ) ).write(file, encoding="unicode" )
+    sluch= pm.get_sluch( data )
+    
+    ET.ElementTree( sluch ).write(file, encoding="unicode" )
     file.write('\n')
 
         
@@ -134,11 +136,13 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
     #pmFile= open( f'{xmldir}pm.xml', 'r+')
     #hmFile= open( f'{xmldir}hm.xml', 'r+')
     #lmFile= open( f'{xmldir}lm.xml', 'r+')
-
+    
+    errorFile= open( f'{xmldir}pak_error.csv', 'w')
+    
     pmFile= tmpf(mode="r+")
     hmFile = tmpf(mode="r+")
     lmFile = tmpf(mode="r+", encoding='1251')
-
+    errors= 0
     for rdata in qurs:
         _nmo= get_npr_mo(qurs1, rdata)
         qurs1.execute(_sql.get_usl, ( ya, ya, rdata.idcase, ) )
@@ -151,18 +155,38 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
             qurs1.execute(_sql.get_stom, ( rdata.idcase, ) )
             _stom = qurs1.fetchall()
         
-        _data = PmData(rdata)
-        write_sluch(_data, pmFile, pmSluch, _usl, _usp, _stom)
-        _data = HmData(rdata, _nmo)
-        write_zap(_data, hmFile, hmZap, _usl, _usp)
-        _data = LmData(rdata)
-        write_pers(_data, lmFile, lmPers)
-
+        try:
+            _data = PmData(rdata)
+            write_sluch(_data, pmFile, pmSluch, _usl, _usp, _stom)
+            
+            _data = HmData(rdata, _nmo)
+            write_zap(_data, hmFile, hmZap, _usl, _usp)
+            
+            _data = LmData(rdata)
+            write_pers(_data, lmFile, lmPers)
+        except Exception as e:
+            errorFile.write( f'{e}\n' )
+            qurs1.execute(_sql.set_error, (rdata.idcase, e))
+            errors += 1
+            continue
+        
         # mark as sent
         qurs1.execute(_sql.set_as_sent, (ya, rdata.idcase))
         rc += 1
 
         #print(' rec %s ' % rc, end='\r')
+    if errors > 0:
+        errorFile.close()
+        qurs.close()
+        qurs1.close()
+        qonn.commit()
+        qonn.close()
+        
+        for f in (hmFile, pmFile, lmFile):
+            f.close()
+            
+        return rc, len(lmPers.uniq), os.path.join(xmldir, errorsFile), errors
+        
     to_zip=[]
     for f, h in ((hmFile, HmHdr), (pmFile, PmHdr), (lmFile, LmHdr)):
         f.seek(0)
@@ -176,14 +200,14 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
         for f in to_zip:
             zipH.write(f)
     
-    _app.logger.debug(lmPers.dubl)    
+    #_app.logger.debug(lmPers.dubl)    
     
     qurs.close()
     qurs1.close()
     qonn.commit()
     qonn.close()
     
-    return rc, len(lmPers.uniq), os.path.join(xmldir, zfile)
+    return rc, len(lmPers.uniq), os.path.join(xmldir, zfile), 0
 
 
 def make_xml(current_app, year, month, pack, sent):
