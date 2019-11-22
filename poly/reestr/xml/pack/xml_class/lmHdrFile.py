@@ -9,8 +9,11 @@ class LmData(DataObject):
         # polis in talon
         if self.polis_type is not None and self.polis_num is not None:
             self.id_pac= self.polis_num
+        try:
+            self.id_pac= int(self.id_pac)
+        except:
+            raise ValueError(f'{self.idcase}-ID_PAC не целое число')
         
-        self.id_pac= int(self.id_pac)
         self.doc=['doctype', 'docnum', 'docser', 'docdate', 'docorg']
         self.dost= []
         self.calc = (

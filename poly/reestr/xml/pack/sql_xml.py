@@ -136,8 +136,8 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
     #pmFile= open( f'{xmldir}pm.xml', 'r+')
     #hmFile= open( f'{xmldir}hm.xml', 'r+')
     #lmFile= open( f'{xmldir}lm.xml', 'r+')
-    
-    errorFile= open( f'{xmldir}pak_error.csv', 'w')
+    errFname= f'{xmldir}\\pak_error.txt'
+    errorFile= open( errFname, 'w')
     
     pmFile= tmpf(mode="r+")
     hmFile = tmpf(mode="r+")
@@ -166,7 +166,7 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
             write_pers(_data, lmFile, lmPers)
         except Exception as e:
             errorFile.write( f'{e}\n' )
-            qurs1.execute(_sql.set_error, (rdata.idcase, e))
+            #qurs1.execute(_sql.set_error, (rdata.idcase, e))
             errors += 1
             continue
         
@@ -185,7 +185,7 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
         for f in (hmFile, pmFile, lmFile):
             f.close()
             
-        return rc, len(lmPers.uniq), os.path.join(xmldir, errorsFile), errors
+        return rc, len(lmPers.uniq), errFname, errors
         
     to_zip=[]
     for f, h in ((hmFile, HmHdr), (pmFile, PmHdr), (lmFile, LmHdr)):

@@ -29,8 +29,8 @@ class HmData(DataObject):
             tal.crd_num as card,
             -- tal.crd_num AS id_pac,
         """
-        assert self.date_1 and self.date_2, f'{id} -- Нет даты талона'
-        assert self.card, f'{id} -- Нет карты талона' 
+        assert self.date_1 and self.date_2, f'{id}-Нет даты талона'
+        assert self.card, f'{id}-Нет карты талона' 
         """
             tal.mek, -- as pr_nov,
             
@@ -59,12 +59,17 @@ class HmData(DataObject):
             self.smo_ok= self.smo_okato
             self.id_pac= self.polis_num
             
-        assert self.vpolis, f'{id} -- Тип полиса не указан'
-        assert self.polis_num, f'{id} -- Номер полиса не указан'
-        assert self.polis_ser and self.polis_num and self.vpolis == 1, f'{id} -- Тип полиса не старый'
-        assert len(self.polis_num) < 16 and self.vpolis == 2, f'{id} -- Полис не времянка'
-        assert len(self.polis_num) == 16 and self.vpolis == 3, f'{id} -- Полис не ЕНП'
-        assert self.smo or self.smo_ok, f'{id} -- Нет ни СМО ни СМО ОКАТО' 
+        assert self.vpolis, f'{id}-Тип полиса не указан'
+        assert self.npolis, f'{id}-Номер полиса не указан'
+        if self.vpolis == 1:
+            assert self.spolis and self.npolis, f'{id}-Тип полиса не старый'
+        elif self.vpolis == 2: 
+            assert len(self.npolis) < 16, f'{id}-Полис не времянка'
+        elif self.vpolis == 3:
+            assert len(self.npolis) == 16, f'{id}-Полис не ЕНП'
+        else:
+            raise AttributeError(f'{id}-Тип полиса не поддерживаем')
+        assert self.smo or self.smo_ok, f'{id}-Нет ни СМО ни СМО ОКАТО' 
         """
             tal.doc_spec as specfic,
             
@@ -74,10 +79,10 @@ class HmData(DataObject):
             tal.rslt,
             tal.ishod,
         """
-        assert self.doc_spec, f'{id} -- SPECFIC не указан'
-        assert self.usl_ok, f'{id} -- USL_OK не указан'
-        assert self.for_pom, f'{id} -- FOR_POM не указан'
-        assert self.rslt and self.ishod, f'{id} -- RESULT/ISHOD не указан'
+        assert self.specfic, f'{id}-SPECFIC не указан'
+        assert self.usl_ok, f'{id}-USL_OK не указан'
+        assert self.for_pom, f'{id}-FOR_POM не указан'
+        assert self.rslt and self.ishod, f'{id}-RESULT/ISHOD не указан'
         """
             tal.visit_pol, 
             tal.visit_home as visit_hom,
@@ -94,7 +99,8 @@ class HmData(DataObject):
             tal.ds2,
             tal.char1 as c_zab,
         """
-        assert self.nsndhosp or self.naprlech and nmo, f'{id} -- Нет кода МО направления'
+        assert self.ds1 and self.c_zab, f'{id}-Нет DS1, CHAR1'
+        assert self.nsndhosp or self.naprlech and nmo, f'{id}-Нет кода МО направления'
         if bool(nmo):
             self.npr_mo= f'{nmo}'
             if not bool(self.npr_date):
@@ -107,8 +113,8 @@ class HmData(DataObject):
             spec.profil,
             doc.snils as iddokt,
         """
-        assert self.prvs and self.profil, f'{id} -- Нет PRVS | PROFIL'
-        assert self.iddokt, f'{id} -- Нет СНИЛС у доктора'
+        assert self.prvs and self.profil, f'{id}-Нет PRVS | PROFIL'
+        assert self.iddokt, f'{id}-Нет СНИЛС у доктора'
         """
             
         -- PACIENT
@@ -124,10 +130,11 @@ class HmData(DataObject):
             crd.dul_date as docdate,
             crd.dul_org as docorg
         """
-        assert self.fam, f'{id} -- Нет Фамилии'
-        assert self.dr, f'{id} -- Нет дня рождения'
-        assert self.vpolis != 3 and self.doctype and self.docnum and self.docser and \
-            self.docdate and self.docorg, f'{id} -- Не ЕНП и неуказан полностью ДУЛ'
+        assert self.fam, f'{id}-Нет Фамилии пациента'
+        assert self.dr, f'{id}-Нет дня рождения пациента'
+        if self.vpolis != 3:
+            assert self.doctype and self.docnum and self.docser and \
+                self.docdate and self.docorg, f'{id}-Не ЕНП и неуказан полностью ДУЛ'
         
         self.iddokt= self.iddokt.replace(" ", "-")
         #self.os_sluch= 2 if self.dost.find('1') > 0 else None
@@ -137,7 +144,7 @@ class HmData(DataObject):
         try:
             self.id_pac= int(self.id_pac)
         except ValueError:
-            raise ValueError(f'{id} -- Номер полиса не целое число' )
+            raise ValueError(f'{id}-Номер полиса не целое число' )
         
         
         self.calc = (
@@ -400,7 +407,7 @@ class HmZap(TagMix):
             #('ksg_kpg', self.ksg_tag),# ignore yet
             'reab', #ignore
             'prvs', #data.prvs
-            'vers_spec', 
+            'vers_spec', #self
             'iddokt', #data
             'ed_col', # ignore
             'tarif',  # ignore
@@ -496,6 +503,8 @@ class HmZap(TagMix):
             'nhistory',
             'date_1',
             'date_2',
+            'ds1', 
+            'c_zab', 
             'prvs',
             'vers_spec',
             'iddokt',
@@ -576,8 +585,6 @@ class HmZap(TagMix):
         #self.z_sl = self.pacient
         #self.sl = self.pacient
         
-        assert 
-
         #return self.wrap_tags( self.zap[0], self.zap[1:], data)
         return self.make_el( self.zap, data)
 
