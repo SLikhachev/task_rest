@@ -42,7 +42,7 @@ dr date
 
 _MO= 'invoice_mo'
 _INV= 'invoice_bars'
-_USL= 'usl_bars'
+_USL= 'invoice_pmu'
 _INS= 'INSERT INTO %s '
 _INS_INV= _INS % _INV
 _INS_MO= _INS % _MO
@@ -107,3 +107,11 @@ GET_ROW_INV_TAL= 'SELECT nhistory FROM invoice_bars ORDER BY nhistory;'
 GET_TALON= 'SELECT crd_num, smo FROM talonz_clin WHERE tal_num=%s;'
 UPDATE_TAL_SMO= 'UPDATE talonz_clin SET smo=%s WHERE tal_num=%s;'
 UPDATE_CRD_SMO= 'UPDATE cardz_clin SET smo=%s WHERE crd_num=%s;'
+
+GET_USL= """
+SELECT inv.code_usl, pmu.name, inv.kol_usl, inv.tarif 
+FROM %s AS inv, pmu 
+WHERE 
+inv.code_usl=pmu.code_usl
+ORDER BY inv.code_usl
+""" % _USL

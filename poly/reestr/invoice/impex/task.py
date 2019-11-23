@@ -5,6 +5,7 @@ from flask import request, current_app, Response
 from werkzeug import secure_filename
 from flask_restful import Resource
 from poly.reestr.invoice.impex.imp_inv import imp_inv
+from poly.reestr.invoice.impex.exp_usl import exp_usl
 from poly.reestr.invoice.impex.exp_inv import exp_inv
 from poly.reestr.invoice.impex.correct_ins import correct_ins
 from poly.reestr.invoice.impex import config 
@@ -39,21 +40,26 @@ class InvImpex(Resource):
             up_file = os.path.join(catalog, filename)
             files.save(up_file)
             rc= wc= errors= 0
+
+            dc = (0,)
             try:
                 res= imp_inv(current_app, up_file, typ)
                 if len(res) == 1:
                     current_app.logger.debug( config.FAIL[ abs( res[0] ) ] )
                     return self.result( '', config.FAIL[ abs( res[0] ) ], False), current_app.config['CORS']
                 rc, smo, mon, yar= res 
-                if len(smo) > 0:  dc= (0,)
-                    #dc= correct_ins(current_app, smo)
+                if typ == 6:
+                    #return self.result('', 'Импорт выполнен', True), current_app.config['CORS']
+                    wc, xreestr = exp_usl(current_app, smo, mon, yar, catalog)
                 else:
-                    dc= (0,)
-                wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)
+                    if len(smo) > 0:
+                        pass
+                        # dc= correct_ins(current_app, smo)
+                    wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)
             except Exception as e:
                 raise e
                 current_app.logger.debug(e)
-                return self.result(filename, 'PROCESSING ERROR (see log)', False), current_app.config['CORS']
+                return self.result(filename, 'Ошибка сервера (детали в журнале)', False), current_app.config['CORS']
                 
             time2 = datetime.now()
             #msg = f'Счет {filename} Записей считано {rc}. Время: {(time2-time1)}'

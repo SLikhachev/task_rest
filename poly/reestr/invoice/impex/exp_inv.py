@@ -19,7 +19,7 @@ def get_mo_smo_name(app, qurs, smo, cfg):
     else:
         mo_name= cfg.STUB_MO
     if len(smo) > 0:
-        ins= 250000 + int(smo)
+        ins= 25000 + int(smo)
         qurs.execute(cfg.GET_SMO_NAME, ( ins, ))
         mq= qurs.fetchone()
         if mq:

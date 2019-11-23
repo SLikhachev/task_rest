@@ -26,7 +26,7 @@ class InvCalc(Resource):
         yar, mon = month_field( request.form.get('month', '') )
         rc= wc= errors= 0
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'inv')   
-        
+        err_msg= 'Ошибка сервера (детали в журнале)'
         # PMU
         if typ == 6:
             try:
@@ -34,9 +34,9 @@ class InvCalc(Resource):
                 if wc == 0:
                     return self.result( '', config.FAIL[ 2 ], False), current_app.config['CORS']
             except Exception as e:
-                raise e
+                #raise e
                 current_app.logger.debug(e)
-                return self.result('', 'PROCESSING ERROR (see log)', False), current_app.config['CORS']
+                return self.result('',err_msg, False), current_app.config['CORS']
             time2 = datetime.now()
             msg = f'Расчет {config.TYPE[typ-1][1]} Записей в в файле {wc}. Время: {(time2-time1)}'
             return self.result(xreestr, msg, True), current_app.config['CORS']
@@ -53,9 +53,9 @@ class InvCalc(Resource):
             
             wc,  xreestr= exp_inv(current_app, smo, str(mon), str(yar), typ, catalog, '_calc')
         except Exception as e:
-            raise e
+            #raise e
             current_app.logger.debug(e)
-            return self.result('', 'PROCESSING ERROR (see log)', False), current_app.config['CORS']
+            return self.result('', err_msg, False), current_app.config['CORS']
         
         time2 = datetime.now()
         msg = f'Счет {config.TYPE[typ-1][1]} Записей в счете {rc}, записей в реестре {wc}. Время: {(time2-time1)}'

@@ -26,7 +26,7 @@ class Lpu228Config(BaseConfig):
     TESTING = True
     SECRET_KEY = 'Another random secret key'
     MO_CODE = ('228', '229')
-    DB_NAME = 'prive'
+    DB_NAME = 'hokuto'  #'prive'
     DB_USER = 'postgres'
     DB_PASS = 'boruh'
     OGRN= ''
