@@ -160,3 +160,7 @@ WHERE
 get_stom = ''
 
 set_as_sent="UPDATE talonz_clin_%s SET talon_type=2 WHERE tal_num=%s"
+
+set_error="INSERT INTO error_pack(tal_num, crd_num, error) VALUES ( %s, %s, %s );"
+
+truncate_errors="TRUNCATE TABLE error_pack;"

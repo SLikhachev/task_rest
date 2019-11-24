@@ -124,25 +124,26 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
     lmPers= LmPers(mo)
     rc = 0
     
-    #print('-- WRITE HPL DATA --\n')
-    ya= int(str(year)[2:])
-    query= _sql.get_hpm_data % ya
-    if sent:
-        query= f'{query}{_sql.sent}'
-    query=f'{query}{_sql.month}'
-    qurs.execute(query, (month, ))
-
-
     #pmFile= open( f'{xmldir}pm.xml', 'r+')
     #hmFile= open( f'{xmldir}hm.xml', 'r+')
     #lmFile= open( f'{xmldir}lm.xml', 'r+')
-    errFname= f'{xmldir}\\pak_error.txt'
+    errFname= f'{xmldir}\\error_pack.csv'
     errorFile= open( errFname, 'w')
-    
+    qurs1.execute(_sql.truncate_errors)
+    qonn.commit()
+
     pmFile= tmpf(mode="r+")
     hmFile = tmpf(mode="r+")
     lmFile = tmpf(mode="r+", encoding='1251')
     errors= 0
+
+    ya = int(str(year)[2:])
+    query = _sql.get_hpm_data % ya
+    if sent:
+        query = f'{query}{_sql.sent}'
+    query = f'{query}{_sql.month}'
+    qurs.execute(query, (month,))
+
     for rdata in qurs:
         _nmo= get_npr_mo(qurs1, rdata)
         qurs1.execute(_sql.get_usl, ( ya, ya, rdata.idcase, ) )
@@ -165,8 +166,8 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
             _data = LmData(rdata)
             write_pers(_data, lmFile, lmPers)
         except Exception as e:
-            errorFile.write( f'{e}\n' )
-            #qurs1.execute(_sql.set_error, (rdata.idcase, e))
+            errorFile.write( f'{rdata.card}-{e}\n' )
+            qurs1.execute(_sql.set_error, (rdata.idcase, rdata.card, str(e).split('-')[1] ) )
             errors += 1
             continue
         
@@ -174,7 +175,6 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
         qurs1.execute(_sql.set_as_sent, (ya, rdata.idcase))
         rc += 1
 
-        #print(' rec %s ' % rc, end='\r')
     if errors > 0:
         errorFile.close()
         qurs.close()
