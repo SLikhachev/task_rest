@@ -12,7 +12,7 @@ class LmData(DataObject):
         try:
             self.id_pac= int(self.id_pac)
         except:
-            raise ValueError(f'{self.idcase}-ID_PAC не целое число')
+            raise ValueError(f'{self.idcase}-ID_PAC (номер полиса) не целое число')
         
         self.doc=['doctype', 'docnum', 'docser', 'docdate', 'docorg']
         self.dost= []

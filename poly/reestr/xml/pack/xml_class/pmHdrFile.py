@@ -22,10 +22,11 @@ class PmData(DataObject):
         else:
             self.from_firm= None
         id= f'{self.idcase}'
-        assert self.purp, f'{id}-Нет цели' 
-        assert self.visit_pol, f'{id}-0 VISIT_POL' # yet
+        assert self.purp, f'{id}-Нет цели посещения' 
+        assert self.visit_pol, f'{id}-Нулевой количесво посещений ' # yet
         assert self.nsndhosp or self.naprlech and self.from_firm, f'{id}-Нет МО направления'
-        assert bool(self.nsndhosp) != bool(self.naprlech), f'{id}-HOSP и CONS напрвления сразу'    
+        assert bool(self.nsndhosp) != bool(self.naprlech), \
+            f'{id}-HOSP (госпитализация) и CONS (консультация) напрвления в одном талоне'    
 """        
     @property
     def type_pay(self):
@@ -47,10 +48,12 @@ class PmUsl(DataObject):
     def __init__(self, mo, tal, ntuple):
         super().__init__(ntuple)
         self.mo = mo
-        assert self.spec and self.podr, f'{tal.idcase}-Нет PODR, SPEC в ПМУ {self.code_usl}'
+        assert self.spec and self.podr, \
+            f'{tal.idcase}-Нет PODR (подразделиния), SPEC (специалиста) в ПМУ {self.code_usl}'
         self.executor= self.fmt_000(mo) + self.fmt_000(self.podr) + self.fmt_000(self.spec)
         if  tal.naprlech:
-            assert self.npr_mo and self.npr_spec,  f'{tal.idcase}-Нет NPR_MO, NPR_SPEC' 
+            assert self.npr_mo and self.npr_spec, \
+                f'{tal.idcase}-Нет NPR_MO (МО направления), NPR_SPEC (Специалиста направления)' 
             self.ex_spec= self.fmt_000(self.npr_mo) + self.fmt_000(self.npr_spec)
         
         

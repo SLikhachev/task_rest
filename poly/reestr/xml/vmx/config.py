@@ -13,6 +13,10 @@ INSERT INTO vmx_errors
 (%s, %s, %s, %s, %s, %s, %s);
 '''
 
+GET_ERROR_NAME='''
+SELECT name FROM errors_bars WHERE num='%s';
+'''
+
 TO_CSV= '''COPY (
 select tal_num, crd_num, fam, open_date, close_date, error, cmt from vmx_errors ) to 
 '%s' With CSV 

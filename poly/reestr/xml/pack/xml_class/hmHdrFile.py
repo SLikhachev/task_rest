@@ -62,11 +62,11 @@ class HmData(DataObject):
         assert self.vpolis, f'{id}-Тип полиса не указан'
         assert self.npolis, f'{id}-Номер полиса не указан'
         if self.vpolis == 1:
-            assert self.spolis and self.npolis, f'{id}-Тип полиса не старый'
+            assert self.spolis and self.npolis, f'{id}-Тип полиса не соответвует типу 1 (старый)'
         elif self.vpolis == 2: 
-            assert len(self.npolis) < 16, f'{id}-Полис не времянка'
+            assert len(self.npolis) < 16, f'{id}-Тип полис не времянка, не соответвует типу 2'
         elif self.vpolis == 3:
-            assert len(self.npolis) == 16, f'{id}-Полис не ЕНП'
+            assert len(self.npolis) == 16, f'{id}-Тип полис не ЕНП, не соответвует типу 3'
         else:
             raise AttributeError(f'{id}-Тип полиса не поддерживаем')
         assert self.smo or self.smo_ok, f'{id}-Нет ни СМО ни СМО ОКАТО' 
@@ -79,10 +79,10 @@ class HmData(DataObject):
             tal.rslt,
             tal.ishod,
         """
-        assert self.specfic, f'{id}-SPECFIC не указан'
-        assert self.usl_ok, f'{id}-USL_OK не указан'
-        assert self.for_pom, f'{id}-FOR_POM не указан'
-        assert self.rslt and self.ishod, f'{id}-RESULT/ISHOD не указан'
+        assert self.specfic, f'{id}-SPECFIC ( специальность из регионального справочника) не указан'
+        assert self.usl_ok, f'{id}-USL_OK (условия оказания) не указан'
+        assert self.for_pom, f'{id}-FOR_POM (форма помощи) не указан'
+        assert self.rslt and self.ishod, f'{id}-RESULT/ISHOD (исход, результат) не указан'
         """
             tal.visit_pol, 
             tal.visit_home as visit_hom,
@@ -99,7 +99,7 @@ class HmData(DataObject):
             tal.ds2,
             tal.char1 as c_zab,
         """
-        assert self.ds1 and self.c_zab, f'{id}-Нет DS1, CHAR1'
+        assert self.ds1 and self.c_zab, f'{id}-Нет DS1, CHAR1 (основной диагноз, характер)'
         assert self.nsndhosp or self.naprlech and nmo, f'{id}-Нет кода МО направления'
         if bool(nmo):
             self.npr_mo= f'{nmo}'
@@ -113,7 +113,7 @@ class HmData(DataObject):
             spec.profil,
             doc.snils as iddokt,
         """
-        assert self.prvs and self.profil, f'{id}-Нет PRVS | PROFIL'
+        assert self.prvs and self.profil, f'{id}-Нет PRVS | PROFIL (кода специальности по V021, профиля)'
         assert self.iddokt, f'{id}-Нет СНИЛС у доктора'
         """
             
@@ -134,7 +134,7 @@ class HmData(DataObject):
         assert self.dr, f'{id}-Нет дня рождения пациента'
         if self.vpolis != 3:
             assert self.doctype and self.docnum and self.docser and \
-                self.docdate and self.docorg, f'{id}-Не ЕНП и неуказан полностью ДУЛ'
+                self.docdate and self.docorg, f'{id}-Тип полиса не ЕНП и неуказан полностью ДУЛ'
         
         self.iddokt= self.iddokt.replace(" ", "-")
         #self.os_sluch= 2 if self.dost.find('1') > 0 else None

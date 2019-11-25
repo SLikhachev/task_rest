@@ -98,7 +98,7 @@ class TagMix:
                     if isinstance (el, ET.Element): 
                         proot.append(el)
             except Exception as e:
-                t= f'{obj.idcase}-TagError, root: {root}, tag: {tag}, el: {el} '
+                t= f'{obj.idcase}-Ошибка формаривания: TagError::  root: {root}, tag: {tag}, el: {el} '
                 raise TagError(t, e)
 
         return proot

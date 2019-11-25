@@ -61,7 +61,7 @@ def process(zap, ignore, errors='ignore'):
     card = sl.find('CARD').text
     idcase = int( sl.find('IDCASE').text) 
     for ot in sl.findall('OTKAZ'):
-        err = int(ot.find('I_TYPE').text)
+        err = ot.find('I_TYPE').text
         if errors == 'ignore' and err in ignore:
             continue
         if errors == 'select' and err not in ignore:
@@ -102,8 +102,14 @@ def write_error(qurs, res):
     else:
         sn.Terr.add( int(tal.tal_num) )
     for err in res:
+        qurs.execute ( config.GET_ERROR_NAME, (err[2], ) )
+        enr= qurs.fetchone()
+        en= 'Нет описания'
+        if enr:
+            en= enr[0]
+            
         qurs.execute( config.WRITE_ERROR,
-            ( tal.tal_num,  tal.open_date, tal.close_date, tal.crd_num, tal.fam, err[2], err[3])
+            ( tal.tal_num,  tal.open_date, tal.close_date, tal.crd_num, tal.fam, err[2], str(en) )
         )
     return tal
 
