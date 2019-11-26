@@ -61,7 +61,7 @@ def process(zap, ignore, errors='ignore'):
     card = sl.find('CARD').text
     idcase = int( sl.find('IDCASE').text) 
     for ot in sl.findall('OTKAZ'):
-        err = ot.find('I_TYPE').text
+        err = ot.find('I_TYPE').text # was int
         if errors == 'ignore' and err in ignore:
             continue
         if errors == 'select' and err not in ignore:
