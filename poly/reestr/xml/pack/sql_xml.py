@@ -8,7 +8,7 @@
 # pack - 2 digit pack number def ('01')
 # nsul - string of distinct nusl number (talon number) def None
 
-import os, sys, importlib, zipfile
+import os, sys, importlib, zipfile, time
 from tempfile import TemporaryFile as tmpf
 #from pathlib import Path
 #import json
@@ -49,7 +49,7 @@ def write_hdr(hdr, mo, year, month, pack, xmldir, fm_temp, sd_z=None, summ=None)
     return f'{_hdr.filename}.xml'
 
 
-def write_sluch(data, file, pm, usl, usp, stom=None):
+def write_sluch(check, data, file, pm, usl, usp, stom=None):
 #def write_sluch(data, pm, usl, stom=None):
 
     pm.set_usl('usl', data, usl, usp)
@@ -57,12 +57,13 @@ def write_sluch(data, file, pm, usl, usp, stom=None):
         pm.set_usl('stom', stom)
     
     sluch= pm.get_sluch( data )
-    
+    if check:
+        return
     ET.ElementTree( sluch ).write(file, encoding="unicode" )
     file.write('\n')
 
         
-def write_zap(data, file, hm, usl, usp, stom=None):
+def write_zap(check, data, file, hm, usl, usp, stom=None):
     hm.set_usl('usl', usl, usp, data)
     """
     if data.q_u == 3:
@@ -74,16 +75,20 @@ def write_zap(data, file, hm, usl, usp, stom=None):
         data.p_per = None
         hm.reset_ksg()
     """
-
-    ET.ElementTree( hm.get_zap( data ) ).write(file, encoding="unicode" )
+    zap= hm.get_zap( data )
+    if check:
+        return 
+    ET.ElementTree( zap ).write(file, encoding="unicode" )
     file.write('\n')
 
     #if data.q_u == 3:
     #    hm.reset_ksg()
 
 
-def write_pers(data, file, lm):
+def write_pers(check, data, file, lm):
     pers= lm.get_pers( data )
+    if check:
+        return
     if pers:
         ET.ElementTree( pers ).write(file, encoding="unicode" )
         file.write('\n')
@@ -101,15 +106,17 @@ def get_npr_mo(qurs, rdata):
         return m.code
     return None
     
-def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None ):
+def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nusl=None ):
 
     """
+    # _app: obj, current app FLASK object
     # mo: string(3) head MO code
     # year: int year 4 digit 
     # month: int month 2 digits
-    #sent: bool if true ignore already sent records else not
+    # pack: string(2), pack number
+    # check: bool if true check tables recs only, don't make xml pack
+    # sent: bool if true ignore already sent records else not
     # xmldir: string working xml directory
-    # qurs/1 : db cursor
     # stom bool for use stom pmu table in the prosess
     # nusl: string for AND condition of SQL SELECT statement or ''
 
@@ -127,14 +134,14 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
     #pmFile= open( f'{xmldir}pm.xml', 'r+')
     #hmFile= open( f'{xmldir}hm.xml', 'r+')
     #lmFile= open( f'{xmldir}lm.xml', 'r+')
-    errFname= f'{xmldir}\\error_pack.csv'
+    errFname= f'{xmldir}\\error_pack_{time.time()}.csv'
     errorFile= open( errFname, 'w')
     qurs1.execute(_sql.truncate_errors)
     qonn.commit()
-
-    pmFile= tmpf(mode="r+")
-    hmFile = tmpf(mode="r+")
-    lmFile = tmpf(mode="r+", encoding='1251')
+    
+    pmFile= tmpf(mode="r+") if not check else None
+    hmFile = tmpf(mode="r+") if not check else None
+    lmFile = tmpf(mode="r+", encoding='1251') if not check else None
     errors= 0
 
     ya = int(str(year)[2:])
@@ -158,13 +165,14 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
         
         try:
             _data = PmData(rdata)
-            write_sluch(_data, pmFile, pmSluch, _usl, _usp, _stom)
+            write_sluch(check, _data, pmFile, pmSluch, _usl, _usp, _stom)
             
             _data = HmData(rdata, _nmo)
-            write_zap(_data, hmFile, hmZap, _usl, _usp)
+            write_zap(check, _data, hmFile, hmZap, _usl, _usp)
             
             _data = LmData(rdata)
-            write_pers(_data, lmFile, lmPers)
+            write_pers(check, _data, lmFile, lmPers)
+        
         except Exception as e:
             errorFile.write( f'{rdata.card}-{e}\n' )
             qurs1.execute(_sql.set_error, (rdata.idcase, rdata.card, str(e).split('-')[1] ) )
@@ -172,21 +180,22 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
             continue
         
         # mark as sent
-        qurs1.execute(_sql.set_as_sent, (ya, rdata.idcase))
+        if not check:
+            qurs1.execute(_sql.set_as_sent, (ya, rdata.idcase))
         rc += 1
 
-    if errors > 0:
+    if errors > 0 or check:
         errorFile.close()
         qurs.close()
         qurs1.close()
         qonn.commit()
         qonn.close()
-        
+
         for f in (hmFile, pmFile, lmFile):
-            f.close()
+            if f: f.close()
             
         return rc, len(lmPers.uniq), errFname, errors
-        
+    
     to_zip=[]
     for f, h in ((hmFile, HmHdr), (pmFile, PmHdr), (lmFile, LmHdr)):
         f.seek(0)
@@ -210,12 +219,12 @@ def write_data(_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None 
     return rc, len(lmPers.uniq), os.path.join(xmldir, zfile), 0
 
 
-def make_xml(current_app, year, month, pack, sent):
+def make_xml(current_app, year, month, pack, check, sent):
      
     mo = current_app.config['MO_CODE'][0]
     xmldir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'xml')
     #current_app.logger.debug(xmldir)
     
-    return write_data(current_app, mo, year, month, pack, sent, xmldir, stom=False, nusl=None)
+    return write_data(current_app, mo, year, month, pack, check, sent, xmldir, stom=False, nusl=None)
 
 
