@@ -100,8 +100,8 @@ class HmData(DataObject):
             tal.char1 as c_zab,
         """
         assert self.ds1 and self.c_zab, f'{id}-Нет DS1, CHAR1 (основной диагноз, характер)'
-        assert self.nsndhosp or self.naprlech and nmo, f'{id}-Нет кода МО направления'
-        if bool(nmo):
+        if  bool(self.naprlech) or bool(self.nsndhosp):
+            assert nmo, f'{id}-Нет кода МО направления' 
             self.npr_mo= f'{nmo}'
             if not bool(self.npr_date):
                 self.npr_date= self.date_1 if bool(self.cons_mo) else self.date_2

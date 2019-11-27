@@ -24,9 +24,10 @@ class PmData(DataObject):
         id= f'{self.idcase}'
         assert self.purp, f'{id}-Нет цели посещения' 
         assert self.visit_pol, f'{id}-Нулевой количесво посещений ' # yet
-        assert self.nsndhosp or self.naprlech and self.from_firm, f'{id}-Нет МО направления'
-        assert bool(self.nsndhosp) != bool(self.naprlech), \
-            f'{id}-HOSP (госпитализация) и CONS (консультация) напрвления в одном талоне'    
+        if bool(self.nsndhosp) or bool(self.naprlech):
+            assert bool(self.from_firm), f'{id}-Нет МО направления FROM_FIRM'
+            assert bool(self.nsndhosp) != bool(self.naprlech), \
+                f'{id}-HOSP (госпитализация) и CONS (консультация) напрвления в одном талоне'    
 """        
     @property
     def type_pay(self):

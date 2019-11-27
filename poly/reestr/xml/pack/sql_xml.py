@@ -114,7 +114,8 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
     # year: int year 4 digit 
     # month: int month 2 digits
     # pack: string(2), pack number
-    # check: bool if true check tables recs only, don't make xml pack
+    # check: if TRUE -> check tables recs only, don't make xml pack
+    #   else make zip xml pack and fill error_pack table, dont make error_pack
     # sent: bool if true ignore already sent records else not
     # xmldir: string working xml directory
     # stom bool for use stom pmu table in the prosess
@@ -135,10 +136,11 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
     #hmFile= open( f'{xmldir}hm.xml', 'r+')
     #lmFile= open( f'{xmldir}lm.xml', 'r+')
     errFname= f'{xmldir}\\error_pack_{time.time()}.csv'
-    errorFile= open( errFname, 'w')
+    errorFile= open( errFname, 'w') if check else None
     qurs1.execute(_sql.truncate_errors)
     qonn.commit()
     
+    # make pack anyway if not check, just ignore all errors 
     pmFile= tmpf(mode="r+") if not check else None
     hmFile = tmpf(mode="r+") if not check else None
     lmFile = tmpf(mode="r+", encoding='1251') if not check else None
@@ -174,7 +176,9 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
             write_pers(check, _data, lmFile, lmPers)
         
         except Exception as e:
-            errorFile.write( f'{rdata.card}-{e}\n' )
+            if errorFile:
+                errorFile.write( f'{rdata.card}-{e}\n' )
+            
             qurs1.execute(_sql.set_error, (rdata.idcase, rdata.card, str(e).split('-')[1] ) )
             errors += 1
             continue
@@ -184,7 +188,7 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
             qurs1.execute(_sql.set_as_sent, (ya, rdata.idcase))
         rc += 1
 
-    if errors > 0 or check:
+    if check: # errors > 0 and check: # return error_pack file
         errorFile.close()
         qurs.close()
         qurs1.close()
@@ -196,6 +200,7 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
             
         return rc, len(lmPers.uniq), errFname, errors
     
+    # make zip file anyway and return it
     to_zip=[]
     for f, h in ((hmFile, HmHdr), (pmFile, PmHdr), (lmFile, LmHdr)):
         f.seek(0)
@@ -216,7 +221,7 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
     qonn.commit()
     qonn.close()
     
-    return rc, len(lmPers.uniq), os.path.join(xmldir, zfile), 0
+    return rc, len(lmPers.uniq), os.path.join(xmldir, zfile), errors
 
 
 def make_xml(current_app, year, month, pack, check, sent):

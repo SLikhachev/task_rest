@@ -24,27 +24,42 @@ class MakeXml(Resource):
         year, month = month_field( request.form.get('month', '') )
         # pack number
         pack = request.form.get('pack', '01')
-        # if CHECK is True then don't make reestr xml, check for errors only 
-        check = bool( request.form.get('check', None) )
+        
+        ### if CHECK is  'check' then checlk only if 'ignore' then make reestr ignore errors 
+        # if chek is True to check only, else make reestr ignore errors
+        check= False
+        if request.form.get('check', '') == 'check':
+            check= True
+        #if not check in ['check', 'ignore']:
+        #    check= None
+
         # if SENT is None ignore already sent, produce full pack
-        sent = bool( request.form.get('sent', None) )
+        sent= False
+        if request.form.get('sent', '') == 'sent':
+            sent= True
         #current_app.logger.debug(year, month, pack, sent)
         try:
             ph, lm, file, errors = make_xml(current_app, year, month, pack, check, sent)
+            # if check is check, file is csv errors file
+            # if check is None, ignore, file is pack.zip
         except Exception as e:
             raise e
             #ex= printException()
             current_app.logger.debug( e )
             return self.result('', f'Исключение: {e}', False), current_app.config['CORS']
         
-        time2 = datetime.now()
-        if errors:
-            msg = f'{ph} PHМ записей, {lm} LM записей, {errors} ошибок, пакет не сформирован : {(time2 - time1)}'
+        t= f'Время: {(datetime.now() - time1)}'
+        z= f'H записей: {ph}, L записей: {lm} '
+        if errors > 0:
+            msg = f'{z}, НАЙДЕНО ОШИБОК: {errors}. {t}'
             done = False
+            # file -> zip if check is False else error_pack.csv
         else:
-            if check:
+            if check: # == 'check':
                 file= None
-            msg = f'Сформировано {ph} PHМ записей, {lm} LM записей время: {(time2 - time1)} '
+            # file is NONE if no errors found and no request for pack to make 
+            
+            msg = f'{z}. {t}'
             done= True
             
         return self.result(file, msg, done), current_app.config['CORS']
