@@ -14,7 +14,7 @@ INSERT INTO vmx_errors
 '''
 
 GET_ERROR_NAME='''
-SELECT name FROM errors_bars WHERE num='%s';
+SELECT name FROM errors_bars WHERE num=%s;
 '''
 
 TO_CSV= '''COPY (

@@ -28,7 +28,7 @@ class MakeReport(Resource):
     def post(self):
         
         tst = request.form.get('test', None)
-        
+
         dm = request.form.get('month', "")
         if dm != "":
             dm = dm.split('-')
@@ -49,17 +49,14 @@ class MakeReport(Resource):
         up_file = os.path.join(catalog, filename)
         files.save(up_file)
 
-        test = 1 if tst else 0
-        """
-     try:
-         test, rc, wc, errors = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
-     except Exception as e:
-         current_app.logger.debug(e)
-         raise e
-         #return self.result('', f'Исключение: {e}', False), current_app.config['CORS']
-     """
+        test = 1 if tst == 'on' else 0
+        try:
+            test, rc, wc, errors = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
+        except Exception as e:
+            #current_app.logger.debug(e)
+            raise e
+            #return self.result('', f'Исключение: {e}', False), current_app.config['CORS']
 
-        test, rc, wc, errors = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
 
         msg = 'Режим обработки файла '
         if test > 0:
@@ -67,11 +64,11 @@ class MakeReport(Resource):
         if errors > 0:
             msg += 'обнаружено ошибок %s (игнорируем) ' % errors
         msg += 'обработано записей %s' % rc
-        current_app.logger.debug(msg)
-
+        #current_app.logger.debug(msg)
+        print(msg, filename)
         if test > 0: #or errors > 0:
             os.remove(up_file)
-            return self.result(filename, msg, False), current_app.config['CORS']
+            return self.result(filename, msg, True), current_app.config['CORS']
 
 
         report = make_report(current_app, year, month)

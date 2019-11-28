@@ -107,22 +107,18 @@ class HospEir:
     def get_doc(self, val):
         if val == '' or len(val) < 4:
             return None
-        d= re.split('[ ,./]', val)
-        if len(d) == 1:
-            if len(val) > 4:
-                spec, code = val[:3], val[3:]
-            else:
-                spec, code = val[:2], val[2:]
-        else:
-            spec, code = d
-        try:
-            spec, code = int(spec), int(code)
-            q = 'select family from doctor where spec = %i and code = %i' % (spec, code) 
-            if self.get_from_db(q) is not None:
-                return '%i.%i' % (spec, code) 
+        d= re.search('(^\d+)([ ,./])*(\d+$)', val)
+        if d is None:
             return None
-        except Exception:
-            return None
+        if d.group(2) is not None:
+            spec, code = int(d.group(1)), int(d.group(3))
+        else:    
+            p= len(d.group(0)) # min 2
+            spec, code = int(d.group(0)[:p-1]), int(d.group(0)[p-1:])
+        q = 'select family from doctor where spec = %i and code = %i' % (spec, code) 
+        if self.get_from_db(q) is not None:
+            return '%i.%i' % (spec, code) 
+        return None
         
     def getData(self, data):
         # data arr of strings filds

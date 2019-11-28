@@ -1,0 +1,1 @@
+alter table invoice_bars alter column id_pac set data type varchar(20)
