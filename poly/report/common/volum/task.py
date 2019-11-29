@@ -35,13 +35,14 @@ class MakeReport(Resource):
         db = psycopg2.connect(current_app.config['DB_CONF'])
         #qonn = psycopg2.connect("dbname=prive user=postgres password=boruh")
         #__init__(self, app, db, mo, month, year, stom=False, stac=False, write=False):
-        
+        done= True
         fill_rep_ambul = FillReportTable(current_app, db, '228', month, year, stom=True, stac=True, write=write_flag)
         #fill_rep.test()
         if fill_rep_ambul.table_test():
             msg += fill_rep_ambul.set_total_ambul()
         else:
             msg += ' Не найден отчет поликлиники %s ' % fill_rep_ambul.rr_table
+            done= False
         del fill_rep_ambul
         
         fill_rep_travm = FillReportTable(current_app, db, '229', month, year, stom=False, stac=False, write=write_flag)
@@ -50,9 +51,10 @@ class MakeReport(Resource):
             msg += fill_rep_travm.set_total_travm()
         else:
             msg += ' Не найден отчет трвавмпункта %s ' % fill_rep_travm.rr_table
+            done= False
         del fill_rep_travm
         # return { msg: "String", done: "bool" }
-        return self.result('', msg, False), current_app.config['CORS']
+        return self.result('', msg, done), current_app.config['CORS']
 
     def get(self):
         dm = request.args.get('month', '')
