@@ -88,7 +88,8 @@ SELECT
     crd.dul_serial as docser,
     crd.dul_number as docnum,
     crd.dul_date as docdate,
-    crd.dul_org as docorg
+    crd.dul_org as docorg,
+    crd.mo_att
         
 FROM
     talonz_clin_%s as tal, 

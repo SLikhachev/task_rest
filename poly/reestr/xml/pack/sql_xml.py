@@ -166,7 +166,7 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
             _stom = qurs1.fetchall()
         
         try:
-            _data = PmData(rdata)
+            _data = PmData(rdata, mo)
             write_sluch(check, _data, pmFile, pmSluch, _usl, _usp, _stom)
             
             _data = HmData(rdata, _nmo)

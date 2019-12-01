@@ -6,24 +6,30 @@ from datetime import date
 from poly.reestr.xml.pack.xml_class.mixTags import HdrMix, TagMix
 from poly.reestr.xml.pack.xml_class.utils import DataObject
 
+dcons = (63, )
 
 class PmData(DataObject):
     # here we set all params
-    def __init__(self, ntuple):
+    def __init__(self, ntuple, mo):
         super().__init__(ntuple)
         # 1 - invoice
         # 2 - by soul 
         self.type_pay= 1 # yet
-        
+        id = f'{self.idcase}'
+
+        if self.specfic in dcons and self.mo_att != mo and self.for_pom != 2:
+            assert bool(self.nsndhosp) or bool(self.naprlech), f'{id}-Нет напаравления на консультацию'
+
         if bool(self.cons_mo):
             self.from_firm= f'{self.cons_mo}'
         elif bool(self.hosp_mo):
             self.from_firm= f'{self.hosp_mo}'
         else:
             self.from_firm= None
-        id= f'{self.idcase}'
+
         assert self.purp, f'{id}-Нет цели посещения' 
         assert self.visit_pol, f'{id}-Нулевой количесво посещений ' # yet
+
         if bool(self.nsndhosp) or bool(self.naprlech):
             assert bool(self.from_firm), f'{id}-Нет МО направления FROM_FIRM'
             assert bool(self.nsndhosp) != bool(self.naprlech), \
