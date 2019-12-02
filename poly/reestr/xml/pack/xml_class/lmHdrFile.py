@@ -32,11 +32,11 @@ class LmData(DataObject):
             print(e)
 
     def _dost(self):
-        if self.ot is None:
+        if not bool(self.ot):
             self.dost.append(1)
-        if self.fam is None:
+        if not bool(self.fam):
             self.dost.append(2)
-        if self.im is None:
+        if not (self.im):
             self.dost.append(3)
     
     def _doc(self):

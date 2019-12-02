@@ -159,7 +159,7 @@ class HmData(DataObject):
             func()
 
     def _os_sluch(self):
-        if self.ot is None:
+        if not bool(self.ot):
             self.os_sluch = 2
         
     def __idsp(self):
