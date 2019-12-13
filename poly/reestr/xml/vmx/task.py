@@ -28,8 +28,8 @@ class XmlVmx(Resource):
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')   
         if files:
             filename = secure_filename(files.filename)
-            if not allowed_file( files.filename, current_app.config ):
-                return self.result(filename, " File type not allowed", False), current_app.config['CORS']
+            if not allowed_file( files.filename, current_app.config ) or not filename.endswith('.xml'):
+                return self.result(filename, "Допустимое расширение имени файла .xml", False), current_app.config['CORS']
 
             else:
                 # save file to disk

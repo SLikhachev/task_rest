@@ -99,7 +99,12 @@ class HmData(DataObject):
             tal.ds2,
             tal.char1 as c_zab,
         """
-        assert self.ds1 and self.c_zab, f'{id}-Нет DS1, CHAR1 (основной диагноз, характер)'
+        assert self.ds1,  f'{id}-Нет DS1 (основной диагноз)'
+        if self.ds1.upper().startswith('Z'):
+            self.c_zab = None
+        else:
+            assert self.c_zab, f'{id}-Нет CHAR1 (характер основного заболевания)'
+
         if  bool(self.naprlech) or bool(self.nsndhosp):
             assert nmo, f'{id}-Нет кода МО направления' 
             self.npr_mo= f'{nmo}'
