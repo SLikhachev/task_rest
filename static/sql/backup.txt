@@ -8,9 +8,9 @@ only vanilla exe was worked
 
 --- INIT and SETTINGS
 
-pg_probackup init -B E:\pgsql\pg_backup\
+pg_probackup init -B C:\Users\Public\znap\db_backup\pg_backup\
 
-pg_probackup add-instance -B E:\pgsql\pg_backup\ -D C:/"Program Files"/PostgreSQL/9.6/data/ --instance znap
+pg_probackup add-instance -B C:\Users\Public\znap\db_backup\pg_backup -D C:/"Program Files"/PostgreSQL/9.6/data/ --instance znap
 
 makes it in hokuto db
 BEGIN;
@@ -81,16 +81,16 @@ Additional settings for backup MAKE IT BOFORE FIRST BACKUP
 ---------------------------------------------------------
 Install extension amcheck or amcheck_next in every database of the cluster:
 
-pg_probackup set-config -B E:\pgsql\pg_backup\  --instance znap -U postgres -d hokuto -w
+pg_probackup set-config -B C:\Users\Public\znap\db_backup\pg_backup --instance znap -U postgres -d hokuto -w
 Connection options:
 -U, --pguser=postgres            user name to connect as (default: current local user)
 -d, --pgdatabase=hokuto          database to connect (default: username)
 -h, --pghost=HOSTNAME            database server host or socket directory(default: 'local socket')
 -p, --pgport=PORT                database server port (default: 5432)
 
-pg_probackup set-config -B E:\pgsql\pg_backup\  --instance znap --compress-algorithm=zlib --compress-level=5
+pg_probackup set-config -B C:\Users\Public\znap\db_backup\pg_backup  --instance znap --compress-algorithm=zlib --compress-level=5
 
-pg_probackup set-config -B E:\pgsql\pg_backup\  --instance znap --retention-redundancy=7 --retention-window=7
+pg_probackup set-config -B C:\Users\Public\znap\db_backup\pg_backup --instance znap --retention-redundancy=7 --retention-window=7
 
 set  PGPASSWORD = %APPDATA%\postgresql\pgpass.conf
 
@@ -145,4 +145,4 @@ ALTER ROLE backup WITH REPLICATION
 Make sure the parameter max_wal_senders is set high enough to leave at least one session available for the backup process.
 
 
-pg_probackup backup -B E:\pgsql\pg_backup --instance znap -b FULL --stream --temp-slot
+pg_probackup backup -B C:\Users\Public\znap\db_backup\pg_backup --instance znap -b FULL --stream --temp-slot
