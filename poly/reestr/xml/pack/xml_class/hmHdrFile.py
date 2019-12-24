@@ -509,7 +509,7 @@ class HmZap(TagMix):
             'date_1',
             'date_2',
             'ds1', 
-            'c_zab', 
+            #'c_zab',
             'prvs',
             'vers_spec',
             'iddokt',
