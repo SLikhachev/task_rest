@@ -1,9 +1,10 @@
 import os
 from datetime import datetime
 from pathlib import Path
-from flask import request, current_app, Response
+from flask import request, current_app, Response, g
 from werkzeug import secure_filename
-from flask_restful import Resource
+from poly.reestr.common import RestTask
+#from flask_restful import Resource
 from poly.reestr.invoice.impex.imp_inv import imp_inv
 from poly.reestr.invoice.impex.exp_usl import exp_usl
 from poly.reestr.invoice.impex.exp_inv import exp_inv
@@ -11,15 +12,8 @@ from poly.reestr.invoice.impex.correct_ins import correct_ins
 from poly.reestr.invoice.impex import config 
 from poly.utils.files import allowed_file
 
-class InvImpex(Resource):
+class InvImpex(RestTask):
 
-    def result(self, filename, message, done=False):
-        return dict(
-            file=filename.split('\\')[-1],
-            message=message,
-            done=done
-        )
-    
     def post(self):
 
         time1 = datetime.now()
@@ -42,6 +36,8 @@ class InvImpex(Resource):
             rc= wc= errors= 0
 
             dc = (0,)
+            g.qonn = current_app.config.db()
+
             try:
                 res= imp_inv(current_app, up_file, typ)
                 if len(res) == 1:

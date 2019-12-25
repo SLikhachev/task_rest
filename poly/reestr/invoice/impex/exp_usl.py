@@ -8,13 +8,22 @@ import psycopg2.extras
 from openpyxl import load_workbook
 #from openpyxl.compat import range
 from openpyxl.styles import Border, Side, colors
+from flask import g
 from poly.reestr.invoice.impex.exp_inv import get_mo_smo_name
 from poly.reestr.invoice.impex import config
 
+def data_source_init():
+    g.qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+
+def data_source_get():
+    g.qurs.execute(config.GET_USL)
+    return g.qurs.fetchall()
+
+def data_source_close():
+    g.qurs.close()
+
 def exp_usl(app: object, insurer: str, month: str, yar: str, inv_path: str) -> (int, str):
     
-    qonn= app.config.db()
-    qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     typ=6 # pmu
     tpl= config.TYPE[typ-1][2]
     sh1 = 'Лист1'
@@ -23,18 +32,15 @@ def exp_usl(app: object, insurer: str, month: str, yar: str, inv_path: str) -> (
     xout = f'{tpl}_0{insurer}_{month}-{yar}.xlsx'
     
     mon= int(month)
-    smo= int(insurer)
+    #smo= int(insurer)
     
     xlw = os.path.join(inv_path, xout)   
     year= f'20{yar}'
     period = 'За %s %s года' % (app.config['MONTH'][mon-1], year)
-    
-    mo_name, smo_name = get_mo_smo_name(app, qurs, insurer, config)
-    
+
     wb = load_workbook(filename = xlr)
-    wb.active
+    #wb.active
     sheet = wb[sh1]
-    sheet['B15'].value = '%s   %s' % (period, smo_name)
 
     border = Border(
         left=Side(border_style='thin', color=colors.BLACK),
@@ -43,11 +49,14 @@ def exp_usl(app: object, insurer: str, month: str, yar: str, inv_path: str) -> (
         bottom=Side(border_style='thin', color=colors.BLACK)
     )
 
-    qurs.execute(config.GET_USL)
-    rows= qurs.fetchall()
     cnt = 21
     rc = 1
-    for row in rows:
+
+    data_source_init()
+    mo_name, smo_name = get_mo_smo_name(app, insurer, config)
+    sheet['B15'].value = '%s   %s' % (period, smo_name)
+
+    for row in data_source_get():
 
         data = ( row.code_usl, row.name,  row.tarif, row.kol_usl, row.kol_usl*row.tarif)
         for xrow in range(cnt, cnt+1):
@@ -76,7 +85,7 @@ def exp_usl(app: object, insurer: str, month: str, yar: str, inv_path: str) -> (
 
     wb.save(xlw)
     wb.close()
-    qurs.close()
-    qonn.close()
+
+    data_source_close()
 
     return rc, xlw

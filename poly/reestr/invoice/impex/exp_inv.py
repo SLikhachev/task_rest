@@ -4,24 +4,27 @@ from datetime import date
 from pathlib import Path
 import psycopg2
 import psycopg2.extras
+from flask import g
 from openpyxl import load_workbook
 #from openpyxl.compat import range
 from openpyxl.styles import Border, Side, colors
 from poly.reestr.invoice.impex import config
 
-def get_mo_smo_name(app, qurs, smo, cfg):
-    
+def get_mo_smo_name(app,  smo, cfg):
+
+    assert 'qurs' in g, 'get_mo_smo_name FLASK.g HAVE not QURSOR IN '
+
     mo_code= app.config['MO_CODE'][0] 
-    qurs.execute(cfg.GET_MO_NAME, ( mo_code, ) )
-    mq= qurs.fetchone()
+    g.qurs.execute(cfg.GET_MO_NAME, ( mo_code, ) )
+    mq= g.qurs.fetchone()
     if mq:
         mo_name= mq[0]
     else:
         mo_name= cfg.STUB_MO
     if len(smo) > 0:
         ins= 25000 + int(smo)
-        qurs.execute(cfg.GET_SMO_NAME, ( ins, ))
-        mq= qurs.fetchone()
+        g.qurs.execute(cfg.GET_SMO_NAME, ( ins, ))
+        mq= g.qurs.fetchone()
         if mq:
             smo_name=  mq[0]
         else:
@@ -102,6 +105,18 @@ def for_foms(dex, rc):
 
     return d
 
+def data_source_init():
+    g.qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+
+def data_source_get(is_calc):
+    _data = config.GET_ROW_INV if len(is_calc) == 0 else config.GET_ROW_MO
+    g.qurs.execute(_data)
+    return g.qurs.fetchall()
+
+def data_source_close():
+    g.qurs.close()
+
+
 def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path: str, is_calc='' ) -> (int, str):
     
     # insurer: string ( 11, 16 )
@@ -117,18 +132,12 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     #m_2 = '{0:02d}'.format( m+1 )
     
     tpl= config.TYPE[typ-1][2]
-    _data= config.GET_ROW_INV if len(is_calc) == 0 else config.GET_ROW_MO
-    
-    qonn= app.config.db()
-    qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    
+
     sh1 = 'Лист1'
     
     xtpl = f'{tpl}.xlsx'
     xlr = os.path.join(inv_path, 'tpl', xtpl)   
-    
-    mo_name, smo_name = get_mo_smo_name(app, qurs, insurer, config)
-    
+
     xout = f'{tpl}{is_calc}_0{insurer}_{month}-{yar}.xlsx'
     xlw = os.path.join(inv_path, xout)   
     #year = '%s' % date.today().isocalendar()[0]
@@ -139,6 +148,10 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     wb = load_workbook(filename = xlr)
     wb.active
     sheet = wb[sh1]
+
+    data_source_init()
+    mo_name, smo_name = get_mo_smo_name(app, insurer, config)
+
     if insurer == '':
         sheet['C4'].value = period
         # begin from 17 string
@@ -160,9 +173,10 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     rcTotal = 1
     irang=20 # 20 cells in row
     #irang=21 # 21 cells in row
-    qurs.execute(_data)
     dc= 0
-    for row in qurs.fetchall():
+
+    for row in data_source_get(is_calc):
+
         data = extract(row)
         if insurer == '':
             data = for_foms(data, rcTotal)
@@ -185,7 +199,6 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
         
     wb.save(xlw)
     wb.close()
-    qurs.close()
-    qonn.close()
+    data_source_close()
     
     return (rcTotal-1, xlw)

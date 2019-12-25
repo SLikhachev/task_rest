@@ -5,6 +5,7 @@ import xml.etree.cElementTree as ET
 #from datetime import datetime
 from pathlib import Path
 from zipfile import ZipFile
+from flask import g
 from poly.reestr.invoice.impex import config
 from poly.reestr.invoice.impex.utils import get_text
 from poly.reestr.invoice.impex.imp_usl import imp_usl
@@ -120,18 +121,18 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
     if typ == 6:
         return imp_usl(app, _hm),  sn.meta['smo'], sn.meta['mon'],  sn.meta['yar'] 
     
-    qonn = app.config.db()
-    sn.qurs = qonn.cursor()
+    #qonn = app.config.db()
+    sn.qurs = g.qonn.cursor()
     #sn.qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    sn.qurs.execute(config.TRUNC_TBL_INV)
-    #sn.qurs.execute(sn.trunc_meta)
-    qonn.commit()
+    #sn.qurs.execute(config.TRUNC_TBL_INV)
+    sn.qurs.execute(config.CREATE_TBL_INV)
+    g.qonn.commit()
     
     # 2. process files
     # ---------------------------------------------
     for (f, r) in ( (_hm, sn.zap), (_lm, sn.pers)):
         zp_xml(f, r)
-        qonn.commit()
+        g.qonn.commit()
     
     sn.qurs.execute(config.COUNT_INV)
     rc= sn.qurs.fetchone()
@@ -144,7 +145,7 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
     '''
     
     sn.qurs.close()
-    qonn.close()
+    #qonn.close()
     
     os.remove(_hm)
     os.remove(_lm)

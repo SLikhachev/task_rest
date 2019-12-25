@@ -3,6 +3,7 @@
 from decimal import Decimal
 import xml.etree.cElementTree as ET
 #from datetime import datetime
+from flask import g
 from poly.reestr.invoice.impex import config
 from poly.reestr.invoice.impex.utils import get_text
 
@@ -37,10 +38,11 @@ def imp_usl(app: object, hm: str) -> int:
                 usld[ ud['CODE_USL'] ][0] += ud['KOL_USL'] 
     
             
-    qonn = app.config.db()
-    qurs = qonn.cursor()
-    qurs.execute(config.TRUNC_TBL_USL)
-    qonn.commit()
+    #qonn = app.config.db()
+    qurs = g.qonn.cursor()
+    #qurs.execute(config.TRUNC_TBL_USL)
+    qurs.execute(config.CREATE_TBL_USL)
+    g.qonn.commit()
     
     for k in usld.keys():
         try:
@@ -51,13 +53,13 @@ def imp_usl(app: object, hm: str) -> int:
         except Exception as e:
             raise e
     
-    qonn.commit()
+    g.qonn.commit()
     
     qurs.execute(config.COUNT_USL)
     rc= qurs.fetchone()
     
     qurs.close()
-    qonn.close()
+    #qonn.close()
     
     return rc[0]
             

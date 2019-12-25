@@ -13,9 +13,8 @@ FAIL= ('Неверный код МО', 'Тип счета не поддержи�
 SET_META= '''INSERT INTO invoice_meta( lpu, smo, yar, mon, typ )
 VALUES ( %s, %s, %s, %s, %s );
 '''
-# INVOICE
-'''
-n_zap int primary key,
+INVOICE='''
+(n_zap int primary key,
 id_pac int,
 spolis varchar(10),
 npolis varchar(16),
@@ -38,7 +37,15 @@ im varchar(32),
 ot varchar(32),
 w smallint,
 dr date
-'''
+)'''
+
+USL='''
+(code_usl character varying(20) NOT NULL primary key,
+kol_usl integer,
+tarif numeric(10,2),
+profil integer,
+prvs integer 
+)'''
 
 _MO= 'invoice_mo'
 _INV= 'invoice_bars'
@@ -77,10 +84,17 @@ _DATA_USL= '''(
     %s, %s, %s, %s, %s
 )'''
 
+
 _TRUNC= 'TRUNCATE TABLE %s;'
 TRUNC_TBL_MO= _TRUNC % _MO
 TRUNC_TBL_INV= _TRUNC % _INV
 TRUNC_TBL_USL= _TRUNC % _USL
+
+_CREATE= 'CREATE TEMP TABLE'
+CREATE_TBL_MO= f'{_CREATE} {_MO} {INVOICE}'
+CREATE_TBL_INV= f'{_CREATE} {_INV} {INVOICE}'
+CREATE_TBL_USL=  f'{_CREATE} {_USL} {USL}'
+
 
 INS_INV= f'{_INS_INV}{_DATA_HM}'
 INS_MO= f'{_INS_MO}{_DATA_MO}'
