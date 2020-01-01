@@ -40,8 +40,8 @@ def imp_usl(app: object, hm: str) -> int:
             
     #qonn = app.config.db()
     qurs = g.qonn.cursor()
-    #qurs.execute(config.TRUNC_TBL_USL)
-    qurs.execute(config.CREATE_TBL_USL)
+    qurs.execute(config.TRUNC_TBL_USL)
+    #qurs.execute(config.CREATE_TBL_USL)
     g.qonn.commit()
     
     for k in usld.keys():

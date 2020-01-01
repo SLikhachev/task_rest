@@ -124,8 +124,8 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
     #qonn = app.config.db()
     sn.qurs = g.qonn.cursor()
     #sn.qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    #sn.qurs.execute(config.TRUNC_TBL_INV)
-    sn.qurs.execute(config.CREATE_TBL_INV)
+    sn.qurs.execute(config.TRUNC_TBL_INV)
+    #sn.qurs.execute(config.CREATE_TBL_INV)
     g.qonn.commit()
     
     # 2. process files

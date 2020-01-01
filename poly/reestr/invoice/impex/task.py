@@ -14,21 +14,43 @@ from poly.utils.files import allowed_file
 
 class InvImpex(RestTask):
 
+
+    def close_task(self, file, msg, done):
+        self.qurs.execute( config.SET_INV_TASK, (0, self.mo_code ) )
+        g.qonn.commit()
+        self.qurs.close()
+        return self.result(file, msg, done), current_app.config['CORS']
+
     def post(self):
+
+        self.mo_code = current_app.config['MO_CODE'][0]
+
+        g.qonn = current_app.config.db()
+        self.qurs= g.qonn.cursor()
+        # check if task is running
+        self.qurs.execute( config.GET_INV_TASK, (self.mo_code , ) )
+        task= self.qurs.fetchone()
+        if len(task) and task[0] > 0:
+            return self.close_task('', 'Расчет уже запущен', False)
+
 
         time1 = datetime.now()
         typ= int( request.form.get('type', 1) )
+        self.qurs.execute(config.SET_INV_TASK, (typ, self.mo_code) )
+        g.qonn.commit()
+        #qurs.close()
+
         files= request.files.get('file', None)
         if files is None:
-            return self.result( 'Нет файла ', 'Передан пустой запрос на обработку', False), current_app.config['CORS']
+            return self.close_task('Нет файла ', 'Передан пустой запрос на обработку', False)
         
-        catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'inv')   
+        catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'inv')
         if files:
             filename = secure_filename(files.filename)
             fp= Path(filename)
             
             if not allowed_file( files.filename, current_app.config ) or fp.suffix != '.zip':
-                return self.result(filename, " Недопустимый тип файла", False), current_app.config['CORS']
+                return self.close_task(filename, " Недопустимый тип файла", False)
             
             # save file to disk
             up_file = os.path.join(catalog, filename)
@@ -36,14 +58,14 @@ class InvImpex(RestTask):
             rc= wc= errors= 0
 
             dc = (0,)
-            g.qonn = current_app.config.db()
 
             try:
                 res= imp_inv(current_app, up_file, typ)
                 if len(res) == 1:
                     current_app.logger.debug( config.FAIL[ abs( res[0] ) ] )
-                    return self.result( '', config.FAIL[ abs( res[0] ) ], False), current_app.config['CORS']
-                rc, smo, mon, yar= res 
+                    return self.close_task('', config.FAIL[ abs( res[0] ) ], False)
+
+                rc, smo, mon, yar= res
                 if typ == 6:
                     #return self.result('', 'Импорт выполнен', True), current_app.config['CORS']
                     wc, xreestr = exp_usl(current_app, smo, mon, yar, catalog)
@@ -55,7 +77,7 @@ class InvImpex(RestTask):
             except Exception as e:
                 raise e
                 current_app.logger.debug(e)
-                return self.result(filename, 'Ошибка сервера (детали в журнале)', False), current_app.config['CORS']
+                return self.close_task(filename, 'Ошибка сервера (детали в журнале)', False)
                 
             time2 = datetime.now()
             #msg = f'Счет {filename} Записей считано {rc}. Время: {(time2-time1)}'
@@ -63,11 +85,13 @@ class InvImpex(RestTask):
             os.remove(up_file)
             #files.close()
                 
-            return self.result(xreestr, msg, True), current_app.config['CORS']
+            return self.close_task(xreestr, msg, True)
 
     def get(self):
         raise NotImplemented
-       
+
+# future implementation
+'''       
 class TestSse(Resource):
 
     def result(self, filename, message, detail=None):
@@ -117,5 +141,4 @@ class TestSse(Resource):
         msg = f'время: {(time2 - time1)} '
         detail= self.init()
         # just return total value to neeed process
-        return self.result('', msg, detail=detail), current_app.config['CORS']
-
+        return self.result('', msg, detail=detail), current_app.config['CORS']'''

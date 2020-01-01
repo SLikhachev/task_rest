@@ -12,7 +12,7 @@ from poly.reestr.invoice.impex import config
 
 def get_mo_smo_name(app,  smo, cfg):
 
-    assert 'qurs' in g, 'get_mo_smo_name FLASK.g HAVE not QURSOR IN '
+    assert 'qurs' in g, 'get_mo_smo_name:: Нет связи с БД'
 
     mo_code= app.config['MO_CODE'][0] 
     g.qurs.execute(cfg.GET_MO_NAME, ( mo_code, ) )
