@@ -20,9 +20,9 @@ GET_INV_TASK='''SELECT typ FROM invoice_meta WHERE lpu= %s;
 SET_INV_TASK='''UPDATE invoice_meta SET typ=%s WHERE  lpu =%s;
 '''
 # same as above, but flag is smo
-GET_CALC_TASK='''SELECT smo FROM invoice_meta WHERE lpu= %s;
+GET_CALC_TASK='''SELECT mon FROM invoice_meta WHERE lpu = %s;
 '''
-SET_CALC_TASK='''UPDATE invoice_meta SET smo=%s WHERE  lpu =%s;
+SET_CALC_TASK='''UPDATE invoice_meta SET mon=%s WHERE  lpu =%s;
 '''
 INVOICE='''
 (n_zap int primary key,

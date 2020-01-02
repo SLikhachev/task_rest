@@ -109,7 +109,10 @@ def data_source_init():
     g.qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 
 def data_source_get(is_calc):
-    _data = config.GET_ROW_INV if len(is_calc) == 0 else config.GET_ROW_MO
+    if len(is_calc) == 0:
+        _data = config.GET_ROW_INV
+    else:
+        _data= config.GET_ROW_MO
     g.qurs.execute(_data)
     return g.qurs.fetchall()
 
@@ -121,6 +124,7 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     
     # insurer: string ( 11, 16 )
     # month: string 01-12
+    # yar: string len=2 (last digits)
     # typ: 1-5
     # inv_path: string path to
     # is_calc: str if non empty then calculatede reestr
@@ -138,7 +142,7 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     xtpl = f'{tpl}.xlsx'
     xlr = os.path.join(inv_path, 'tpl', xtpl)   
 
-    xout = f'{tpl}{is_calc}_0{insurer}_{month}-{yar}.xlsx'
+    xout = f'{tpl}{is_calc}_0{insurer}_{month}_{yar}.xlsx'
     xlw = os.path.join(inv_path, xout)   
     #year = '%s' % date.today().isocalendar()[0]
     #y = year[3]

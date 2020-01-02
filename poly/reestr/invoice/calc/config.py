@@ -8,7 +8,7 @@ SELECT
     tal.tal_num AS n_zap,
     tal.tal_num AS nhistory,
     tal.usl_ok,
-
+    tal.mek, 
     -- tal.vidpom,
     tal.for_pom,
     tal.open_date as date_z_1,
@@ -37,11 +37,11 @@ SELECT
     crd.polis_ser AS spolis,
     crd.polis_num AS npolis
 FROM
-    talonz_clin AS tal, cardz_clin AS crd, 
+    talonz_clin_%s AS tal, cardz_clin AS crd, 
     spec_prvs_profil as spec
 WHERE
     tal.talon_month=%s AND
-    tal.smo=%s AND
+    crd.smo=%s AND
     tal.usl_ok=3 AND
     crd.crd_num=tal.crd_num AND
     spec.spec=tal.doc_spec
