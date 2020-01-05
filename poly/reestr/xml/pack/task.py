@@ -3,20 +3,13 @@ from datetime import datetime
 #from pathlib import Path
 from flask import request, current_app
 #from werkzeug import secure_filename
-from flask_restful import Resource
+from poly.reestr.common import RestTask
 from poly.utils.fields import month_field
 from poly.utils.exept import printException
 from poly.reestr.xml.pack.sql_xml import make_xml
 
-class MakeXml(Resource):
+class MakeXml(RestTask):
 
-    def result(self, filename, message, done=False):
-        return dict(
-            file=filename.split('\\')[-1] if filename else '' ,
-            message=message,
-            done=done
-        )
-    
     def post(self):
 
         time1 = datetime.now()
@@ -46,7 +39,7 @@ class MakeXml(Resource):
             raise e
             #ex= printException()
             current_app.logger.debug( e )
-            return self.result('', f'Исключение: {e}', False), current_app.config['CORS']
+            return self.out ('', f'Исключение: {e}', False)
         
         t= f'Время: {(datetime.now() - time1)}'
         z= f'H записей: {ph}, L записей: {lm} '
@@ -62,5 +55,4 @@ class MakeXml(Resource):
             msg = f'{z}. {t}'
             done= True
             
-        return self.result(file, msg, done), current_app.config['CORS']
-
+        return self.out (file, msg, done)

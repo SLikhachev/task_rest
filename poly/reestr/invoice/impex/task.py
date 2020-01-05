@@ -33,9 +33,6 @@ class InVoice( RestTask):
         self.qurs.close()
         return self.out(file, msg, done)
 
-    def out(self, file, msg, done):
-        return self.result(file, msg, done), current_app.config['CORS']
-
 
 class InvImpex(InVoice):
 
@@ -54,51 +51,50 @@ class InvImpex(InVoice):
         #qurs.close()
 
         files= request.files.get('file', None)
-        if files is None:
-            return self.close_task('Нет файла ', 'Передан пустой запрос на обработку', False)
+        if not bool(files):
+            return self.close_task('', 'Передан пустой запрос на обработку', False)
         
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'inv')
-        if files:
-            filename = secure_filename(files.filename)
-            fp= Path(filename)
-            
-            if not allowed_file( files.filename, current_app.config ) or fp.suffix != '.zip':
-                return self.close_task(filename, " Недопустимый тип файла", False)
-            
-            # save file to disk
-            up_file = os.path.join(catalog, filename)
-            files.save(up_file)
-            rc= wc= errors= 0
+        filename = secure_filename(files.filename)
+        fp= Path(filename)
 
-            dc = (0,)
+        if not allowed_file( files.filename, current_app.config ) or fp.suffix != '.zip':
+            return self.close_task(filename, " Допустимый тип файла .zip", False)
 
-            try:
-                res= imp_inv(current_app, up_file, typ)
-                if len(res) == 1:
-                    current_app.logger.debug( config.FAIL[ abs( res[0] ) ] )
-                    return self.close_task('', config.FAIL[ abs( res[0] ) ], False)
+        # save file to disk
+        up_file = os.path.join(catalog, filename)
+        files.save(up_file)
+        rc= wc= errors= 0
 
-                rc, smo, mon, yar= res
-                if typ == 6:
-                    #return self.result('', 'Импорт выполнен', True), current_app.config['CORS']
-                    wc, xreestr = exp_usl(current_app, smo, mon, yar, catalog)
-                else:
-                    if len(smo) > 0:
-                        pass
-                        # dc= correct_ins(current_app, smo)
-                    wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)
-            except Exception as e:
-                raise e
-                current_app.logger.debug(e)
-                return self.close_task(filename, 'Ошибка сервера (детали в журнале)', False)
-                
-            time2 = datetime.now()
-            #msg = f'Счет {filename} Записей считано {rc}. Время: {(time2-time1)}'
-            msg = f'Счет {filename} Записей в счете {rc}, записей в реестре {wc}. Corr: {dc[0]}.  Время: {(time2-time1)}'
-            os.remove(up_file)
-            #files.close()
-                
-            return self.close_task(xreestr, msg, True)
+        dc = (0,)
+
+        try:
+            res= imp_inv(current_app, up_file, typ)
+            if len(res) == 1:
+                current_app.logger.debug( config.FAIL[ abs( res[0] ) ] )
+                return self.close_task('', config.FAIL[ abs( res[0] ) ], False)
+
+            rc, smo, mon, yar= res
+            if typ == 6:
+                #return self.result('', 'Импорт выполнен', True), current_app.config['CORS']
+                wc, xreestr = exp_usl(current_app, smo, mon, yar, catalog)
+            else:
+                if len(smo) > 0:
+                    pass
+                    # dc= correct_ins(current_app, smo)
+                wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)
+        except Exception as e:
+            raise e
+            current_app.logger.debug(e)
+            return self.close_task(filename, 'Ошибка сервера (детали в журнале)', False)
+
+        time2 = datetime.now()
+        #msg = f'Счет {filename} Записей считано {rc}. Время: {(time2-time1)}'
+        msg = f'Счет {filename} Записей в счете {rc}, записей в реестре {wc}. Corr: {dc[0]}.  Время: {(time2-time1)}'
+        os.remove(up_file)
+        #files.close()
+
+        return self.close_task(xreestr, msg, True)
 
     def get(self):
         raise NotImplemented

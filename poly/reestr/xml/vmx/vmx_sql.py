@@ -13,8 +13,6 @@ sn= types.SimpleNamespace(
     Terr= set()
 )
 
-
-
 """
  <?xml version="1.0" encoding="utf-8" ?> 
 - <FLK_P>
@@ -97,7 +95,7 @@ def write_error(qurs, res):
     global sn
     tal = get_talon(qurs, res[0][0])
     if tal is None:
-        tal= sn.Tal(res[0][0], None, None, '', '')
+        tal= sn.Tal(res[0][0], None, None, '', 'Талон не найден')
         #return None
     else:
         sn.Terr.add( int(tal.tal_num) )

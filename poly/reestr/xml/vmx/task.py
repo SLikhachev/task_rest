@@ -3,54 +3,48 @@ from datetime import datetime
 #from pathlib import Path
 from flask import request, current_app, Response
 from werkzeug import secure_filename
-from flask_restful import Resource
+from poly.reestr.common import RestTask
 from poly.reestr.xml.vmx.vmx_sql import to_sql
 from poly.utils.files import allowed_file
 from poly.reestr.xml.vmx import config
 
-class XmlVmx(Resource):
+class XmlVmx(RestTask):
 
-    def result(self, filename, message, done=False):
-        return dict(
-            file=filename.split('\\')[-1],
-            message=message,
-            done=done
-        )
-    
+    def this_error(self, file):
+        return self.out(file, 'Ошибка обработки (подробно в журнале)', False)
+
     def post(self):
 
         time1 = datetime.now()
         type= request.form.get('type', 1)
         files= request.files.get('file', None)
-        if files is None:
-            return self.result( '', 'Передан пустой запрос на обработку', False), current_app.config['CORS']
+        if not bool(files):
+            return self.out( '', 'Передан пустой запрос на обработку', False)
         
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')   
-        if files:
-            filename = secure_filename(files.filename)
-            if not allowed_file( files.filename, current_app.config ) or not filename.endswith('.xml'):
-                return self.result(filename, "Допустимое расширение имени файла .xml", False), current_app.config['CORS']
+        filename = secure_filename(files.filename)
+        if not allowed_file( files.filename, current_app.config ) or not filename.endswith('.xml'):
+            return self.out(filename, "Допустимое расширение имени файла .xml", False)
 
-            else:
-                # save file to disk
-                ym= filename.split('_')[1]
-                ya= ym[:2]
-                mn= ym[2:]
-                up_file = os.path.join(catalog, filename)
-                files.save(up_file)
-                rc= wc= errors= 0
-                try:
-                    rc= to_sql(current_app, up_file, ya, [], 'ignore')
-                except Exception as e:
-                    current_app.logger.debug(e)
-                    return self.result(filename, 'Ошибка обработки (подробно в журнале)', False), current_app.config['CORS']
-                
-                time2 = datetime.now()
-                msg = f'VM файл {filename} Записей считано {rc}. Время: {(time2-time1)}'
-                os.remove(up_file)
-                #files.close()
-                
-            return self.result(filename, msg, True), current_app.config['CORS']
+        # save file to disk
+        ym= filename.split('_')[1]
+        ya= ym[:2]
+        mn= ym[2:]
+        up_file = os.path.join(catalog, filename)
+        files.save(up_file)
+        rc= wc= errors= 0
+        try:
+            rc= to_sql(current_app, up_file, ya, ('824',), 'ignore')
+        except Exception as e:
+            current_app.logger.debug(e)
+            return self.this_error(filename)
+
+        time2 = datetime.now()
+        msg = f'VM файл {filename} Записей считано {rc}. Время: {(time2-time1)}'
+        os.remove(up_file)
+        #files.close()
+
+        return self.out(filename, msg, True)
 
     def get(self):
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')   
@@ -64,12 +58,12 @@ class XmlVmx(Resource):
             rc= qurs.execute(_q)
         except Exception as e:
             current_app.logger.debug(e)
-            return self.result(filename, 'PROCESSING ERROR (see log)', False), current_app.config['CORS']
+            return self.this_error(filename)
 
         msg = "Посдений файл ошибок"
-        return self.result(up_file, msg, True), current_app.config['CORS']
+        return self.out(up_file, msg, True)
 
-
+'''
 class TestSse(Resource):
 
     def result(self, filename, message, detail=None):
@@ -119,5 +113,4 @@ class TestSse(Resource):
         msg = f'время: {(time2 - time1)} '
         detail= self.init()
         # just return total value to neeed process
-        return self.result('', msg, detail=detail), current_app.config['CORS']
-
+        return self.result('', msg, detail=detail), current_app.config['CORS']'''
