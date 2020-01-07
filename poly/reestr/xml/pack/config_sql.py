@@ -1,3 +1,10 @@
+
+GET_XML_TASK='''SELECT yar FROM invoice_meta WHERE lpu= %s;
+'''
+# set typ to running task
+SET_XML_TASK='''UPDATE invoice_meta SET yar=%s WHERE  lpu =%s;
+'''
+
 select_count ='SELECT COUNT(*) FROM %s WHERE ist_fin=1'
 """
 tal_num, crd_num, open_date, close_date, smo, talon_type, talon_month, 
@@ -103,7 +110,8 @@ WHERE
     doc.code=tal.doc_code AND 
     crd.crd_num=tal.crd_num AND
 """
-sent= ' tal.talon_type=1 and '
+all_tal= ' tal.talon_type > 0 AND '
+sent= ' tal.talon_type=1 AND '
 month= ' tal.talon_month=%s order by tal.tal_num; --limit 1;'
 
 get_npr_mo= 'SELECT code FROM mo_local WHERE scode=%s;'

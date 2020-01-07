@@ -15,6 +15,7 @@ from tempfile import TemporaryFile as tmpf
 import xml.etree.cElementTree as ET
 import psycopg2
 import psycopg2.extras
+from flask import g
 from datetime import date, datetime
 from poly.reestr.xml.pack.xml_class.pmHdrFile import PmData, PmHdr, PmSluch
 from poly.reestr.xml.pack.xml_class.hmHdrFile import HmData, HmHdr, HmZap
@@ -123,9 +124,9 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
 
     """
     
-    qonn = _app.config.db()
-    qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    qurs1 = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    #qonn = _app.config.db()
+    qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    qurs1 = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     
     pmSluch = PmSluch(mo)
     hmZap = HmZap(mo)
@@ -138,7 +139,7 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
     errFname= f'{xmldir}\\error_pack_{time.time()}.csv'
     errorFile= open( errFname, 'w') if check else None
     qurs1.execute(_sql.truncate_errors)
-    qonn.commit()
+    g.qonn.commit()
     
     # make pack anyway if not check, just ignore all errors 
     pmFile= tmpf(mode="r+") if not check else None
@@ -149,7 +150,12 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
     ya = int(str(year)[2:])
     query = _sql.get_hpm_data % ya
     if sent:
+       # type == 1
         query = f'{query}{_sql.sent}'
+    else:
+        #type > 0
+        query = f'{query}{_sql.all_tal}'
+
     query = f'{query}{_sql.month}'
     qurs.execute(query, (month,))
 
@@ -192,8 +198,8 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
         errorFile.close()
         qurs.close()
         qurs1.close()
-        qonn.commit()
-        qonn.close()
+        g.qonn.commit()
+        #qonn.close()
 
         for f in (hmFile, pmFile, lmFile):
             if f: f.close()
@@ -218,8 +224,8 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
     
     qurs.close()
     qurs1.close()
-    qonn.commit()
-    qonn.close()
+    g.qonn.commit()
+    #qonn.close()
     
     return rc, len(lmPers.uniq), os.path.join(xmldir, zfile), errors
 

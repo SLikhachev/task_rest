@@ -12,42 +12,20 @@ from poly.reestr.invoice.impex.correct_ins import correct_ins
 from poly.reestr.invoice.impex import config 
 from poly.utils.files import allowed_file
 
-class InVoice( RestTask):
 
-    def open_task(self):
-        self.mo_code = current_app.config['MO_CODE'][0]
-        g.qonn = current_app.config.db()
-        self.qurs = g.qonn.cursor()
-        # check if task is running
-        #self.qurs.execute(config.GET_INV_TASK, (self.mo_code,))
-        self.qurs.execute(self.get_task, (self.mo_code,))
-        task = self.qurs.fetchone()
-        if len(task) and task[0] > 0:
-            self.qurs.close()
-            return True
-        return False
-
-    def close_task(self, file, msg, done):
-        self.qurs.execute(self.set_task, (0, self.mo_code))
-        g.qonn.commit()
-        self.qurs.close()
-        return self.out(file, msg, done)
-
-
-class InvImpex(InVoice):
+class InvImpex(RestTask):
 
     def post(self):
         # here typ field is used
         self.get_task = config.GET_INV_TASK
         self.set_task = config.SET_INV_TASK
 
-        if self.open_task():
-            return self.out('', 'Расчет уже запущен', False)
-
         time1 = datetime.now()
         typ= int( request.form.get('type', 1) )
-        self.qurs.execute(self.set_task, (typ, self.mo_code) )
-        g.qonn.commit()
+        #  TYP field as flag
+        if self.open_task(typ):
+            return self.out('', 'Расчет уже запущен', False)
+
         #qurs.close()
 
         files= request.files.get('file', None)

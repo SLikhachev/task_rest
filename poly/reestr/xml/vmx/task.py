@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 #from pathlib import Path
-from flask import request, current_app, Response
+from flask import request, current_app, g
 from werkzeug import secure_filename
 from poly.reestr.common import RestTask
 from poly.reestr.xml.vmx.vmx_sql import to_sql
@@ -11,20 +11,28 @@ from poly.reestr.xml.vmx import config
 class XmlVmx(RestTask):
 
     def this_error(self, file):
-        return self.out(file, 'Ошибка обработки (подробно в журнале)', False)
+        return self.close_task(file, 'Ошибка обработки (подробно в журнале)', False)
 
     def post(self):
+
+        # here smo field is used
+        self.get_task = config.GET_VMX_TASK
+        self.set_task = config.SET_VMX_TASK
+
+        #  SMO field as flag
+        if self.open_task(999):
+            return self.out('', 'Расчет уже запущен', False)
 
         time1 = datetime.now()
         type= request.form.get('type', 1)
         files= request.files.get('file', None)
         if not bool(files):
-            return self.out( '', 'Передан пустой запрос на обработку', False)
+            return self.close_task( '', 'Передан пустой запрос на обработку', False)
         
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')   
         filename = secure_filename(files.filename)
         if not allowed_file( files.filename, current_app.config ) or not filename.endswith('.xml'):
-            return self.out(filename, "Допустимое расширение имени файла .xml", False)
+            return self.close_task(filename, "Допустимое расширение имени файла .xml", False)
 
         # save file to disk
         ym= filename.split('_')[1]
@@ -44,7 +52,7 @@ class XmlVmx(RestTask):
         os.remove(up_file)
         #files.close()
 
-        return self.out(filename, msg, True)
+        return self.close_task(filename, msg, True)
 
     def get(self):
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')   

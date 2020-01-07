@@ -5,6 +5,7 @@ import types
 from collections import namedtuple
 import psycopg2
 import psycopg2.extras
+from flask import g
 import xml.etree.cElementTree as ET
 from poly.reestr.xml.vmx import config
 
@@ -121,10 +122,10 @@ def to_sql(current_app, file, year, ignore, errors='ignore'):
     
     global sn
     
-    qonn = current_app.config.db()
-    qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    #qonn = current_app.config.db()
+    qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     qurs.execute(config.TRUNCATE_ERROR)
-    qonn.commit()
+    g.qonn.commit()
     
     tal_tbl= 'talonz_clin_%s' % year
     sn.talon= config.GET_TALON % (tal_tbl, 'cardz_clin') + config.TAL
@@ -140,15 +141,14 @@ def to_sql(current_app, file, year, ignore, errors='ignore'):
             res = process(root, ignore, errors)
             if res is not None:
                 r= write_error(qurs, res)
-                qonn.commit()
+                g.qonn.commit()
                 cnt += 1
             root.clear()
     
     mark_talons(qurs)
     
-    qonn.commit()
+    g.qonn.commit()
     qurs.close()
-    qonn.close()
-    
+
     return cnt
 

@@ -1,20 +1,30 @@
 #import os
 from datetime import datetime
 #from pathlib import Path
-from flask import request, current_app
+from flask import request, current_app, g
 #from werkzeug import secure_filename
 from poly.reestr.common import RestTask
 from poly.utils.fields import month_field
 from poly.utils.exept import printException
 from poly.reestr.xml.pack.sql_xml import make_xml
+from poly.reestr.xml.pack import config_sql
 
 class MakeXml(RestTask):
 
     def post(self):
 
+        # here yar field is used
+        self.get_task = config_sql.GET_XML_TASK
+        self.set_task = config_sql.SET_XML_TASK
+
         time1 = datetime.now()
 
         year, month = month_field( request.form.get('month', '') )
+
+        #  YAR field as flag
+        if self.open_task(year):
+            return self.out('', 'Расчет уже запущен', False)
+
         # pack number
         pack = request.form.get('pack', '01')
         
@@ -39,7 +49,7 @@ class MakeXml(RestTask):
             raise e
             #ex= printException()
             current_app.logger.debug( e )
-            return self.out ('', f'Исключение: {e}', False)
+            return self.close_task ('', f'Исключение: {e}', False)
         
         t= f'Время: {(datetime.now() - time1)}'
         z= f'H записей: {ph}, L записей: {lm} '
@@ -55,4 +65,4 @@ class MakeXml(RestTask):
             msg = f'{z}. {t}'
             done= True
             
-        return self.out (file, msg, done)
+        return self.close_task (file, msg, done)
