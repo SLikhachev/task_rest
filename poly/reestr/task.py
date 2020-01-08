@@ -28,8 +28,12 @@ class RestTask(Resource):
     def result(self, filename, message, done=False):
         if 'qonn' in g:
             g.qonn.close()
+        if bool(filename) and len(filename) > 0:
+            file = filename.split('\\')[-1]
+        else:
+            file= ''
         return dict(
-            file=filename.split('\\')[-1],
+            file=file,
             message=message,
             done=done
         )

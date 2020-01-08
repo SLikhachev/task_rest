@@ -3,7 +3,7 @@ from datetime import datetime
 #from pathlib import Path
 from flask import request, current_app, g
 from werkzeug import secure_filename
-from poly.reestr.common import RestTask
+from poly.reestr.task import RestTask
 from poly.reestr.xml.vmx.vmx_sql import to_sql
 from poly.utils.files import allowed_file
 from poly.reestr.xml.vmx import config
@@ -44,6 +44,7 @@ class XmlVmx(RestTask):
         try:
             rc= to_sql(current_app, up_file, ya, ('824',), 'ignore')
         except Exception as e:
+            raise e
             current_app.logger.debug(e)
             return self.this_error(filename)
 

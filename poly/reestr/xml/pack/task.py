@@ -3,7 +3,7 @@ from datetime import datetime
 #from pathlib import Path
 from flask import request, current_app, g
 #from werkzeug import secure_filename
-from poly.reestr.common import RestTask
+from poly.reestr.task import RestTask
 from poly.utils.fields import month_field
 from poly.utils.exept import printException
 from poly.reestr.xml.pack.sql_xml import make_xml
@@ -59,7 +59,7 @@ class MakeXml(RestTask):
             # file -> zip if check is False else error_pack.csv
         else:
             if check: # == 'check':
-                file= None
+                file= ''
             # file is NONE if no errors found and no request for pack to make 
             
             msg = f'{z}. {t}'

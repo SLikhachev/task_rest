@@ -103,7 +103,7 @@ class HmData(DataObject):
         if self.ds1.upper().startswith('Z'):
             self.c_zab = None
         else:
-            assert self.c_zab, f'{id}-Нет CHAR1 (характер основного заболевания)'
+            assert self.c_zab, f'{id}-Нет C_ZAB (характер основного заболевания)'
 
         if  bool(self.naprlech) or bool(self.nsndhosp):
             assert nmo, f'{id}-Нет кода МО направления' 

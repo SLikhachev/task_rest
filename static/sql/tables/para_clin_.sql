@@ -1,4 +1,4 @@
-CREATE TABLE public.para_clin_20
+CREATE TABLE IF NOT EXISTS public.para_clin_20
 (
   id serial PRIMARY KEY, 
   tal_num integer NOT NULL,

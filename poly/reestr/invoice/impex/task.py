@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from flask import request, current_app, Response, g
 from werkzeug import secure_filename
-from poly.reestr.common import RestTask
+from poly.reestr.task import RestTask
 #from flask_restful import Resource
 from poly.reestr.invoice.impex.imp_inv import imp_inv
 from poly.reestr.invoice.impex.exp_usl import exp_usl
