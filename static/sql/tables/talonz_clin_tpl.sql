@@ -1,9 +1,9 @@
 CREATE TABLE public.talonz_clin_tpl
 (
   tal_num serial PRIMARY KEY,
-  crd_num character varying(20) REFERENCES cardz_clin (crd_num) NOT NULL,
-  open_date date NOT NULL,
-  close_date date NOT NULL,
+  crd_num character varying(20) UNIQUE, -- REFERENCES cardz_clin (crd_num) NOT NULL,
+  open_date date NOT NULL default current_date,
+  close_date date NOT NULL default current_date,
   talon_type integer REFERENCES talonz_type (id) NOT NULL DEFAULT 1,
   
   talon_month smallint NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE public.talonz_clin_tpl
   ksg character varying(10),
   sh character varying(5),
   ds0 character varying(8),
-  ds1 character varying(8) REFERENCES public.mkb10(code) NOT NULL,
+  ds1 character varying(8) REFERENCES public.mkb10(code), -- NOT NULL,
   ds2 character varying(8) REFERENCES public.mkb10(code),
   ds3 character varying(8),
   char1 smallint,
