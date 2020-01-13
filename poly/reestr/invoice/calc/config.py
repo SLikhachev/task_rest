@@ -40,6 +40,7 @@ FROM
     talonz_clin_%s AS tal, cardz_clin AS crd, 
     spec_prvs_profil as spec
 WHERE
+    tal.talon_type > 0 AND
     tal.talon_month=%s AND
     crd.smo=%s AND
     tal.usl_ok=3 AND
@@ -48,7 +49,9 @@ WHERE
 ORDER BY tal.tal_num;
 '''
 
-GET_TALON= 'SELECT tal_num FROM talonz_clin WHERE talon_month=%s AND smo=%s'
+GET_TALON= '''
+SELECT tal_num FROM talonz_clin_%s WHERE talon_month=%s AND smo=%s AND talon_type > 0;
+'''
 GET_CODE= 'SELECT code_usl, kol_usl FROM para_clin WHERE tal_num=%s'
 
 GET_TARIF= 'SELECT code, tarif, name FROM %s'
