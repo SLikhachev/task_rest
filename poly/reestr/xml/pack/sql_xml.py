@@ -17,7 +17,7 @@ import psycopg2
 import psycopg2.extras
 from flask import g
 from datetime import date, datetime
-from poly.reestr.xml.pack.xml_class.pmHdrFile import PmData, PmHdr, PmSluch
+from poly.reestr.xml.pack.xml_class.pmHdrFile import PmData, PmHdr, PmSluch, dcons
 from poly.reestr.xml.pack.xml_class.hmHdrFile import HmData, HmHdr, HmZap
 from poly.reestr.xml.pack.xml_class.lmHdrFile import LmData, LmHdr, LmPers
 from poly.reestr.xml.pack.xml_class.mixTags import HdrMix
@@ -52,7 +52,9 @@ def write_hdr(hdr, mo, year, month, pack, xmldir, fm_temp, sd_z=None, summ=None)
 
 def write_sluch(check, data, file, pm, usl, usp, stom=None):
 #def write_sluch(data, pm, usl, stom=None):
-
+    
+    assert (data.specfic in dcons) and len(usl) > 0, f'{data.idcase}-Для спец. {data.specfic} нет ПМУ'
+    
     pm.set_usl('usl', data, usl, usp)
     if stom and len(stom) > 0:
         pm.set_usl('stom', stom)

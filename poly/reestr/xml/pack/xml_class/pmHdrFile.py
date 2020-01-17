@@ -7,6 +7,7 @@ from poly.reestr.xml.pack.xml_class.mixTags import HdrMix, TagMix
 from poly.reestr.xml.pack.xml_class.utils import DataObject
 
 dcons = (63, )
+purp = (4,)
 
 class PmData(DataObject):
     # here we set all params
@@ -16,8 +17,13 @@ class PmData(DataObject):
         # 2 - by soul 
         self.type_pay= 1 # yet
         id = f'{self.idcase}'
-
-        if self.specfic in dcons and self.mo_att != mo and self.for_pom != 2:
+        
+        assert self.date_2 >= self.date_1, f'{id}-Дата 1 больше даты 2' 
+        
+        assert (self.specfic in dcons) and (self.purp in purp), \
+            f'{id}-Для спец. {self.specfic} неверная цель {self.purp}'
+        
+        if (self.specfic in dcons) and (self.mo_att != mo) and (self.for_pom != 2):
             assert bool(self.nsndhosp) or bool(self.naprlech), f'{id}-Нет напаравления на консультацию'
 
         if bool(self.cons_mo):

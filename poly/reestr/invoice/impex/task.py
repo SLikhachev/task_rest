@@ -20,11 +20,16 @@ class InvImpex(RestTask):
         self.get_task = config.GET_INV_TASK
         self.set_task = config.SET_INV_TASK
 
-        time1 = datetime.now()
         typ= int( request.form.get('type', 1) )
+        # correct smo flag 
+        csmo= False
+        if request.form.get('csmo', '') == 'csmo':
+            csmo= True
+        
         #  TYP field as flag
-        if self.open_task(typ):
-            return self.out('', 'Расчет уже запущен', False)
+        ts = self.open_task(typ)
+        if len( ts ) > 0:
+            return self.out('', ts, False)
 
         #qurs.close()
 
@@ -57,20 +62,18 @@ class InvImpex(RestTask):
                 #return self.result('', 'Импорт выполнен', True), current_app.config['CORS']
                 wc, xreestr = exp_usl(current_app, smo, mon, yar, catalog)
             else:
-                if len(smo) > 0:
-                    pass
-                    # dc= correct_ins(current_app, smo)
+                if csmo:
+                    dc= correct_ins(smo, yar)
                 wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)
         except Exception as e:
             raise e
             current_app.logger.debug(e)
             return self.close_task(filename, 'Ошибка сервера (детали в журнале)', False)
-
-        time2 = datetime.now()
+       
         #msg = f'Счет {filename} Записей считано {rc}. Время: {(time2-time1)}'
-        msg = f'Счет {filename} Записей в счете {rc}, записей в реестре {wc}. Corr: {dc[0]}.  Время: {(time2-time1)}'
+        msg = f'Счет {filename} Записей в счете {rc}, записей в реестре {wc}. \
+            Испр. СМО: {dc[0]}. {self.perf()}'
         os.remove(up_file)
-        #files.close()
 
         return self.close_task(xreestr, msg, True)
 

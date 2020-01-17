@@ -17,14 +17,14 @@ class InvCalc(RestTask):
         self.get_task = config.GET_CALC_TASK
         self.set_task = config.SET_CALC_TASK
 
-        time1 = datetime.now()
         typ= int( request.form.get('type', 1) )
         smo= request.form.get('smo', '')
         yar, mon = month_field( request.form.get('month', '') )
 
         #  MON field as flag
-        if self.open_task(mon):
-            return self.out('', 'Расчет уже запущен', False)
+        ts = self.open_task(mon)
+        if len( ts ) > 0:
+            return self.out('', ts, False)
 
         wc= 0
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'calc')
@@ -53,7 +53,6 @@ class InvCalc(RestTask):
             msg= f'Ошибка обработки {e}'
             return self.close_task('', msg, False)
         
-        time2 = datetime.now()
-        msg = f'Счет {config.TYPE[typ-1][1]} Записей обработано {wc}. Время: {(time2-time1)}'
+        msg = f'Счет {config.TYPE[typ-1][1]} Записей обработано {wc}. {self.perf()}'
                 
         return self.close_task(xreestr, msg, True)

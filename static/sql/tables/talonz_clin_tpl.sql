@@ -2,11 +2,11 @@ CREATE TABLE public.talonz_clin_tpl
 (
   tal_num serial PRIMARY KEY,
   crd_num character varying(20) UNIQUE, -- REFERENCES cardz_clin (crd_num) NOT NULL,
-  open_date date NOT NULL default current_date,
-  close_date date NOT NULL default current_date,
+  open_date date default current_date,
+  close_date date default current_date,
   talon_type integer REFERENCES talonz_type (id) NOT NULL DEFAULT 1,
   
-  talon_month smallint NOT NULL,
+  talon_month smallint,
   mek smallint,
   
   polis_type integer REFERENCES public.polis_type (id),

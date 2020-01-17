@@ -1,5 +1,6 @@
 #import os
 from datetime import datetime
+from time import perf_counter
 #from pathlib import Path
 from flask import request, current_app, g
 #from werkzeug import secure_filename
@@ -17,13 +18,14 @@ class MakeXml(RestTask):
         self.get_task = config_sql.GET_XML_TASK
         self.set_task = config_sql.SET_XML_TASK
 
-        time1 = datetime.now()
+        time1 = perf_counter()
 
         year, month = month_field( request.form.get('month', '') )
 
         #  YAR field as flag
-        if self.open_task(year):
-            return self.out('', 'Расчет уже запущен', False)
+        ts = self.open_task(year)
+        if len( ts ) > 0:
+            return self.out('', ts, False)
 
         # pack number
         pack = request.form.get('pack', '01')
@@ -51,7 +53,7 @@ class MakeXml(RestTask):
             current_app.logger.debug( e )
             return self.close_task ('', f'Исключение: {e}', False)
         
-        t= f'Время: {(datetime.now() - time1)}'
+        t= f'{self.perf()}'
         z= f'H записей: {ph}, L записей: {lm} '
         if errors > 0:
             msg = f'{z}, НАЙДЕНО ОШИБОК: {errors}. {t}'

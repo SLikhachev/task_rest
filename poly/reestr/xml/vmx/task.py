@@ -20,10 +20,10 @@ class XmlVmx(RestTask):
         self.set_task = config.SET_VMX_TASK
 
         #  SMO field as flag
-        if self.open_task(999):
-            return self.out('', 'Расчет уже запущен', False)
+        ts = self.open_task(999)
+        if len( ts ) > 0:
+            return self.out('', ts, False)
 
-        time1 = datetime.now()
         type= request.form.get('type', 1)
         files= request.files.get('file', None)
         if not bool(files):
@@ -48,8 +48,7 @@ class XmlVmx(RestTask):
             current_app.logger.debug(e)
             return self.this_error(filename)
 
-        time2 = datetime.now()
-        msg = f'VM файл {filename} Записей считано {rc}. Время: {(time2-time1)}'
+        msg = f'VM файл {filename} Записей считано {rc}. {self.perf()}'
         os.remove(up_file)
         #files.close()
 

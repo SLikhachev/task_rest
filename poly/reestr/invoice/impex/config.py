@@ -129,8 +129,11 @@ STUB_MO= 'UNKNOWN MO NAME'
 STUB_SMO= 'UNKNOWN SMO NAME'
 
 GET_ROW_INV_TAL= 'SELECT nhistory FROM invoice_bars ORDER BY nhistory;'
-GET_TALON= 'SELECT crd_num, smo FROM talonz_clin WHERE tal_num=%s;'
-UPDATE_TAL_SMO= 'UPDATE talonz_clin SET smo=%s WHERE tal_num=%s;'
+GET_SMO= '''
+SELECT tal.crd_num, crd.smo FROM talonz_clin_%s AS tal, cardz_clin AS crd WHERE tal.tal_num=
+'''
+AND_CRD= ' AND crd.crd_num= tal.crd_num;' 
+UPDATE_TAL_SMO= 'UPDATE talonz_clin_%s SET smo=%s WHERE tal_num=%s;'
 UPDATE_CRD_SMO= 'UPDATE cardz_clin SET smo=%s WHERE crd_num=%s;'
 
 GET_USL= """
