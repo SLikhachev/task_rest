@@ -26,7 +26,7 @@ class RestTask(Resource):
         return ''
 
     def perf(self):
-        return f'Время: {round( (perf_counter() - time1), 2)}'
+        return f'Время: {round( (perf_counter() - self.time1), 2)}'
 
     def close_task(self, file, msg, done):
         self.qurs.execute(self.set_task, (0, self.mo_code))
