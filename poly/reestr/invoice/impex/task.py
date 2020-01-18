@@ -23,7 +23,7 @@ class InvImpex(RestTask):
         typ= int( request.form.get('type', 1) )
         # correct smo flag 
         csmo= False
-        if request.form.get('csmo', '') == 'csmo':
+        if request.form.get('csmo', '') == 'on':
             csmo= True
         
         #  TYP field as flag
@@ -43,6 +43,8 @@ class InvImpex(RestTask):
 
         if not allowed_file( files.filename, current_app.config ) or fp.suffix != '.zip':
             return self.close_task(filename, " Допустимый тип файла .zip", False)
+
+        return self.close_task( filename, f'typ {typ} , csmo {csmo}', False  )
 
         # save file to disk
         up_file = os.path.join(catalog, filename)
@@ -66,6 +68,7 @@ class InvImpex(RestTask):
                     dc= correct_ins(smo, yar)
                 wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)
         except Exception as e:
+            self.abort_task()
             raise e
             current_app.logger.debug(e)
             return self.close_task(filename, 'Ошибка сервера (детали в журнале)', False)

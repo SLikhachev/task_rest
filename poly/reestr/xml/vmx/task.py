@@ -44,6 +44,7 @@ class XmlVmx(RestTask):
         try:
             rc= to_sql(current_app, up_file, ya, ('824',), 'ignore')
         except Exception as e:
+            self.abort_task()
             raise e
             current_app.logger.debug(e)
             return self.this_error(filename)

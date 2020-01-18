@@ -48,6 +48,7 @@ class InvCalc(RestTask):
 
             wc,  xreestr= exp_inv(current_app, smo, str(mon), str(yar)[2:], typ, catalog, '_calc')
         except Exception as e:
+            self.abort_task()
             raise e
             current_app.logger.debug(e)
             msg= f'Ошибка обработки {e}'

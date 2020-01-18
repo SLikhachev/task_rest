@@ -48,6 +48,7 @@ class MakeXml(RestTask):
             # if check is check, file is csv errors file
             # if check is None, ignore, file is pack.zip
         except Exception as e:
+            self.abort_task()
             raise e
             #ex= printException()
             current_app.logger.debug( e )

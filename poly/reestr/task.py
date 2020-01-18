@@ -28,11 +28,16 @@ class RestTask(Resource):
     def perf(self):
         return f'Время: {round( (perf_counter() - self.time1), 2)}'
 
-    def close_task(self, file, msg, done):
+    def close_task(self, file, msg, done, abort=''):
         self.qurs.execute(self.set_task, (0, self.mo_code))
         g.qonn.commit()
         self.qurs.close()
+        if abort:
+            return None
         return self.out(file, msg, done)
+
+    def abort_task(self):
+        return self.close_task('', '', False, 'abort')
 
     def result(self, filename, message, done=False):
         if 'qonn' in g:
