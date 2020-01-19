@@ -143,3 +143,17 @@ WHERE
 inv.code_usl=pmu.code_usl
 ORDER BY inv.code_usl
 """ % _USL
+
+GET_INV_SMO='''
+SELECT 
+t.crd_num, t.tal_num 
+FROM 
+talonz_clin_%s AS t,
+cardz_clin AS c, 
+invoice_bars AS i
+WHERE
+t.tal_num = i.n_zap AND
+t.crd_num = c.crd_num AND
+t.talon_month=%s AND
+c.smo <> %s;
+ '''

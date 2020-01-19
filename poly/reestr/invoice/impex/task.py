@@ -65,7 +65,7 @@ class InvImpex(RestTask):
                 wc, xreestr = exp_usl(current_app, smo, mon, yar, catalog)
             else:
                 if csmo:
-                    dc= correct_ins(smo, yar)
+                    dc= correct_ins(smo, mon, yar)
                 wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)
         except Exception as e:
             self.abort_task()
