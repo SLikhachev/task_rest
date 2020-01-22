@@ -43,8 +43,9 @@ class InvImpex(RestTask):
 
         if not allowed_file( files.filename, current_app.config ) or fp.suffix != '.zip':
             return self.close_task(filename, " Допустимый тип файла .zip", False)
-
-        return self.close_task( filename, f'typ {typ} , csmo {csmo}', False  )
+        
+        #test 
+        #return self.close_task( filename, f'typ {typ} , csmo {csmo}', False  )
 
         # save file to disk
         up_file = os.path.join(catalog, filename)

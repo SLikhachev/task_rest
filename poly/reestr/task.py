@@ -17,7 +17,7 @@ class RestTask(Resource):
         task = self.qurs.fetchone()
         if task is None:
             return 'Нет записей в таблице задач'
-        if len(task) and task[0] > 0:
+        if len(task) and bool(task[0]):
             self.qurs.close()
             return 'Расчет уже запущен'
         self.qurs.execute(self.set_task, (flag, self.mo_code))
