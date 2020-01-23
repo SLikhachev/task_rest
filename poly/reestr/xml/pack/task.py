@@ -12,25 +12,23 @@ from poly.reestr.xml.pack import config_sql
 
 class MakeXml(RestTask):
 
+    def __init__(self):
+        super().__init__()
+        self.task= 'make_xml'
+
     def post(self):
 
-        # here yar field is used
-        self.get_task = config_sql.GET_XML_TASK
-        self.set_task = config_sql.SET_XML_TASK
-
-        time1 = perf_counter()
+        ts = self.open_task()
+        if len(ts) > 0:
+            return self.busy(ts)
 
         year, month = month_field( request.form.get('month', '') )
 
-        #  YAR field as flag
-        ts = self.open_task(year)
-        if len( ts ) > 0:
-            return self.out('', ts, False)
-
         # pack number
         pack = request.form.get('pack', '01')
-        
-        ### if CHECK is  'check' then checlk only if 'ignore' then make reestr ignore errors 
+        self.year, self.month, self.pack_num = year, month, pack
+
+        ### if CHECK is  'check' then checlk only if 'ignore' then make reestr ignore errors
         # if chek is True to check only, else make reestr ignore errors
         check= False
         if request.form.get('check', '') == 'check':

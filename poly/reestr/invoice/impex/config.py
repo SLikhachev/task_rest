@@ -13,17 +13,7 @@ FAIL= ('Неверный код МО', 'Тип счета не поддержи�
 SET_META= '''INSERT INTO invoice_meta( lpu, smo, yar, mon, typ )
 VALUES ( %s, %s, %s, %s, %s );
 '''
-# get typ from row if > 0 then task is running
-GET_INV_TASK='''SELECT typ FROM invoice_meta WHERE lpu= %s;
-'''
-# set typ to running task
-SET_INV_TASK='''UPDATE invoice_meta SET typ=%s WHERE  lpu =%s;
-'''
-# same as above, but flag is smo
-GET_CALC_TASK='''SELECT mon FROM invoice_meta WHERE lpu = %s;
-'''
-SET_CALC_TASK='''UPDATE invoice_meta SET mon=%s WHERE  lpu =%s;
-'''
+
 INVOICE='''
 (n_zap int primary key,
 id_pac int,
