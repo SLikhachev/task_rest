@@ -12,19 +12,20 @@ from poly.reestr.invoice.impex import config
 
 class InvCalc(RestTask):
 
+    def __init__(self):
+        super().__init__()
+        self.task= 'self_calc'
+
     def post(self):
-        # here mon field is used
-        self.get_task = config.GET_CALC_TASK
-        self.set_task = config.SET_CALC_TASK
 
-        typ= int( request.form.get('type', 1) )
+        ts = self.open_task()
+        if len(ts) > 0:
+            return self.busy(ts)
+
+        self.pack_type= int( request.form.get('type', 1) )
         smo= request.form.get('smo', '')
-        yar, mon = month_field( request.form.get('month', '') )
-
-        #  MON field as flag
-        ts = self.open_task(mon)
-        if len( ts ) > 0:
-            return self.out('', ts, False)
+        self.year, self.month = month_field( request.form.get('month', '') )
+        self.smo = int(smo) if smo else 0
 
         wc= 0
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'calc')
@@ -35,18 +36,16 @@ class InvCalc(RestTask):
 
         try:
             # PMU
-            if typ == 6:
+            if self.pack_type == 6:
                 return self.close_task('', 'Расчет не реализован', False)
 
-            res = calc_inv(current_app, yar, mon, smo, typ)
-            if len(res) == 1:
-                current_app.logger.debug(config.FAIL[abs(res[0])])
-                return self.close_task('', config.FAIL[abs(res[0])], False)
+            rc, res = calc_inv(current_app, self.year, self.month, self.smo, self.pack_type)
+            if  not res:
+                current_app.logger.debug(config.FAIL[rc])
+                return self.close_task('', config.FAIL[rc], False)
+            wc, xreestr = exp_inv(
+                current_app, self.smo, self.month, self.year, self.pack_type, catalog, '_calc')
 
-            #msg= f'Table filled {res[0]} {res[1]}'
-            #return self.close_task('', msg , True)
-
-            wc,  xreestr= exp_inv(current_app, smo, str(mon), str(yar)[2:], typ, catalog, '_calc')
         except Exception as e:
             self.abort_task()
             raise e
@@ -54,6 +53,6 @@ class InvCalc(RestTask):
             msg= f'Ошибка обработки {e}'
             return self.close_task('', msg, False)
         
-        msg = f'Счет {config.TYPE[typ-1][1]} Записей обработано {wc}. {self.perf()}'
+        msg = f'Счет {config.TYPE[self.pack_type-1][1]} Записей обработано {wc}. {self.perf()}'
                 
         return self.close_task(xreestr, msg, True)

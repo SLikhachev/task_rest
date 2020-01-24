@@ -15,23 +15,22 @@ from poly.utils.files import allowed_file
 
 class InvImpex(RestTask):
 
-    def post(self):
-        # here typ field is used
-        self.get_task = config.GET_INV_TASK
-        self.set_task = config.SET_INV_TASK
+    def __init__(self):
+        super().__init__()
+        self.task= 'import_invoice'
 
-        typ= int( request.form.get('type', 1) )
-        # correct smo flag 
+    def post(self):
+
+        ts = self.open_task()
+        if len(ts) > 0:
+            return self.busy(ts)
+
+        self.pack_type= int( request.form.get('type', 1) )
+
+        # correct smo flag
         csmo= False
         if request.form.get('csmo', '') == 'on':
             csmo= True
-        
-        #  TYP field as flag
-        ts = self.open_task(typ)
-        if len( ts ) > 0:
-            return self.out('', ts, False)
-
-        #qurs.close()
 
         files= request.files.get('file', None)
         if not bool(files):
@@ -43,31 +42,35 @@ class InvImpex(RestTask):
 
         if not allowed_file( files.filename, current_app.config ) or fp.suffix != '.zip':
             return self.close_task(filename, " Допустимый тип файла .zip", False)
-        
-        #test 
+
+        lpu, self.smo, ar, self.month = self.parse_xml_name(filename)
+        if lpu not in current_app.config['MO_CODE']:
+            return self.close_task('', config.FAIL[0], False)
+        self.year= f'20{ar}'
+        #test
         #return self.close_task( filename, f'typ {typ} , csmo {csmo}', False  )
 
         # save file to disk
         up_file = os.path.join(catalog, filename)
         files.save(up_file)
-        rc= wc= errors= 0
 
+        rc= wc= 0
         dc = (0,)
 
         try:
-            res= imp_inv(current_app, up_file, typ)
-            if len(res) == 1:
-                current_app.logger.debug( config.FAIL[ abs( res[0] ) ] )
-                return self.close_task('', config.FAIL[ abs( res[0] ) ], False)
+            rc, res= imp_inv(up_file, self.pack_type)
+            if not res:
+                current_app.logger.debug( config.FAIL[ rc ] )
+                return self.close_task('', config.FAIL[ rc ], False)
 
-            rc, smo, mon, yar= res
-            if typ == 6:
+            if self.pack_type == 6:
                 #return self.result('', 'Импорт выполнен', True), current_app.config['CORS']
-                wc, xreestr = exp_usl(current_app, smo, mon, yar, catalog)
+                wc, xreestr = exp_usl(current_app, self.smo, self.month, self.year, catalog)
             else:
                 if csmo:
-                    dc= correct_ins(smo, mon, yar)
-                wc,  xreestr= exp_inv(current_app, smo, mon, yar, typ, catalog)
+                    dc= correct_ins(self.smo, self.month, self.year)
+                wc,  xreestr= exp_inv(
+                    current_app, self.smo, self.month, self.year, self.pack_type, catalog)
         except Exception as e:
             self.abort_task()
             raise e

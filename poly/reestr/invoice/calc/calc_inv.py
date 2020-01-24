@@ -50,13 +50,13 @@ def calc_row(row: tuple) -> tuple:
         row.fam, row.im, row.ot, gender(row.w), row.dr
     )
 
-def calc_inv(app: object, year: int, month: int, smo: str, typ: int) -> tuple:
+def calc_inv(app: object, year: int, month: int, smo: int, typ: int) -> tuple:
     # app - flask app
-    
+    print(smo)
     #global sn
     # only one allowed yet
     if typ-1 > 0:
-        return (-1,)
+        return (1, False)
     
     qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     qurs1 = g.qonn.cursor()
@@ -67,8 +67,8 @@ def calc_inv(app: object, year: int, month: int, smo: str, typ: int) -> tuple:
     # 2. process table
     # ---------------------------------------------
     ya= year-2000
-    so = int(smo) + 25000
-    qurs.execute(config.GET_SMO_AMBUL, ( ya, month, so ))
+    #so = int(smo) + 25000
+    qurs.execute(config.GET_SMO_AMBUL, ( ya, month, smo ))
     rc= 0
     for row in qurs.fetchall():
         res= calc_row(row)
@@ -82,4 +82,4 @@ def calc_inv(app: object, year: int, month: int, smo: str, typ: int) -> tuple:
     qurs.close()
     qurs1.close()
 
-    return ( rc, typ-1) 
+    return ( rc, True )

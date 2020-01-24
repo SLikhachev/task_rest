@@ -22,20 +22,21 @@ def data_source_get():
 def data_source_close():
     g.qurs.close()
 
-def exp_usl(app: object, insurer: str, month: str, yar: str, inv_path: str) -> (int, str):
+
+def exp_usl(app: object, smo: int, month: str, year: str, inv_path: str) -> (int, str):
     
     typ=6 # pmu
     tpl= config.TYPE[typ-1][2]
     sh1 = 'Лист1'
     xtpl = f'{tpl}.xlsx'
     xlr = os.path.join(inv_path, 'tpl', xtpl)   
-    xout = f'{tpl}_0{insurer}_{month}-{yar}.xlsx'
+    xout = f'{tpl}_{smo}_{month}-{year}.xlsx'
     
     mon= int(month)
     #smo= int(insurer)
     
     xlw = os.path.join(inv_path, xout)   
-    year= f'20{yar}'
+
     period = 'За %s %s года' % (app.config['MONTH'][mon-1], year)
 
     wb = load_workbook(filename = xlr)
@@ -53,7 +54,7 @@ def exp_usl(app: object, insurer: str, month: str, yar: str, inv_path: str) -> (
     rc = 1
 
     data_source_init()
-    mo_name, smo_name = get_mo_smo_name(app, insurer, config)
+    mo_name, smo_name = get_mo_smo_name(app, smo, config)
     sheet['B15'].value = '%s   %s' % (period, smo_name)
 
     for row in data_source_get():

@@ -118,11 +118,10 @@ def mark_talons(qurs):
         qurs.execute(sn.mark, (t,))
     sn.Terr.clear()    
 
-def to_sql(current_app, file, year, ignore, errors='ignore'):
+def to_sql(file, year, ignore, errors='ignore'):
     
     global sn
     
-    #qonn = current_app.config.db()
     qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     qurs.execute(config.TRUNCATE_ERROR)
     g.qonn.commit()

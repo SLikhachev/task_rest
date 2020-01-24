@@ -22,11 +22,10 @@ class MakeXml(RestTask):
         if len(ts) > 0:
             return self.busy(ts)
 
-        year, month = month_field( request.form.get('month', '') )
+        self.year, self.month = month_field( request.form.get('month', '') )
 
         # pack number
-        pack = request.form.get('pack', '01')
-        self.year, self.month, self.pack_num = year, month, pack
+        self.pack_num = request.form.get('pack', '01')
 
         ### if CHECK is  'check' then checlk only if 'ignore' then make reestr ignore errors
         # if chek is True to check only, else make reestr ignore errors
@@ -42,7 +41,8 @@ class MakeXml(RestTask):
             sent= True
         #current_app.logger.debug(year, month, pack, sent)
         try:
-            ph, lm, file, errors = make_xml(current_app, year, month, pack, check, sent)
+            ph, lm, file, errors = make_xml(
+                current_app, self.year, self.month, self.pack_num, check, sent)
             # if check is check, file is csv errors file
             # if check is None, ignore, file is pack.zip
         except Exception as e:

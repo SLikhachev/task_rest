@@ -23,6 +23,20 @@ class RestTask(Resource):
         self.pack_num= None
         self.pack_type= None
 
+    def parse_xml_name(self, name: str) -> tuple:
+
+        hdr, tail= name.split('_')
+        s= hdr.find('S') + 1
+        if s <= 0:
+            smo= 0
+        else:
+            smo= int( hdr[s:] ) #int 25016
+        lpu= tail[4:7] # str 796
+        year= tail[:2] # str 20
+        month= tail[2:4] #  str 01
+        #print( lpu, smo, year, month)
+        return lpu, smo, year, month
+
     def open_task(self):
         g.qonn = current_app.config.db()
         self.qurs = g.qonn.cursor()

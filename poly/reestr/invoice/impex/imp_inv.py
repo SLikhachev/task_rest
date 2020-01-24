@@ -60,27 +60,7 @@ def zp_xml(xml: str, tags: tuple) -> None:
         get_zp(elem, tags, rec)
         set_zp(rec, elem.tag)
 
-def get_meta(app: object, name: str, typ: int) -> bool:
-    
-    global sn
-    hdr, tail= name.split('_')
-    s= hdr.find('S') + 1
-    if s <= 0:
-        smo= ''
-    else:
-        smo= hdr[s+3:]
-    lpu= tail[4:7]
-    #app.logger.debug( lpu )
-    if lpu not in app.config['MO_CODE']:
-        return False
-    sn.meta['lpu']= lpu
-    sn.meta['smo']= smo
-    sn.meta['yar']= tail[:2]
-    sn.meta['mon']= tail[2:4]
-    sn.meta['typ']= typ
-    return True
-    
-def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
+def imp_inv(zipfile: str, typ: int) -> tuple:
     # app - flask app
     # name - file to process
     # typ - invoice type
@@ -98,12 +78,6 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
     with ZipFile(file) as zfile:
         for nz in zfile.namelist():
             if nz.startswith('HM') or nz.startswith('CM') or nz.startswith('DOM'):
-                
-                #get_meta(current_app, nz, typ)
-                if not get_meta(app, nz, typ):
-                    # MO_CODE is not in this codes # alien MO
-                    return (0,)
-                
                 zfile.extract(nz)
                 _hm= nz
                 c= nz[0]
@@ -115,11 +89,11 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
 
     if len(_hm) == 0:
         #bad invoice file name  
-        return (-1,)
+        return (1, False)
     
     # import PMUs with tarifs
     if typ == 6:
-        return imp_usl(app, _hm),  sn.meta['smo'], sn.meta['mon'],  sn.meta['yar'] 
+        return imp_usl(_hm)
     
     #qonn = app.config.db()
     sn.qurs = g.qonn.cursor()
@@ -136,18 +110,10 @@ def imp_inv(app: object, zipfile: str, typ: int) -> tuple:
     
     sn.qurs.execute(config.COUNT_INV)
     rc= sn.qurs.fetchone()
-    
-    '''
-    sn.qurs.execute(config.SET_META, (
-        sn.meta['lpu'], sn.meta['smo'], sn.meta['yar'], sn.meta['mon'], sn.meta['typ'])
-    )
-    qonn.commit()
-    '''
-    
+
     sn.qurs.close()
-    #qonn.close()
-    
+
     os.remove(_hm)
     os.remove(_lm)
-    
-    return ( rc[0], sn.meta['smo'], sn.meta['mon'],  sn.meta['yar'] ) 
+    #print (rc)
+    return (rc[0], True) if bool(rc) and len(rc) > 0 else (2, False)

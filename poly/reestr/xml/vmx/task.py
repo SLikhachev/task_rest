@@ -10,21 +10,21 @@ from poly.reestr.xml.vmx import config
 
 class XmlVmx(RestTask):
 
+    def __init__(self):
+        super().__init__()
+        self.task= 'import_errors'
+
     def this_error(self, file):
         return self.close_task(file, 'Ошибка обработки (подробно в журнале)', False)
 
     def post(self):
 
-        # here smo field is used
-        self.get_task = config.GET_VMX_TASK
-        self.set_task = config.SET_VMX_TASK
+        ts = self.open_task()
+        if len(ts) > 0:
+            return self.busy(ts)
 
-        #  SMO field as flag
-        ts = self.open_task(999)
-        if len( ts ) > 0:
-            return self.out('', ts, False)
+        self.pack_type= request.form.get('type', 1)
 
-        type= request.form.get('type', 1)
         files= request.files.get('file', None)
         if not bool(files):
             return self.close_task( '', 'Передан пустой запрос на обработку', False)
@@ -34,15 +34,15 @@ class XmlVmx(RestTask):
         if not allowed_file( files.filename, current_app.config ) or not filename.endswith('.xml'):
             return self.close_task(filename, "Допустимое расширение имени файла .xml", False)
 
+        lpu, self.smo, ar, self.month = self.parse_xml_name(filename)
+        self.year = f'20{ar}'
+
         # save file to disk
-        ym= filename.split('_')[1]
-        ya= ym[:2]
-        mn= ym[2:]
         up_file = os.path.join(catalog, filename)
         files.save(up_file)
         rc= wc= errors= 0
         try:
-            rc= to_sql(current_app, up_file, ya, ('824',), 'ignore')
+            rc= to_sql(up_file, ar, ('824',), 'ignore')
         except Exception as e:
             self.abort_task()
             raise e

@@ -21,9 +21,9 @@ def get_mo_smo_name(app,  smo, cfg):
         mo_name= mq[0]
     else:
         mo_name= cfg.STUB_MO
-    if len(smo) > 0:
-        ins= 25000 + int(smo)
-        g.qurs.execute(cfg.GET_SMO_NAME, ( ins, ))
+    if smo > 0:
+        #ins= 25000 + int(smo)
+        g.qurs.execute(cfg.GET_SMO_NAME, ( smo, ))
         mq= g.qurs.fetchone()
         if mq:
             smo_name=  mq[0]
@@ -105,6 +105,7 @@ def for_foms(dex, rc):
 
     return d
 
+
 def data_source_init():
     g.qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 
@@ -120,11 +121,12 @@ def data_source_close():
     g.qurs.close()
 
 
-def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path: str, is_calc='' ) -> (int, str):
+def exp_inv(
+        app: object, smo: str, month: str, year: str, typ: int, inv_path: str, is_calc='' ) -> (int, str):
     
-    # insurer: string ( 11, 16 )
+    # smo: int (0,  25011, 25016 )
     # month: string 01-12
-    # yar: string len=2 (last digits)
+    # year: string len=4
     # typ: 1-5
     # inv_path: string path to
     # is_calc: str if non empty then calculatede reestr
@@ -142,11 +144,9 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     xtpl = f'{tpl}.xlsx'
     xlr = os.path.join(inv_path, 'tpl', xtpl)   
 
-    xout = f'{tpl}{is_calc}_0{insurer}_{month}_{yar}.xlsx'
+    xout = f'{tpl}{is_calc}_{smo}_{month}_{year}.xlsx'
     xlw = os.path.join(inv_path, xout)   
-    #year = '%s' % date.today().isocalendar()[0]
-    #y = year[3]
-    year= f'20{yar}'
+
     period = 'За %s %s года' % (app.config['MONTH'][m-1], year)
     
     wb = load_workbook(filename = xlr)
@@ -154,9 +154,9 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     sheet = wb[sh1]
 
     data_source_init()
-    mo_name, smo_name = get_mo_smo_name(app, insurer, config)
+    mo_name, smo_name = get_mo_smo_name(app, smo, config)
 
-    if insurer == '':
+    if smo == 0:
         sheet['C4'].value = period
         # begin from 17 string
         cntRowXls = 17
@@ -182,7 +182,7 @@ def exp_inv(app: object, insurer: str, month: str, yar: str, typ: int, inv_path:
     for row in data_source_get(is_calc):
 
         data = extract(row)
-        if insurer == '':
+        if smo == 0:
             data = for_foms(data, rcTotal)
 
         for xrow in range(cntRowXls, cntRowXls+1):

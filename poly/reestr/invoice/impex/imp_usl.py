@@ -23,7 +23,7 @@ def proc(el):
              u[tag]= None
     return u
     
-def imp_usl(app: object, hm: str) -> int:
+def imp_usl(hm: str) -> int:
     global rec    
     usld= dict()
     
@@ -59,7 +59,5 @@ def imp_usl(app: object, hm: str) -> int:
     rc= qurs.fetchone()
     
     qurs.close()
-    #qonn.close()
-    
-    return rc[0]
-            
+
+    return (rc[0], True) if bool(rc) and len(rc) > 0 else (2, False)
