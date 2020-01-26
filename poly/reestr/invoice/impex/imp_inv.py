@@ -60,7 +60,7 @@ def zp_xml(xml: str, tags: tuple) -> None:
         get_zp(elem, tags, rec)
         set_zp(rec, elem.tag)
 
-def imp_inv(zipfile: str, typ: int) -> tuple:
+def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
     # app - flask app
     # name - file to process
     # typ - invoice type
@@ -94,7 +94,7 @@ def imp_inv(zipfile: str, typ: int) -> tuple:
     # import PMUs with tarifs
     if typ == 6:
         return imp_usl(_hm)
-    
+
     #qonn = app.config.db()
     sn.qurs = g.qonn.cursor()
     #sn.qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
@@ -107,7 +107,16 @@ def imp_inv(zipfile: str, typ: int) -> tuple:
     for (f, r) in ( (_hm, sn.zap), (_lm, sn.pers)):
         zp_xml(f, r)
         g.qonn.commit()
-    
+
+    # set mek flag
+    sn.qurs.execute(config.GET_MEK)
+    mr = 0
+    set_mek= (config.SET_MEK % ar) + '%s;'
+    for row in sn.qurs.fetchall():
+        sn.qurs.execute(set_mek, row)
+        mr += 1
+    g.qonn.commit()
+
     sn.qurs.execute(config.COUNT_INV)
     rc= sn.qurs.fetchone()
 
@@ -116,4 +125,4 @@ def imp_inv(zipfile: str, typ: int) -> tuple:
     os.remove(_hm)
     os.remove(_lm)
     #print (rc)
-    return (rc[0], True) if bool(rc) and len(rc) > 0 else (2, False)
+    return (( rc[0], mr), True) if bool(rc) and len(rc) > 0 else (( 2, 0), False)

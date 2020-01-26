@@ -58,10 +58,10 @@ class InvImpex(RestTask):
         dc = (0,)
 
         try:
-            rc, res= imp_inv(up_file, self.pack_type)
+            rc, res= imp_inv(up_file, self.pack_type, ar)
             if not res:
-                current_app.logger.debug( config.FAIL[ rc ] )
-                return self.close_task('', config.FAIL[ rc ], False)
+                current_app.logger.debug( config.FAIL[ rc[0] ] )
+                return self.close_task('', config.FAIL[ rc[0]], False)
 
             if self.pack_type == 6:
                 #return self.result('', 'Импорт выполнен', True), current_app.config['CORS']
@@ -78,8 +78,9 @@ class InvImpex(RestTask):
             return self.close_task(filename, 'Ошибка сервера (детали в журнале)', False)
        
         #msg = f'Счет {filename} Записей считано {rc}. Время: {(time2-time1)}'
-        msg = f'Счет {filename} Записей в счете {rc}, записей в реестре {wc}. \
-            Испр. СМО: {dc[0]}. {self.perf()}'
+        msg = f'Счет {filename} Записей в счете {rc[0]}, (МЭК {rc[1]}), \
+         записей в реестре {wc}. \
+         Испр. СМО: {dc[0]}. {self.perf()}'
         os.remove(up_file)
 
         return self.close_task(xreestr, msg, True)

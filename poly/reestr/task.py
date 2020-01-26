@@ -8,7 +8,8 @@ RUN_TASK='UPDATE task_rest SET running=1 WHERE  task =%s;'
 #STOP_TASK= 'UPDATE task_rest SET running=0 WHERE  task =%s;'
 
 STOP_TASK='''
-UPDATE task_rest SET running=0, task_year=%s, task_month=%s, smo=%s, pack_num=%s, pack_type=%s
+UPDATE task_rest SET 
+running=0, task_year=%s, task_month=%s, smo=%s, pack_num=%s, pack_type=%s, file_name=%s
 WHERE task=%s;
  '''
 
@@ -59,7 +60,7 @@ class RestTask(Resource):
 
     def close_task(self, file, msg, done, abort=''):
         self.qurs.execute(STOP_TASK,
-            (self.year, self.month, self.smo, self.pack_num, self.pack_type, self.task))
+            (self.year, self.month, self.smo, self.pack_num, self.pack_type, self.fname(file), self.task,  ))
         g.qonn.commit()
         self.qurs.close()
         if abort:
@@ -69,15 +70,16 @@ class RestTask(Resource):
     def abort_task(self):
         return self.close_task('', '', False, 'abort')
 
+    def fname(self, file):
+        if bool(file) and len(file) > 0:
+            return file.split('\\')[-1]
+        return ''
+
     def result(self, filename, message, done=False):
         if 'qonn' in g:
             g.qonn.close()
-        if bool(filename) and len(filename) > 0:
-            file = filename.split('\\')[-1]
-        else:
-            file= ''
         return dict(
-            file=file,
+            file=self.fname(filename),
             message=message,
             done=done
         )

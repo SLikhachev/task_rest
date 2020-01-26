@@ -147,3 +147,6 @@ t.crd_num = c.crd_num AND
 t.talon_month=%s AND
 c.smo <> %s;
  '''
+
+GET_MEK= 'SELECT nhistory FROM invoice_bars WHERE sank_it > 0.00;'
+SET_MEK= 'UPDATE talonz_clin_%s SET mek=1 WHERE tal_num='
