@@ -109,7 +109,10 @@ def get_npr_mo(qurs, rdata):
         return m.code
     return None
     
-def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nusl=None ):
+def write_data(
+    _app: object, mo: str, year: int, month: int, pack: str,
+    check: bool, sent: bool, fresh: bool,
+    xmldir: str, stom=False, nusl='') -> tuple:
 
     """
     # _app: obj, current app FLASK object
@@ -119,7 +122,8 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
     # pack: string(2), pack number
     # check: if TRUE -> check tables recs only, don't make xml pack
     #   else make zip xml pack and fill error_pack table, dont make error_pack
-    # sent: bool if true ignore already sent records else not
+    # sent: bool if true set records field talon_type = 2 else ignore 
+    # fresh: bool if true ignore already sent and accepted records else not and make full pack
     # xmldir: string working xml directory
     # stom bool for use stom pmu table in the prosess
     # nusl: string for AND condition of SQL SELECT statement or ''
@@ -151,9 +155,9 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
 
     ya = int(str(year)[2:])
     query = _sql.get_hpm_data % ya
-    if sent:
-       # type == 1
-        query = f'{query}{_sql.sent}'
+    if fresh:
+       # talon_type == 1 only will be included in pack 
+        query = f'{query}{_sql.fresh}'
     else:
         #type > 0
         query = f'{query}{_sql.all_tal}'
@@ -192,7 +196,7 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
             continue
         
         # mark as sent
-        if not check:
+        if not check and sent:
             qurs1.execute(_sql.set_as_sent, (ya, rdata.idcase))
         rc += 1
 
@@ -232,12 +236,15 @@ def write_data(_app, mo, year, month, pack, check, sent, xmldir, stom=False, nus
     return rc, len(lmPers.uniq), os.path.join(xmldir, zfile), errors
 
 
-def make_xml(current_app, year, month, pack, check, sent):
+def make_xml(current_app, year, month, pack, check, sent, accept):
      
     mo = current_app.config['MO_CODE'][0]
     xmldir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'xml')
     #current_app.logger.debug(xmldir)
     
-    return write_data(current_app, mo, year, month, pack, check, sent, xmldir, stom=False, nusl=None)
+    return write_data(
+        current_app, mo, year, month, pack,
+        check, sent, fresh,
+        xmldir, stom=False, nusl=None)
 
 

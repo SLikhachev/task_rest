@@ -111,7 +111,7 @@ WHERE
     crd.crd_num=tal.crd_num AND
 """
 all_tal= ' tal.talon_type > 0 AND '
-sent= ' tal.talon_type=1 AND '
+fresh= ' tal.talon_type=1 AND '
 month= ' tal.talon_month=%s order by tal.tal_num; --limit 1;'
 
 get_npr_mo= 'SELECT code FROM mo_local WHERE scode=%s;'

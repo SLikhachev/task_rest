@@ -23,7 +23,7 @@ task_year int,
 task_month int,
 smo int,
 pack_num int,
-pack_type int REFERENCES pack_type(id),
+pack_type int REFERENCES pack_type(id) default 1,
 file_name varchar(127)
 )
  insert into task_rest (task, name) VALUES 

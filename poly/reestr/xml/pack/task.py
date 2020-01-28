@@ -35,14 +35,17 @@ class MakeXml(RestTask):
         #if not check in ['check', 'ignore']:
         #    check= None
 
-        # if SENT is None ignore already sent, produce full pack
-        sent= False
+        # if SENT is flase dont setup talon_type=2 as sent talon
+        sent= fresh= False
         if request.form.get('sent', '') == 'sent':
             sent= True
+        # if FRESH is false ignore already sent and accepted talons and produce full pack
+        if request.form.get('fresh', '') == 'fresh':
+            fresh= True
         #current_app.logger.debug(year, month, pack, sent)
         try:
             ph, lm, file, errors = make_xml(
-                current_app, self.year, self.month, self.pack_num, check, sent)
+                current_app, self.year, self.month, self.pack_num, check, sent, fresh)
             # if check is check, file is csv errors file
             # if check is None, ignore, file is pack.zip
         except Exception as e:
