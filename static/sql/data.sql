@@ -74,4 +74,8 @@ WHERE
     doc.spec=tal.doc_spec AND 
     doc.code=tal.doc_code AND 
     crd.crd_num=tal.crd_num and
+    crd.crd_num=tal.crd_num AND
+    -- tal.talon_type > 0 AND '
+    -- tal.talon_type=1 AND '
+    tal.talon_month=1 order by tal.tal_num; 
     tal.talon_month=1137 order by tal.tal_num; 

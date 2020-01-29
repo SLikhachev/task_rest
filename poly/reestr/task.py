@@ -25,13 +25,16 @@ class RestTask(Resource):
         self.pack_type= None
 
     def parse_xml_name(self, name: str) -> tuple:
-
-        hdr, tail= name.split('_')
+        
+        nlist= name.split('_')
+        hdr, tail= nlist[0], nlist[1]
         s= hdr.find('S') + 1
         if s <= 0:
             smo= 0
         else:
             smo= int( hdr[s:] ) #int 25016
+        if len(tail) < 7:
+            return ()
         lpu= tail[4:7] # str 796
         year= tail[:2] # str 20
         month= tail[2:4] #  str 01

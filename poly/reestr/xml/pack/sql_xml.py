@@ -123,7 +123,7 @@ def write_data(
     # check: if TRUE -> check tables recs only, don't make xml pack
     #   else make zip xml pack and fill error_pack table, dont make error_pack
     # sent: bool if true set records field talon_type = 2 else ignore 
-    # fresh: bool if true ignore already sent and accepted records else not and make full pack
+    # fresh: bool if true ignore already sent and accepted records else not make full pack
     # xmldir: string working xml directory
     # stom bool for use stom pmu table in the prosess
     # nusl: string for AND condition of SQL SELECT statement or ''
@@ -137,7 +137,6 @@ def write_data(
     pmSluch = PmSluch(mo)
     hmZap = HmZap(mo)
     lmPers= LmPers(mo)
-    rc = 0
     
     #pmFile= open( f'{xmldir}pm.xml', 'r+')
     #hmFile= open( f'{xmldir}hm.xml', 'r+')
@@ -164,7 +163,7 @@ def write_data(
 
     query = f'{query}{_sql.month}'
     qurs.execute(query, (month,))
-
+    rc = 0
     for rdata in qurs:
         _nmo= get_npr_mo(qurs1, rdata)
         qurs1.execute(_sql.get_usl, ( ya, ya, rdata.idcase, ) )
@@ -197,7 +196,7 @@ def write_data(
         
         # mark as sent
         if not check and sent:
-            qurs1.execute(_sql.set_as_sent, (ya, rdata.idcase))
+            qurs1.execute(_sql.mark_as_sent, (ya, rdata.idcase))
         rc += 1
 
     if check: # errors > 0 and check: # return error_pack file
@@ -236,7 +235,7 @@ def write_data(
     return rc, len(lmPers.uniq), os.path.join(xmldir, zfile), errors
 
 
-def make_xml(current_app, year, month, pack, check, sent, accept):
+def make_xml(current_app, year, month, pack, check, sent, fresh):
      
     mo = current_app.config['MO_CODE'][0]
     xmldir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'xml')

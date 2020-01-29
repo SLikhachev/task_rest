@@ -60,6 +60,23 @@ def zp_xml(xml: str, tags: tuple) -> None:
         get_zp(elem, tags, rec)
         set_zp(rec, elem.tag)
 
+def set_mek(ar):
+    global sn
+    # set mek flag
+    sn.qurs.execute(config.GET_MEK_TABLE, ( int(ar),) )
+    t= sn.qurs.fetchone()
+    if t is None:
+        return 0
+    mr = 0
+    sn.qurs.execute(config.GET_MEK)
+    
+    set_mek= (config.SET_MEK % ar) + '%s;'
+    for row in sn.qurs.fetchall():
+        sn.qurs.execute(set_mek, row)
+        mr += 1
+    g.qonn.commit()
+    return mr
+
 def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
     # app - flask app
     # name - file to process
@@ -108,15 +125,8 @@ def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
         zp_xml(f, r)
         g.qonn.commit()
 
-    # set mek flag
-    sn.qurs.execute(config.GET_MEK)
-    mr = 0
-    set_mek= (config.SET_MEK % ar) + '%s;'
-    for row in sn.qurs.fetchall():
-        sn.qurs.execute(set_mek, row)
-        mr += 1
-    g.qonn.commit()
-
+    mek= set_mek(ar)
+    
     sn.qurs.execute(config.COUNT_INV)
     rc= sn.qurs.fetchone()
 
@@ -125,4 +135,4 @@ def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
     os.remove(_hm)
     os.remove(_lm)
     #print (rc)
-    return (( rc[0], mr), True) if bool(rc) and len(rc) > 0 else (( 2, 0), False)
+    return (( rc[0], mek), True) if bool(rc) and len(rc) > 0 else (( 2, 0), False)

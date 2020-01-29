@@ -42,8 +42,12 @@ class InvImpex(RestTask):
 
         if not allowed_file( files.filename, current_app.config ) or fp.suffix != '.zip':
             return self.close_task(filename, " Допустимый тип файла .zip", False)
-
-        lpu, self.smo, ar, self.month = self.parse_xml_name(filename)
+        
+        fname= self.parse_xml_name(filename)
+        if len(fname) == 0:
+            return self.close_task(filename, " Имя файла не соответствует шаблону", False)
+        
+        lpu, self.smo, ar, self.month = fname
         if lpu not in current_app.config['MO_CODE']:
             return self.close_task('', config.FAIL[0], False)
         self.year= f'20{ar}'
@@ -72,7 +76,7 @@ class InvImpex(RestTask):
                 wc,  xreestr= exp_inv(
                     current_app, self.smo, self.month, self.year, self.pack_type, catalog)
         except Exception as e:
-            self.abort_task()
+            #self.abort_task()
             raise e
             current_app.logger.debug(e)
             return self.close_task(filename, 'Ошибка сервера (детали в журнале)', False)

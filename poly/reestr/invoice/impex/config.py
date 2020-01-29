@@ -147,6 +147,11 @@ t.crd_num = c.crd_num AND
 t.talon_month=%s AND
 c.smo <> %s;
  '''
+GET_MEK_TABLE= '''
+SELECT table_name FROM information_schema.tables
+WHERE table_schema NOT IN ('information_schema','pg_catalog') AND
+table_name='talonz_clin_%s';
+'''
 
 GET_MEK= 'SELECT nhistory FROM invoice_bars WHERE sank_it > 0.00;'
 SET_MEK= 'UPDATE talonz_clin_%s SET mek=1 WHERE tal_num='
