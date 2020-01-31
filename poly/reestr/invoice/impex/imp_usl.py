@@ -23,7 +23,7 @@ def proc(el):
              u[tag]= None
     return u
     
-def imp_usl(hm: str) -> int:
+def imp_usl(hm: str) -> tuple:
     global rec    
     usld= dict()
     
@@ -59,5 +59,6 @@ def imp_usl(hm: str) -> int:
     rc= qurs.fetchone()
     
     qurs.close()
-
-    return (rc[0], True) if bool(rc) and len(rc) > 0 else (2, False)
+    
+    # return signature ( ( rows_of_imported, rows_of_corrected ), done_status)
+    return ( (rc[0], 0), True) if bool(rc) and len(rc) > 0 else ( (2, 0), False)

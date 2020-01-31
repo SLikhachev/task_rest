@@ -58,8 +58,8 @@ class InvImpex(RestTask):
         up_file = os.path.join(catalog, filename)
         files.save(up_file)
 
-        rc= wc= 0
-        dc = (0,)
+        wc= 0
+        dc = rc= (0, 0)
 
         try:
             rc, res= imp_inv(up_file, self.pack_type, ar)
@@ -80,7 +80,7 @@ class InvImpex(RestTask):
             raise e
             current_app.logger.debug(e)
             return self.close_task(filename, 'Ошибка сервера (детали в журнале)', False)
-       
+        
         #msg = f'Счет {filename} Записей считано {rc}. Время: {(time2-time1)}'
         msg = f'Счет {filename} Записей в счете {rc[0]}, (МЭК {rc[1]}), \
          записей в реестре {wc}. \

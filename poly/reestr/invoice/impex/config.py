@@ -142,9 +142,9 @@ talonz_clin_%s AS t,
 cardz_clin AS c, 
 invoice_bars AS i
 WHERE
-t.tal_num = i.n_zap AND
+t.tal_num = i.nhistory AND
 t.crd_num = c.crd_num AND
-t.talon_month=%s AND
+-- t.talon_month=%s AND
 c.smo <> %s;
  '''
 GET_MEK_TABLE= '''

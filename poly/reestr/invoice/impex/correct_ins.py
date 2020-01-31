@@ -12,7 +12,7 @@ def correct_ins(smo: int, month: str, year: str) -> int:
     qurs1= g.qonn.cursor()
     #ismo= int(smo) + 25000
     imon= int(month)
-    ar= year[2:]
+    ar= int(year[2:])
     #tal= config.GET_SMO % year
     #get_smo= f'{tal}%s{config.AND_CRD}'
     #qurs1.execute(config.GET_ROW_INV_TAL)
