@@ -1,5 +1,10 @@
 import xml.etree.cElementTree as ET
 
+dcons = (63, )
+purp = (4,)
+region= '250'
+
+
 class DataObject:
     
     def __init__(self, ntuple):

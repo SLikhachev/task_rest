@@ -4,10 +4,8 @@ from datetime import date
 #from collections import deque
 #deque(map(writer.writerow, data), maxlen=0)
 from poly.reestr.xml.pack.xml_class.mixTags import HdrMix, TagMix
-from poly.reestr.xml.pack.xml_class.utils import DataObject
+from poly.reestr.xml.pack.xml_class.utils import dcons, purp, DataObject
 
-dcons = (63, )
-purp = (4,)
 
 class PmData(DataObject):
     # here we set all params
@@ -23,9 +21,10 @@ class PmData(DataObject):
         assert (self.specfic in dcons) and (self.purp in purp), \
             f'{id}-Для спец. {self.specfic} неверная цель {self.purp}'
         
-        if (self.specfic in dcons) and (self.mo_att != mo) and (self.for_pom != 2):
-            assert bool(self.nsndhosp) or bool(self.naprlech), f'{id}-Нет напаравления на консультацию'
-
+        if (self.specfic in dcons) and (self.for_pom != 2):
+            if self.mo_att != mo: 
+                assert bool(self.nsndhosp) or bool(self.naprlech), f'{id}-Нет напаравления на консультацию'
+            
         if bool(self.cons_mo):
             self.from_firm= f'{self.cons_mo}'
         elif bool(self.hosp_mo):

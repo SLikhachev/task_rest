@@ -106,7 +106,7 @@ def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
 
     if len(_hm) == 0:
         #bad invoice file name  
-        return (1, False)
+        return ((1, 0), False)
     
     # import PMUs with tarifs
     if typ == 6:

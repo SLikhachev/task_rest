@@ -8,7 +8,7 @@
 #from tarif.config_tarif import TARIF_DB
 
 from poly.reestr.xml.pack.xml_class.mixTags import HdrMix, TagMix
-from poly.reestr.xml.pack.xml_class.utils import DataObject
+from poly.reestr.xml.pack.xml_class.utils import dcons, DataObject
 
 
 class HmData(DataObject):
@@ -118,7 +118,7 @@ class HmData(DataObject):
             spec.profil,
             doc.snils as iddokt,
         """
-        assert self.prvs and self.profil, f'{id}-Нет PRVS | PROFIL (кода специальности по V021, профиля)'
+        assert self.prvs and self.profil, f'{id}-Нет PRVS | PROFIL (кода специальности по V021, профиля V002)'
         assert self.iddokt, f'{id}-Нет СНИЛС у доктора'
         """
             
@@ -144,6 +144,13 @@ class HmData(DataObject):
         self.iddokt= self.iddokt.replace(" ", "-")
         #self.os_sluch= 2 if self.dost.find('1') > 0 else None
         self.pr_nov= 1 if bool(self.mek) else 0
+        
+        # 2020 FOMS 495 letter
+        if (self.specfic in dcons) and (self.for_pom != 2):
+            self.ishod= 4 # 304
+            self.rslt= 14 # 314
+                
+        
         self.ishod += self.usl_ok * 100
         self.rslt += self.usl_ok * 100
         try:
