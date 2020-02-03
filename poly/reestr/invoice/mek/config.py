@@ -11,3 +11,4 @@ MEK_FILE= """ '%s' With CSV
 DELIMITER ';' HEADER QUOTE '"' FORCE QUOTE * ENCODING 'win1251'
 """
 
+MOVE_MEK= 'UPDATE talonz_clin_%s SET talon_month=%s WHERE talon_month=%s AND mek=1'

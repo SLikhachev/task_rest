@@ -23,3 +23,7 @@ api.add_resource(inv_impex.InvImpex, '/inv/impex', endpoint='inv_impex')
 # calculate reestr ourselves
 from poly.reestr.invoice.calc import task as inv_calc
 api.add_resource(inv_calc.InvCalc, '/inv/calc', endpoint='inv_calc')
+
+# export/move MEK records
+from poly.reestr.invoice.mek import task as move_mek
+api.add_resource(move_mek.MoveMek, '/inv/mek', endpoint='inv_mek')

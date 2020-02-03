@@ -1,19 +1,20 @@
+
 import os
 from datetime import datetime
-#from pathlib import Path
 from flask import request, current_app, g
-from werkzeug import secure_filename
 from poly.reestr.task import RestTask
-from poly.reestr.xml.vmx.vmx_sql import to_sql
 from poly.utils.fields import month_field
-from poly.utils.files import allowed_file
 from poly.reestr.invoice.mek import config
+from poly.reestr.invoice.mek.move_mek import move_mek
 
 class MoveMek(RestTask):
 
     def __init__(self):
         super().__init__()
         self.task= 'move_mek'
+
+    def month_str(self, m, y):
+        return  f'{current_app.config["MONTH"][m-1]} {y}'
 
     def this_error(self, file):
         return self.close_task(file, 'Ошибка обработки (подробно в журнале)', False)
@@ -24,45 +25,39 @@ class MoveMek(RestTask):
         ts = self.open_task()
         if len(ts) > 0:
             return self.busy(ts)
-
-        self.pack_type= request.form.get('type', 1)
-
-        files= request.files.get('file', None)
-        if not bool(files):
-            return self.close_task( '', 'Передан пустой запрос на обработку', False)
         
-        catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')   
-        filename = secure_filename(files.filename)
-        if not allowed_file( files.filename, current_app.config ) or not filename.endswith('.xml'):
-            return self.close_task(filename, "Допустимое расширение имени файла .xml", False)
-
-        lpu, self.smo, ar, self.month = self.parse_xml_name(filename)
-        self.year = f'20{ar}'
-
-        # save file to disk
-        up_file = os.path.join(catalog, filename)
-        files.save(up_file)
-        rc= wc= errors= 0
+        self.year, self.month = month_field( request.form.get('month', '') )
+        
+        if self.this_year != self.year:
+            return self.close_task('', f'Переносить МЭК можно только в текущем году', False)
+        if self.this_month != self.month + 1:
+            return self.close_task('', f'Переносить МЭК можно только на один месяц вперед', False)
+        
+        #return self.close_task('', 'Done', True)
+        
         try:
-            rc= to_sql(up_file, ar, ('824',), 'ignore')
+            rc= move_mek(self.month, self.this_year)
         except Exception as e:
-            self.abort_task()
+            #self.abort_task()
             raise e
             current_app.logger.debug(e)
             return self.this_error(filename)
-
-        msg = f'VM файл {filename} Записей считано {rc}. {self.perf()}'
-        os.remove(up_file)
-        #files.close()
-
-        return self.close_task(filename, msg, True)
+        
+        if not bool(rc):
+            month_str= self.month_str(self.month, self.year)
+            return self.close_task('', f'Нет МЭКов за {month_str}', False)
+        
+        month_str= self.month_str(self.month+1, self.year)
+        msg = f'Пернесли МЭКи на {month_str} записей {rc}.'
+       
+        return self.close_task('', msg, True)
 
     # export to csv task
     def get(self):
         
         # ints
         year, month = month_field( request.args.get('month', '') )
-        month_str= current_app.config['MONTH'][month-1]
+        month_str= self.month_str(month, year)
         
         g.qonn= current_app.config.db()
         qurs= g.qonn.cursor()

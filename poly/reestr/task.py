@@ -1,4 +1,5 @@
 
+from datetime import date
 from time import perf_counter
 from flask import g, current_app
 from flask_restful import Resource
@@ -23,6 +24,8 @@ class RestTask(Resource):
         self.smo= None
         self.pack_num= None
         self.pack_type= None
+        self.this_year= date.today().year
+        self.this_month= date.today().month
 
     def parse_xml_name(self, name: str) -> tuple:
         
