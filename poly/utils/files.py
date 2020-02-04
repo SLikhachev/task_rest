@@ -1,19 +1,21 @@
 
 import os
-#import PIL
-#from PIL import Image
-#import simplejson
-#import traceback
-
+import string
+from secrets import choice 
 from flask import request, redirect, url_for, send_from_directory
 from flask import current_app
 from flask_restful import Resource
 from werkzeug import secure_filename
 from poly.utils.uploadfile import uploadfile
 
+
+def get_name_tail(nchars):
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(choice(alphabet) for i in range(nchars))
+
 def allowed_file(filename, config):
-        return '.' in filename and \
-            filename.rsplit('.', 1)[1].lower() in config['ALLOWED_EXTENSIONS']
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in config['ALLOWED_EXTENSIONS']
 
 """
 def create_thumbnail(image):
@@ -76,7 +78,6 @@ class TakeFile(Resource, FileMixin):
         #return { "cat": catalog, "root": current_app.root_path } #, "absa": absa  }
         
         return send_from_directory(catalog, filename)
-
     
     def post(self, dir, subdir):
         files = request.files['file']

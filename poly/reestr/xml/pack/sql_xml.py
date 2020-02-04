@@ -150,7 +150,6 @@ def write_data(
     pmFile= tmpf(mode="r+") if not check else None
     hmFile = tmpf(mode="r+") if not check else None
     lmFile = tmpf(mode="r+", encoding='1251') if not check else None
-    errors= 0
 
     ya = int(str(year)[2:])
     query = _sql.get_hpm_data % ya
@@ -163,7 +162,7 @@ def write_data(
 
     query = f'{query}{_sql.month}'
     qurs.execute(query, (month,))
-    rc = 0
+    rc = errors = 0
     for rdata in qurs:
         _nmo= get_npr_mo(qurs1, rdata)
         qurs1.execute(_sql.get_usl, ( ya, ya, rdata.idcase, ) )
@@ -199,18 +198,28 @@ def write_data(
             qurs1.execute(_sql.mark_as_sent, (ya, rdata.idcase))
         rc += 1
 
+    # check data routine
     if check: # errors > 0 and check: # return error_pack file
         errorFile.close()
         qurs.close()
         qurs1.close()
         g.qonn.commit()
-        #qonn.close()
-
-        for f in (hmFile, pmFile, lmFile):
-            if f: f.close()
+        
+        if not bool(errors):
+            os.remove(errFname)
+            errFname= ''
             
         return rc, len(lmPers.uniq), errFname, errors
-    
+
+    # no right records found
+    if not bool(rc):
+        for f in (hmFile, pmFile, lmFile):
+            if f: f.close()
+        qurs.close()
+        qurs1.close()
+        g.qonn.commit()
+        return rc, rc, '', errors
+        
     # make zip file anyway and return it
     to_zip=[]
     for f, h in ((hmFile, HmHdr), (pmFile, PmHdr), (lmFile, LmHdr)):

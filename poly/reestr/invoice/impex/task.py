@@ -34,7 +34,7 @@ class InvImpex(RestTask):
 
         files= request.files.get('file', None)
         if not bool(files):
-            return self.close_task('', 'Передан пустой запрос на обработку', False)
+            return self.close_task('', 'Нет файла счета', False)
         
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'inv')
         filename = secure_filename(files.filename)
@@ -62,19 +62,18 @@ class InvImpex(RestTask):
         dc = rc= (0, 0)
 
         try:
-            rc, res= imp_inv(up_file, self.pack_type, ar)
+            rc, res= imp_inv(up_file, self.pack_type, ar) # returns either invoice or usl data 
             if not res:
                 current_app.logger.debug( config.FAIL[ rc[0] ] )
                 return self.close_task('', config.FAIL[ rc[0]], False)
 
             if self.pack_type == 6:
-                #return self.result('', 'Импорт выполнен', True), current_app.config['CORS']
                 wc, xreestr = exp_usl(current_app, self.smo, self.month, self.year, catalog)
             else:
-                if csmo:
-                    dc= correct_ins(self.smo, self.month, self.year)
-                wc,  xreestr= exp_inv(
+               wc, xreestr= exp_inv(
                     current_app, self.smo, self.month, self.year, self.pack_type, catalog)
+               if csmo and wc > 0:
+                   dc= correct_ins(self.smo, self.month, self.year)
         except Exception as e:
             #self.abort_task()
             raise e

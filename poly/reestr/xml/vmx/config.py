@@ -24,6 +24,8 @@ GET_ERROR_NAME='''
 SELECT name FROM errors_bars WHERE num=%s;
 '''
 
+COUNT_ERRORS= 'SELECT count(id) FROM vmx_errors'
+
 TO_CSV= '''COPY (
 select tal_num, crd_num, fam, open_date, close_date, error, cmt from vmx_errors ) to 
 '%s' With CSV 

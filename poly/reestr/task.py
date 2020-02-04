@@ -41,7 +41,7 @@ class RestTask(Resource):
         lpu= tail[4:7] # str 796
         year= tail[:2] # str 20
         month= tail[2:4] #  str 01
-        #print( lpu, smo, year, month)
+        #print( lpu: str(3), smo: int, year: str(2), month: str(2))
         return lpu, smo, year, month
 
     def open_task(self):

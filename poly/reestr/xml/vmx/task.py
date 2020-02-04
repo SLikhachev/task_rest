@@ -5,7 +5,7 @@ from flask import request, current_app, g
 from werkzeug import secure_filename
 from poly.reestr.task import RestTask
 from poly.reestr.xml.vmx.vmx_sql import to_sql
-from poly.utils.files import allowed_file
+from poly.utils.files import allowed_file, get_name_tail
 from poly.reestr.xml.vmx import config
 
 class XmlVmx(RestTask):
@@ -56,12 +56,19 @@ class XmlVmx(RestTask):
         return self.close_task(filename, msg, True)
 
     def get(self):
-        catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')   
-        df= str(datetime.now()).split(' ')[0]
-        filename= f"VM_{df}.csv"
-        up_file = os.path.join(catalog, filename)
         qonn= current_app.config.db()
         qurs= qonn.cursor()
+        qurs.execute(config.COUNT_ERRORS)
+        rc= qurs.fetchone()
+        
+        if not bool(rc[0]):
+            return self.out('', 'Нет принятых ошибок', False)
+        
+        catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')   
+        df= str(datetime.now()).split(' ')[0]
+        filename= f"VM_{df}_{get_name_tail(5)}.csv"
+        up_file = os.path.join(catalog, filename)
+       
         _q = config.TO_CSV % up_file
         try:
             rc= qurs.execute(_q)

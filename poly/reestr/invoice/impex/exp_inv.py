@@ -8,6 +8,8 @@ from flask import g
 from openpyxl import load_workbook
 #from openpyxl.compat import range
 from openpyxl.styles import Border, Side, colors
+from poly.utils.files import get_name_tail
+
 from poly.reestr.invoice.impex import config
 
 def get_mo_smo_name(app,  smo, cfg):
@@ -106,8 +108,17 @@ def for_foms(dex, rc):
     return d
 
 
-def data_source_init():
+def data_source_init(is_calc):
     g.qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    if len(is_calc) == 0:
+        _data = config.COUNT_INV
+    else:
+        _data= config.COUNT_MO
+    g.qurs.execute(_data)
+    rc= g.qurs.fetchone()
+    if bool(rc[0]): return True
+    g.qurs.close()
+    return False
 
 def data_source_get(is_calc):
     if len(is_calc) == 0:
@@ -122,21 +133,19 @@ def data_source_close():
 
 
 def exp_inv(
-        app: object, smo: str, month: str, year: str, typ: int, inv_path: str, is_calc='' ) -> (int, str):
+        app: object, # current app object
+        smo: int, # int (0,  25011, 25016 )
+        month: str, #str(2) 01..12  
+        year: str, #str(4) 2020
+        typ: int, # 1-5
+        inv_path: str, # path to the data folder
+        is_calc='' # flag str if not empty then self calculated reestr
+    ) -> (int, str):
     
-    # smo: int (0,  25011, 25016 )
-    # month: string 01-12
-    # year: string len=4
-    # typ: 1-5
-    # inv_path: string path to
-    # is_calc: str if non empty then calculatede reestr
-    
+    if not data_source_init(is_calc):
+        return (0, '')
+       
     m= int(month)
-    
-    #if m == 1: m = 2 # same month 
-    #m_1 = '{0:02d}'.format( m-1 )
-    #m_2 = '{0:02d}'.format( m+1 )
-    
     tpl= config.TYPE[typ-1][2]
 
     sh1 = 'Лист1'
@@ -144,7 +153,7 @@ def exp_inv(
     xtpl = f'{tpl}.xlsx'
     xlr = os.path.join(inv_path, 'tpl', xtpl)   
 
-    xout = f'{tpl}{is_calc}_{smo}_{month}_{year}.xlsx'
+    xout = f'{tpl}{is_calc}_{smo}_{month}_{year}_{get_name_tail(5)}.xlsx'
     xlw = os.path.join(inv_path, xout)   
 
     period = 'За %s %s года' % (app.config['MONTH'][m-1], year)
@@ -152,8 +161,7 @@ def exp_inv(
     wb = load_workbook(filename = xlr)
     wb.active
     sheet = wb[sh1]
-
-    data_source_init()
+    
     mo_name, smo_name = get_mo_smo_name(app, smo, config)
 
     if smo == 0:

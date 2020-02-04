@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import request, current_app, g
 from poly.reestr.task import RestTask
 from poly.utils.fields import month_field
+from poly.utils.files import get_name_tail
 from poly.reestr.invoice.mek import config
 from poly.reestr.invoice.mek.move_mek import move_mek
 
@@ -73,7 +74,7 @@ class MoveMek(RestTask):
         mc= mc[0]
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'mek')
         df= str(datetime.now()).split(' ')[0]
-        filename= f"MEK_{df}.csv"
+        filename= f"MEK_{df}_{get_name_tail(4)}.csv"
         up_file = os.path.join(catalog, filename)
         
         _q= config.MEK_FILE % up_file  

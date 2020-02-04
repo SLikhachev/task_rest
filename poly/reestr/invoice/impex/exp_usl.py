@@ -9,6 +9,7 @@ from openpyxl import load_workbook
 #from openpyxl.compat import range
 from openpyxl.styles import Border, Side, colors
 from flask import g
+from poly.utils.files import get_name_tail
 from poly.reestr.invoice.impex.exp_inv import get_mo_smo_name
 from poly.reestr.invoice.impex import config
 
@@ -30,7 +31,7 @@ def exp_usl(app: object, smo: int, month: str, year: str, inv_path: str) -> (int
     sh1 = 'Лист1'
     xtpl = f'{tpl}.xlsx'
     xlr = os.path.join(inv_path, 'tpl', xtpl)   
-    xout = f'{tpl}_{smo}_{month}-{year}.xlsx'
+    xout = f'{tpl}_{smo}_{month}_{year}_{get_bane_tail(4)}.xlsx'
     
     mon= int(month)
     #smo= int(insurer)
