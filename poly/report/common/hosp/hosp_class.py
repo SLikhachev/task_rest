@@ -42,6 +42,7 @@ class HospEir:
         self.vals = ', '.join( [ '%s' for _, _ in self.fields] )
         self.qonn = db
         self.qurs = db.cursor()
+        self.napr= set()
     
     def clear_tbl(self):
         self.qurs.execute(HospEir.CLEAR_TABLE % self.table)
@@ -132,8 +133,9 @@ class HospEir:
         
         #return ', '.join( [ self.fields[ f[1](val) ]  for f, val in enumerate(data) ] )
         s = [ self.fields[f][1](val) for f, val in enumerate(data) ]
-        if s[0] is None: # nap num must be int
+        if s[0] is None or s[0] in self.napr: # nap num must be int and uniq
             return None
+        self.napr.add(s[0])            
         return s
         
     def close(self):

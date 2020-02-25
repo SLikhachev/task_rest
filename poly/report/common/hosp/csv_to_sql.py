@@ -42,9 +42,12 @@ def csv_to_sql(app, csv_file, csvClass, test=1, clear=False):
                 wc += qurs.rowcount
                 #qonn.commit()
             except Exception as e:
+                print (e)
+                continue
                 #app.logger.debug( insert, str(data) )
                 #app.logger.debug('Exception in csv line %s', rc)
-                raise e
+                #raise e
+                
     
     qonn.commit()
     qurs.close()
