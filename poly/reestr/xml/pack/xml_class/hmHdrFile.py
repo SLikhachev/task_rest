@@ -14,7 +14,7 @@ from poly.reestr.xml.pack.xml_class.utils import dcons, DataObject
 class HmData(DataObject):
     
     # this gets from data
-    
+    MRT= (4,)
     PROF= (21, 22)
     STOM= (85, 86, 87, 88, 89, 90)
     SESTRY= (82, 83)
@@ -175,9 +175,11 @@ class HmData(DataObject):
             self.os_sluch = 2
         
     def __idsp(self):
+        
         # neotl
         if self.for_pom == 2:
             return 29
+        
         #stom
         if self.profil in HmData.STOM:
             # stom inokray
@@ -187,15 +189,23 @@ class HmData(DataObject):
                 return 30
             # just stom
             return 28
+        
         # prof
         if self.purp in HmData.PROF or ( self.smo == 0 and self.profil in HmData.SESTRY ):
             return 28
+        
+        # inokray 4 purp
+        if self.purp in HmData.MRT and self.smo == 0:
+            return 28
+        
         # day stac
         if self.usl_ok == 2:
             return 33
+        
         # pocesh
         if (self.visit_pol + self.visit_hom) == 1:
             return 29
+        
         # obrash
         return 30
 
