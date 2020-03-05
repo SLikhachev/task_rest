@@ -190,12 +190,12 @@ class HmData(DataObject):
             # just stom
             return 28
         
-        # prof
-        if self.purp in HmData.PROF or ( self.smo == 0 and self.profil in HmData.SESTRY ):
+        # prof or sestry
+        if self.purp in HmData.PROF or self.profil in HmData.SESTRY:
             return 28
-        
+
         # inokray 4 purp
-        if self.purp in HmData.MRT and self.smo == 0:
+        if self.purp in HmData.MRT and (self.smo == 0 or self.smo is None):
             return 28
         
         # day stac
