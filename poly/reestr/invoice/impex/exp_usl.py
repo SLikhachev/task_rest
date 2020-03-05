@@ -31,7 +31,7 @@ def exp_usl(app: object, smo: int, month: str, year: str, inv_path: str) -> (int
     sh1 = 'Лист1'
     xtpl = f'{tpl}.xlsx'
     xlr = os.path.join(inv_path, 'tpl', xtpl)   
-    xout = f'{tpl}_{smo}_{month}_{year}_{get_bane_tail(4)}.xlsx'
+    xout = f'{tpl}_{smo}_{month}_{year}_{get_name_tail(4)}.xlsx'
     
     mon= int(month)
     #smo= int(insurer)
