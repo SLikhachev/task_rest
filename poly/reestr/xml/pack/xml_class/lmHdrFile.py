@@ -3,58 +3,57 @@ from poly.reestr.xml.pack.xml_class.mixTags import HdrMix, TagMix
 from poly.reestr.xml.pack.xml_class.utils import DataObject
 
 
-class LmData(DataObject):
-    def __init__(self, ntuple):
-        super().__init__(ntuple)
-        # polis in talon
-        if self.polis_type is not None and self.polis_num is not None:
-            self.id_pac= self.polis_num
-        try:
-            self.id_pac= int(self.id_pac)
-        except:
-            raise ValueError(f'{self.idcase}-ID_PAC (номер полиса) не целое число')
-        
-        self.doc=['doctype', 'docnum', 'docser', 'docdate', 'docorg']
-        self.dost= []
-        self.calc = (
-            self._pol,
-            self._dost,
-            self._doc
-        )
+def lmData(data):
 
-        for func in self.calc:
-            func()
-
-    def _pol(self):
+    def _pol(data):
         try:
-            self.w= ['м', 'ж'].index(self.pol.lower()) + 1
-        except Exception as e :
+            return ('w', ['м', 'ж'].index(data.pol.lower()) + 1)
+        except Exception as e:
             print(e)
+            raise e
 
-    def _dost(self):
-        if not bool(self.ot):
-            self.dost.append(1)
-        if not bool(self.fam):
-            self.dost.append(2)
-        if not (self.im):
-            self.dost.append(3)
-    
-    def _doc(self):
-        if not bool(self.docnum) or len(self.docnum) == 0:
-            for d in self.doc:
-                setattr(self, d, None)
-        
+    def _dost(data):
+        dost = []
+        if not bool(data.ot):
+            dost.append(1)
+        if not bool(data.fam):
+            dost.append(2)
+        if not (data.im):
+            dost.append(3)
+        return ('dost', dost)
+
+    def _doc(data):
+        if not bool(data.docnum) or len(data.docnum) == 0:
+            for d in ('doctype', 'docnum', 'docser', 'docdate', 'docorg',):
+                setattr(data, d, None)
+        return None
+
+    calc = (
+        _pol,
+        _dost,
+        _doc
+    )
+
+    for func in calc:
+        t = func(data)
+        if t is None:
+            continue
+        setattr(data, t[0], t[1])
+
+    return data
+
+
 class LmHdr(HdrMix):
-    
+
     def __init__(self, mo, year, month, pack, sd_z=None, summ=None):
         super().__init__(mo, year, month, pack)
         self.startTag = '%s\n<PERS_LIST>' % self.xmlVer
         self.endTag = '</PERS_LIST>'
         self.filename = self.l_file
         self.filename1 = self.h_file
-        self.version='3.1'
+        self.version = '3.1'
 
-        self.zglv_tags= (
+        self.zglv_tags = (
             'version',
             'data',
             'filename',
@@ -65,12 +64,13 @@ class LmHdr(HdrMix):
     def get_schet(self, data):
         return None
 
+
 class LmPers(TagMix):
-    
+
     def __init__(self, mo):
         super().__init__(mo)
-        self.dubl=[]
-        self.uniq= set()
+        self.dubl = []
+        self.uniq = set()
         self.pers_tags = (
             'id_pac',
             'fam',
@@ -90,8 +90,8 @@ class LmPers(TagMix):
             'doctype',
             'docser',
             'docnum',
-            #'docdate',
-            #'docorg',
+            # 'docdate',
+            # 'docorg',
             'snils',
             'okatog',
             'okatop',
@@ -104,8 +104,7 @@ class LmPers(TagMix):
             'okatop',
             'commentp',
         )
-        self.pers=('pers', self.pers_tags)
-
+        self.pers = ('pers', self.pers_tags)
 
     def get_pers(self, data):
 

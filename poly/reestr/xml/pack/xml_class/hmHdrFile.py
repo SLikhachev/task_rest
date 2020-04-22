@@ -1,198 +1,36 @@
 
-#import xml.etree.cElementTree as ET
-#from datetime import date
-#from collections import deque
-#deque(map(writer.writerow, data), maxlen=0)
-
-#from tarif.tarif_class import TarifSql
-#from tarif.config_tarif import TARIF_DB
-
 from poly.reestr.xml.pack.xml_class.mixTags import HdrMix, TagMix
 from poly.reestr.xml.pack.xml_class.utils import USL_PURP, USL_PRVS, \
-    PROFOSM_PURP, SESTRY_PROF, STOM_PROF, DataObject
+    PROFOSM_PURP, SESTRY_PROF, STOM_PROF, REGION
 
 
-class HmData(DataObject):
+def hmData(data):
 
-    def __init__(self, ntuple, nmo=None):
-        super().__init__(ntuple)
-        id = self.idcase
-        #self.smo= f'250{self.smo}'
-        """
-            tal.open_date as date_1,
-            tal.close_date as date_2,
-            tal.crd_num as card,
-            -- tal.crd_num AS id_pac,
-        """
-        assert self.date_1 and self.date_2, f'{id}-Нет даты талона'
-        assert self.card, f'{id}-Нет карты талона'
-        """
-            tal.mek, -- as pr_nov,
-            
-            tal.smo as tal_smo,
-            tal.polis_type,
-            tal.polis_ser,
-            tal.polis_num,
-            tal.smo_okato,
-        
-            crd.smo as smo,
-            crd.polis_type as vpolis,
-            crd.polis_num as npolis,
-            crd.polis_num as id_pac,
-            crd.polis_ser as spolis,
-            crd.st_okato,
-            crd.smo_ogrn,
-            crd.smo_okato as smo_ok, 
-            crd.smo_name as smo_nam,
-        """
-        if self.polis_type is not None and self.polis_num is not None:
+    def _os_sluch(data):
+        return ('os_sluch', None if bool(data.ot) else 2)
 
-            self.vpolis = self.polis_type
-            self.npolis = self.polis_num
-            self.spolis = self.polis_ser
-            self.smo = self.tal_smo
-            self.smo_ok = self.smo_okato
-            self.id_pac = self.polis_num
-
-        assert self.vpolis, f'{id}-Тип полиса не указан'
-        assert self.npolis, f'{id}-Номер полиса не указан'
-        if self.vpolis == 1:
-            assert self.spolis and self.npolis, f'{id}-Тип полиса не соответвует типу 1 (старый)'
-        elif self.vpolis == 2:
-            assert len(
-                self.npolis) < 16, f'{id}-Тип полис не времянка, не соответвует типу 2'
-        elif self.vpolis == 3:
-            assert len(
-                self.npolis) == 16, f'{id}-Тип полис не ЕНП, не соответвует типу 3'
-        else:
-            raise AttributeError(f'{id}-Тип полиса не поддерживаем')
-        assert self.smo or self.smo_ok, f'{id}-Нет ни СМО ни СМО ОКАТО'
-        """
-            tal.doc_spec as specfic,
-            
-            tal.purp,
-            tal.usl_ok,
-            tal.for_pom,
-            tal.rslt,
-            tal.ishod,
-        """
-        #assert self.specfic, f'{id}-SPECFIC ( специальность из регионального справочника) не указан'
-
-        assert self.usl_ok, f'{id}-USL_OK (условия оказания) не указан'
-        assert self.for_pom, f'{id}-FOR_POM (форма помощи) не указан'
-        assert self.rslt and self.ishod, f'{id}-RESULT/ISHOD (исход, результат) не указан'
-        """
-            tal.visit_pol, 
-            tal.visit_home as visit_hom,
-        """
-
-        """
-            tal.npr_date,
-            tal.npr_mo as cons_mo,
-            tal.hosp_mo,
-            tal.naprlech,
-            tal.nsndhosp,
-            tal.d_type,
-            tal.ds1,
-            tal.ds2,
-            tal.char1 as c_zab,
-        """
-        assert self.ds1, f'{id}-Нет DS1 (основной диагноз)'
-        if self.ds1.upper().startswith('Z'):
-            self.c_zab = None
-        else:
-            assert self.c_zab, f'{id}-Нет C_ZAB (характер основного заболевания)'
-
-        if bool(self.naprlech) or bool(self.nsndhosp):
-            assert nmo, f'{id}-Нет кода МО направления'
-            self.npr_mo = f'{nmo}'
-            if not bool(self.npr_date):
-                self.npr_date = self.date_1 if bool(
-                    self.cons_mo) else self.date_2
-        else:
-            self.npr_mo = self.npr_date = None
-
-        """
-            spec.prvs,
-            spec.profil,
-            doc.snils as iddokt,
-        """
-        assert self.prvs and self.profil, f'{id}-Нет PRVS | PROFIL (кода специальности по V021, профиля V002)'
-        assert self.iddokt, f'{id}-Нет СНИЛС у доктора'
-        """
-            
-        -- PACIENT
-            crd.fam, 
-            crd.im,
-            crd.ot,
-            crd.gender as pol,
-            crd.birth_date as dr,
-            crd.dost as dost,
-            crd.dul_type as doctype,
-            crd.dul_serial as docser,
-            crd.dul_number as docnum,
-            crd.dul_date as docdate,
-            crd.dul_org as docorg
-        """
-        assert self.fam, f'{id}-Нет Фамилии пациента'
-        assert self.dr, f'{id}-Нет дня рождения пациента'
-        if self.vpolis != 3:
-            assert self.doctype and self.docnum and self.docser and \
-                self.docdate and self.docorg, f'{id}-Тип полиса не ЕНП и неуказан полностью ДУЛ'
-
-        self.iddokt = self.iddokt.replace(" ", "-")
-        #self.os_sluch= 2 if self.dost.find('1') > 0 else None
-        self.pr_nov = 1 if bool(self.mek) else 0
-
-        # 2020 FOMS 495 letter
-        if (self.prvs in USL_PRVS) and (self.for_pom != 2):
-            self.ishod = 4  # 304
-            self.rslt = 14  # 314
-
-        self.ishod += self.usl_ok * 100
-        self.rslt += self.usl_ok * 100
-        try:
-            self.id_pac = int(self.id_pac)
-        except ValueError:
-            raise ValueError(f'{id}-Номер полиса не целое число')
-
-        self.calc = (
-            self._os_sluch,
-            self._idsp,
-            self._pcel,
-            self._vidpom,
-            # self._sumv,
-        )
-
-        for func in self.calc:
-            func()
-
-    def _os_sluch(self):
-        if not bool(self.ot):
-            self.os_sluch = 2
-
-    def __idsp(self):
+    def __idsp(data):
 
         # neotl
-        if self.for_pom == 2:
+        if data.for_pom == 2:
             return 29
 
         # stom
-        if self.profil in STOM_PROF:
+        if data.profil in STOM_PROF:
             # stom inokray
-            if self.smo == 0:
-                if (self.visit_pol + self.visit_hom) == 1:
+            if data.smo == 0:
+                if (data.visit_pol + data.visit_hom) == 1:
                     return 29
                 return 30
             # just stom
             return 28
 
         # profosm or sestry
-        if self.purp in PROFOSM_PURP or self.profil in SESTRY_PROF:
+        if data.purp in PROFOSM_PURP or data.profil in SESTRY_PROF:
             return 28
 
         # 4 purp and prvs is USL (all spec issledovanie) inokray incl
-        if self.purp in USL_PURP and self.prvs in USL_PRVS:
+        if data.purp in USL_PURP and data.prvs in USL_PRVS:
             return 28
 
         # inokray 4 purp
@@ -200,20 +38,20 @@ class HmData(DataObject):
         #    return 28
 
         # day stac
-        if self.usl_ok == 2:
+        if data.usl_ok == 2:
             return 33
 
         # pocesh
-        if (self.visit_pol + self.visit_hom) == 1:
+        if (data.visit_pol + data.visit_hom) == 1:
             return 29
 
         # obrash
         return 30
 
-    def _idsp(self):
-        self.idsp = self.__idsp()
+    def _idsp(data):
+        return ('idsp', __idsp(data))
 
-    def _pcel(self):
+    def _pcel(data):
         def pcel(for_pom, purp):
             if for_pom == 2:
                 return '1.1'  # Посещениe в неотложной форме
@@ -227,28 +65,42 @@ class HmData(DataObject):
                 return '2.1'
             return '2.6'  # Посещение по другим обстоятельствам
 
-        self.p_cel = None
-        if self.usl_ok != 3:
-            return
-        self.p_cel = pcel(self.for_pom, self.purp)
+        return ('p_cel',
+                None if data.usl_ok != 3 else pcel(data.for_pom, data.purp))
 
-    def _vidpom(self):
-        if self.profil in (78, 82):
-            self.vidpom = 11
-        elif self.prvs in (76, ) and self.profil in (97, 160):
-            self.vidpom = 12
+    def _vidpom(data):
+        if data.profil in (78, 82):
+            vidpom = 11
+        elif data.prvs in (76, ) and data.profil in (97, 160):
+            vidpom = 12
         else:
-            self.vidpom = 13
+            vidpom = 13
+        return ('vidpom', vidpom)
 
-    def _sumv(self):
-        self.sumv = 0.0
+    def _sumv(data):
+        return ('sumv', 0.0)
+
+    calc = (
+        _os_sluch,
+        _idsp,
+        _pcel,
+        _vidpom,
+        # _sumv,
+    )
+
+    for func in calc:
+        t = func(data)
+        setattr(data, t[0], t[1])
+
+    return data
 
 
-class HmUsl(DataObject):
+class HmUsl:
 
     def __init__(self, mo, ntuple, data):
-        super().__init__(ntuple)
-        self.lpu = f'250{mo}'
+        for name, value in ntuple._asdict().items():
+            setattr(self, name, value)
+        self.lpu = f'{REGION}{mo}'
         self.profil = data.profil
         self.det = 0
         self.date_in = self.date_usl
@@ -265,15 +117,15 @@ class HmUsp(HmUsl):
         tal.open_date as date_usl,
         prof.one_visit as code_usl1,
         prof.two_visit as code_usl2,
-        1 as kol_usl, 
-        prof.podr as podr, 
+        1 as kol_usl,
+        prof.podr as podr,
         tal.doc_spec as spec,
         tal.doc_code as doc,
     """
 
     def __init__(self, mo, ntuple, data):
         super().__init__(mo, ntuple, data)
-        if data.idsp == 29:
+        if data.idsp in (28, 29):
             self.code_usl = self.code_usl1
         else:
             self.code_usl = self.code_usl2
@@ -333,7 +185,7 @@ class HmZap(TagMix):
         self.stom = None
         self.ksg_kpg = None
         self.sl_id = 1
-        #self.pr_nov = 0
+        # self.pr_nov = 0
         self.vers_spec = 'V021'
         self.det = 0
         self.novor = 0
@@ -345,8 +197,8 @@ class HmZap(TagMix):
         setattr(self.ksg_class_inst, 'sl_k', 0)
         self.sl_koef = None
 
-        #self.tdb = psycopg2.connect(TARIF_DB)
-        #self.tarifs = TarifSql(self.tdb)
+        # self.tdb = psycopg2.connect(TARIF_DB)
+        # self.tarifs = TarifSql(self.tdb)
 
         self.pacient_tags = (
             'id_pac',  # tal.crd_num
@@ -417,7 +269,7 @@ class HmZap(TagMix):
             'p_per',  # DS later
             'date_1',  # data.date_1
             'date_2',  # data.date_2
-            'kd',  # DS
+            'kd',  # DSTAC
             'ds0',  # ignore
             'ds1',  # data.ds1
             'ds2',  # data.ds2
@@ -563,9 +415,11 @@ class HmZap(TagMix):
             sum += _usl.sumv_usl
             """
             if stom:
-                setattr(usl, 'sumv_usl', '%.2f' % self.get_sumv_stom(usl.code_usl, usl.kol_usl ) )
+                setattr(usl, 'sumv_usl', '%.2f' %
+                        self.get_sumv_stom(usl.code_usl, usl.kol_usl ) )
             else:
-                setattr(usl, 'sumv_usl', '%.2f' % self.get_sumv_usl(usl.code_usl, usl.kol_usl) )
+                setattr(usl, 'sumv_usl', '%.2f' %
+                        self.get_sumv_usl(usl.code_usl, usl.kol_usl) )
         """
             u_list.append(usl)
         u_list.append(HmUsp(self.mo, usp, data))
@@ -601,9 +455,9 @@ class HmZap(TagMix):
             setattr(data, 'kd_z', None)
             setattr(data, 'kd', None)
         """
-        #self.pacient = [data]
-        #self.z_sl = self.pacient
-        #self.sl = self.pacient
+        # self.pacient = [data]
+        # self.z_sl = self.pacient
+        # self.sl = self.pacient
 
         # return self.wrap_tags( self.zap[0], self.zap[1:], data)
         return self.make_el(self.zap, data)

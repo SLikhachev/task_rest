@@ -1,59 +1,16 @@
 
-import xml.etree.cElementTree as ET
-from datetime import date
-#from collections import deque
-#deque(map(writer.writerow, data), maxlen=0)
 from poly.reestr.xml.pack.xml_class.mixTags import HdrMix, TagMix
-from poly.reestr.xml.pack.xml_class.utils import USL_PRVS, USL_PURP, DataObject
 
 
-class PmData(DataObject):
-    # here we set all params
-    def __init__(self, ntuple, mo):
-        super().__init__(ntuple)
-        # 1 - invoice
-        # 2 - by soul
-        self.type_pay = 1  # yet
-        id = f'{self.idcase}'
-
-        assert self.date_2 >= self.date_1, f'{id}-Дата 1 больше даты 2'
-
-        '''
-        assert (self.specfic in dcons) and (self.purp in purp), \
-            f'{id}-Для спец. {self.specfic} неверная цель {self.purp}'
-        '''
-        assert (self.prvs in USL_PRVS) and (self.purp in USL_PURP), \
-            f'{id}-Для спец. {self.specfic} неверная цель {self.purp}'
-
-        if (self.prvs in USL_PRVS) and (self.for_pom != 2):
-            if self.mo_att != mo:
-                assert bool(self.nsndhosp) or bool(
-                    self.naprlech), f'{id}-Нет напаравления на консультацию'
-
-        if bool(self.cons_mo):
-            self.from_firm = f'{self.cons_mo}'
-        elif bool(self.hosp_mo):
-            self.from_firm = f'{self.hosp_mo}'
-        else:
-            self.from_firm = None
-
-        assert self.purp, f'{id}-Нет цели посещения'
-        assert self.visit_pol, f'{id}-Нуль количество посещений '  # yet
-
-        if bool(self.nsndhosp) or bool(self.naprlech):
-            assert bool(self.from_firm), f'{id}-Нет МО направления FROM_FIRM'
-            assert bool(self.nsndhosp) != bool(self.naprlech), \
-                f'{id}-HOSP (госпитализация) и CONS (консультация) напрвления в одном талоне'
+def pmData(data):
+    # here we set additional attrs
+    # 1 - invoice
+    # 2 - by soul
+    setattr(data, 'type_pay', 1)
+    return data
 
 
-"""        
-    @property
-    def type_pay(self):
-        return 1
-"""
-
-
-class PmUsl(DataObject):
+class PmUsl:
     """ -- data
         usl.date_usl,
         usl.code_usl, 
@@ -67,21 +24,28 @@ class PmUsl(DataObject):
     """
 
     def __init__(self, mo, tal, ntuple):
-        super().__init__(ntuple)
+        for name, value in ntuple._asdict().items():
+            setattr(self, name, value)
         self.mo = mo
+
+        # as for 495 paper disabled
+        '''
         assert self.spec and self.podr, \
             f'{tal.idcase}-Нет PODR (подразделиния), SPEC (специалиста) в ПМУ {self.code_usl}'
         self.executor = self.fmt_000(
             mo) + self.fmt_000(self.podr) + self.fmt_000(self.spec)
+        
         if tal.naprlech:
             assert self.npr_mo and self.npr_spec, \
                 f'{tal.idcase}-Нет NPR_MO (МО направления), NPR_SPEC (Специалиста направления)'
             self.ex_spec = self.fmt_000(
                 self.npr_mo) + self.fmt_000(self.npr_spec)
-
+        '''
 
 # posechenue obraschenie
-class PmUsp(DataObject):
+
+
+class PmUsp:
     """ USP
         tal.open_date as date_usl,
         prof.one_visit as code_usl1,
@@ -92,12 +56,17 @@ class PmUsp(DataObject):
         tal.doc_code as doc,
     """
 
-    def __init__(self, mo, ex_spec, ntuple):
-        super().__init__(ntuple)
+    def __init__(self, mo, ntuple, ex_spec=None):
+        for name, value in ntuple._asdict().items():
+            setattr(self, name, value)
         self.mo = mo
+
+        # as for 495 paper disabled
+        '''
         self.executor = self.fmt_000(
             mo) + self.fmt_000(self.podr) + self.fmt_000(self.spec)
         self.ex_spec = ex_spec
+        '''
 
 
 class PmHdr(HdrMix):
@@ -129,6 +98,10 @@ class PmSluch(TagMix):
         self.usl = None
         self.stom = None
         self.sl_id = 1
+        # PM type pay
+        # 1 - invoice
+        # 2 - by soul
+        self.type_pay = 1  # yet
 
         self.usl_tags = (
             'idserv',
@@ -182,14 +155,18 @@ class PmSluch(TagMix):
         else:
             _u = usl_list
         u_list = [PmUsl(self.mo, tal, u) for u in _u]
+
+        # as for 495 paper disabled
+        '''
         if len(u_list) == 0:  # no PMU
             ex_spec = None
         else:
             # last ex_spec if any
             ex_spec = getattr(u_list[-1], 'ex_spec', None)
+        '''
 
         # append posesh obrasch codes
-        u_list.append(PmUsp(self.mo, ex_spec, usp))
+        u_list.append(PmUsp(self.mo, usp))  # last arg deleted default None
 
         setattr(self, tag, u_list)
         return self

@@ -21,10 +21,10 @@ import psycopg2
 import psycopg2.extras
 from flask import g
 from datetime import date, datetime
-from poly.reestr.xml.pack.xml_class.utils import dcons
-from poly.reestr.xml.pack.xml_class.pmHdrFile import PmData, PmHdr, PmSluch
-from poly.reestr.xml.pack.xml_class.hmHdrFile import HmData, HmHdr, HmZap
-from poly.reestr.xml.pack.xml_class.lmHdrFile import LmData, LmHdr, LmPers
+from poly.reestr.xml.pack.xml_class.utils import USL_PRVS, DataObject
+from poly.reestr.xml.pack.xml_class.pmHdrFile import pmData, PmHdr, PmSluch
+from poly.reestr.xml.pack.xml_class.hmHdrFile import hmData, HmHdr, HmZap
+from poly.reestr.xml.pack.xml_class.lmHdrFile import lmData, LmHdr, LmPers
 from poly.reestr.xml.pack.xml_class.mixTags import HdrMix
 from poly.reestr.xml.pack import config_sql as _sql
 
@@ -57,9 +57,12 @@ def write_hdr(hdr, mo, year, month, pack, xmldir, fm_temp, sd_z=None, summ=None)
 
 def write_sluch(check, data, file, pm, usl, usp, stom=None):
     # def write_sluch(data, pm, usl, stom=None):
-
+    '''
     assert (data.specfic in dcons) and len(
         usl) > 0, f'{data.idcase}-Для спец. {data.specfic} нет ПМУ'
+    '''
+    assert (data.prvs in USL_PRVS) and len(
+        usl) > 0, f'{data.idcase}-Write sluch: Для SPEC {data.specfic}, PRVS. {data.prvs} нет ПМУ'
 
     pm.set_usl('usl', data, usl, usp)
     if stom and len(stom) > 0:
@@ -183,14 +186,14 @@ def write_data(
             _stom = qurs1.fetchall()
 
         try:
-            _data = PmData(rdata, mo)
-            write_sluch(check, _data, pmFile, pmSluch, _usl, _usp, _stom)
+            _data = DataObject(rdata, mo, _nmo)
 
-            _data = HmData(rdata, _nmo)
-            write_zap(check, _data, hmFile, hmZap, _usl, _usp)
+            write_sluch(check, pmData(_data), pmFile,
+                        pmSluch, _usl, _usp, _stom)
 
-            _data = LmData(rdata)
-            write_pers(check, _data, lmFile, lmPers)
+            write_zap(check, hmData(_data), hmFile, hmZap, _usl, _usp)
+
+            write_pers(check, lmData(_data), lmFile, lmPers)
 
         except Exception as e:
             if errorFile:
