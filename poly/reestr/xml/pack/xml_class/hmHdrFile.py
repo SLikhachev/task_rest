@@ -434,10 +434,12 @@ class HmZap(TagMix):
         setattr(self, 'sum_m', summ)
         setattr(self, 'sumv', summ)
         
-        if data.idsp in ED_COL_IDSP:
-            self.ed_col = len(_list)
-        else:
-            self.ed_col = None
+        self.ed_col = None
+        if not data.smo:
+            if data.idsp == 28:
+                self.ed_col = len(_list)
+            elif data.idsp == 29:
+                self.ed_col=1
         
         return self
 
