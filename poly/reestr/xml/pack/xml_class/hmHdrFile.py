@@ -1,7 +1,7 @@
 
 from poly.reestr.xml.pack.xml_class.mixTags import HdrMix, TagMix
 from poly.reestr.xml.pack.xml_class.utils import USL_PURP, USL_PRVS, \
-    PROFOSM_PURP, SESTRY_PROF, STOM_PROF, REGION
+    PROFOSM_PURP, SESTRY_PROF, STOM_PROF, REGION, ED_COL_IDSP
 
 
 def hmData(data):
@@ -190,6 +190,7 @@ class HmZap(TagMix):
         self.det = 0
         self.novor = 0
         self.tariff = None
+        self.ed_col = None
 
         self.ksg_class_inst = type('Ksg', (object, ), {})()
         setattr(self.ksg_class_inst, 'ver_ksg', '2018')
@@ -340,7 +341,7 @@ class HmZap(TagMix):
             'code_mes2',  # ignore
             'reab',  # ignore
 
-            'ed_col',  # ignore
+            #'ed_col',  # ignore
             'tarif',  # ignore
 
 
@@ -432,6 +433,12 @@ class HmZap(TagMix):
         summ = '{0:.2f}'.format(sum)
         setattr(self, 'sum_m', summ)
         setattr(self, 'sumv', summ)
+        
+        if data.idsp in ED_COL_IDSP:
+            self.ed_col = len(_list)
+        else:
+            self.ed_col = None
+        
         return self
 
     def set_ksg(self, n_ksg):

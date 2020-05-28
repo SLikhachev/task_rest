@@ -10,7 +10,7 @@ PROFOSM_PURP = (21, 22)
 STOM_PROF = (85, 86, 87, 88, 89, 90)
 SESTRY_PROF = (82, 83)
 REGION = '250'
-
+ED_COL_IDSP = (25, 28, 29)
 
 class FormatVal:
 
