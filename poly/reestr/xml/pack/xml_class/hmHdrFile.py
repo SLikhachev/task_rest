@@ -406,6 +406,7 @@ class HmZap(TagMix):
 
     def set_usl(self, tag, usl_list, usp, data, stom=False):
         sum = 0.0
+        ed_col = 1
         if not isinstance(usl_list, list):
             _list = [usl_list]
         else:
@@ -414,6 +415,7 @@ class HmZap(TagMix):
         for _usl in _list:
             usl = HmUsl(self.mo, _usl, data)
             sum += _usl.sumv_usl
+            ed_col += _usl.kol_usl
             """
             if stom:
                 setattr(usl, 'sumv_usl', '%.2f' %
@@ -437,7 +439,7 @@ class HmZap(TagMix):
         self.ed_col = None
         if not data.smo:
             if data.idsp == 28:
-                self.ed_col = len(_list)
+                self.ed_col = ed_col
             elif data.idsp == 29:
                 self.ed_col=1
         
