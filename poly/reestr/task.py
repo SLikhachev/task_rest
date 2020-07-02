@@ -51,7 +51,7 @@ class RestTask(Resource):
         # check if task is running
         self.qurs.execute(GET_TASK, (self.task,))
         tsk = self.qurs.fetchone()
-        #print(tsk)
+        print(tsk)
         if tsk is None:
             return 'Нет такой задачи в таблице задач'
         if len(tsk) and bool(tsk[0]):

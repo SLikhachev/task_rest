@@ -25,22 +25,22 @@ class MakeXml(RestTask):
         self.year, self.month = month_field( request.form.get('month', '') )
 
         # pack number
-        self.pack_num = request.form.get('pack', '01')
-
+        self.pack_num = request.form.get('pack', None)
+        if not self.pack_num:
+            self.pack_num = '01'
+        
         ### if CHECK is  'check' then checlk only if 'ignore' then make reestr ignore errors
         # if chek is True to check only, else make reestr ignore errors
         check= False
-        if request.form.get('check', '') == 'check':
+        if bool(request.form.get('test', None)):
             check= True
-        #if not check in ['check', 'ignore']:
-        #    check= None
 
         # if SENT is flase dont setup talon_type=2 as sent talon
         sent= fresh= False
-        if request.form.get('sent', '') == 'sent':
+        if bool(request.form.get('sent', None)):
             sent= True
         # if FRESH is false ignore already sent and accepted talons and produce full pack
-        if request.form.get('fresh', '') == 'fresh':
+        if bool(request.form.get('fresh', None)):
             fresh= True
         #current_app.logger.debug(year, month, pack, sent)
         try:

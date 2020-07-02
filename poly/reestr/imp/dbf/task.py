@@ -9,11 +9,14 @@ from poly.reestr.imp.dbf.make_import import dbf_to_sql as to_sql
 
 class ImportDbf(Resource):
 
-    def result(self, filename, message, detail=None):
+    def result(self, filename, message, done):
+        file = None
+        if bool(filename) and len(filename) > 0:
+            file= filename.split('\\')[-1]
         return dict(
-            file=filename.split('\\')[-1],
+            file=file,
             message=message,
-            detail=detail
+            done=done 
         )
     
     def allowed_file(self, filename):
@@ -29,13 +32,13 @@ class ImportDbf(Resource):
 
         files = request.files.get('file', None)
         if files is None:
-            return self.result( 'Нет файла ', 'Передан пустой запрос на обработку'), current_app.config['CORS']
+            return self.result( 'Нет файла ', 'Передан пустой запрос на обработку', False), current_app.config['CORS']
         
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'dbf')
         if files:
             filename = secure_filename(files.filename)
             if not self.allowed_file(files.filename):
-                return self.result(filename, " File type not allowed"), current_app.config['CORS']
+                return self.result(filename, " File type not allowed", False), current_app.config['CORS']
 
             else:
                 # save file to disk
@@ -50,5 +53,5 @@ class ImportDbf(Resource):
                 msg += f'считано: {rc}, записано: {wc}, ошибок: {err}, время: {(time2 - time1)}'
                 os.remove(up_file)
 
-            return self.result(filename, msg, detail=detail), current_app.config['CORS']
+            return self.result(filename, msg, True), current_app.config['CORS']
 

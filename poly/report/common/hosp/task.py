@@ -15,8 +15,11 @@ class TakeCsv(Resource):
 class MakeReport(Resource):
     
     def result(self, filename, message, done):
+        file = None
+        if bool(filename) and len(filename) > 0:
+            file= filename.split('\\')[-1]
         return dict(
-            file=filename.split('\\')[-1],
+            file=file,
             message=message,
             done=done 
         )
@@ -38,7 +41,7 @@ class MakeReport(Resource):
         
         files = request.files.get('file', None)
         if files is None or files == '':
-            return self.result( 'Нет файла ', 'Передан пустой запрос на обработку', False), current_app.config['CORS']
+            return self.result( None, 'Передан пустой запрос на обработку', False), current_app.config['CORS']
         
         catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'hosp', 'csv')   
         filename = secure_filename(files.filename)
@@ -49,7 +52,7 @@ class MakeReport(Resource):
         up_file = os.path.join(catalog, filename)
         files.save(up_file)
 
-        test = 1 if tst == 'on' else 0
+        test = 1 if bool(tst) else 0
         try:
             test, rc, wc, errors = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
         except Exception as e:
@@ -68,7 +71,7 @@ class MakeReport(Resource):
         print(msg, filename)
         if test > 0: #or errors > 0:
             os.remove(up_file)
-            return self.result(filename, msg, True), current_app.config['CORS']
+            return self.result(None, msg, True), current_app.config['CORS']
 
 
         report = make_report(current_app, year, month)
