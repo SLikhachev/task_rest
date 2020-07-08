@@ -25,7 +25,7 @@ class InvImpex(RestTask):
         if len(ts) > 0:
             return self.busy(ts)
 
-        self.pack_type= int( request.form.get('type', 1) )
+        self.pack_type= int( request.form.get('pack', 1) )
 
         # correct smo flag
         csmo= False

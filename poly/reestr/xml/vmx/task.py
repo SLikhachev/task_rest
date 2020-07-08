@@ -23,7 +23,7 @@ class XmlVmx(RestTask):
         if len(ts) > 0:
             return self.busy(ts)
 
-        self.pack_type= request.form.get('type', 1)
+        self.pack_type= request.form.get('pack', 1)
 
         files= request.files.get('file', None)
         if not bool(files):

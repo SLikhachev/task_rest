@@ -22,7 +22,7 @@ class InvCalc(RestTask):
         if len(ts) > 0:
             return self.busy(ts)
 
-        self.pack_type= int( request.form.get('type', 1) )
+        self.pack_type= int( request.form.get('pack', 1) )
         smo= request.form.get('smo', '')
         self.year, self.month = month_field( request.form.get('month', '') )
         self.smo = int(smo) if smo else 0
