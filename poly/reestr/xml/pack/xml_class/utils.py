@@ -1,5 +1,5 @@
 # import xml.etree.cElementTree as ET
-
+import re
 
 # XRAY, UZI, ENDOSC, LABGEN, GISTOL
 USL_PROF = (78, 106, 123, 40, 15)
@@ -153,7 +153,7 @@ class DataObject(FormatVal):
         if (self.prvs in USL_PRVS) and (self.for_pom != 2):
             if self.mo_att != self.mo:
                 assert bool(self.naprlech) and bool(
-                    self.npr_mo), f'{id}- Диагностика, нет прикрепления, напаравления, МО направления'
+                    self.npr_mo), f'{id}-Диагностика, нет прикрепления, напаравления, МО направления'
             else:
                 # diagnostic in self MO
                 self.npr_mo = f'{REGION}{self.mo}'
@@ -233,8 +233,14 @@ class DataObject(FormatVal):
         assert self.dr, f'{id}-Нет дня рождения пациента'
         if self.vpolis != 3:
             assert self.doctype and self.docnum and self.docser and \
-                self.docdate and self.docorg, f'{id}-Тип полиса не ЕНП и неуказан полностью ДУЛ'
-
+                self.docdate and self.docorg, \
+                    f'{id}-Тип полиса не ЕНП и неуказан полностью ДУЛ'
+            if self.doctype and self.doctype == 14: # pass RF
+                assert re.fullmatch('\d\d \d\d', self.docnum), \
+                    f'{id}-Серия паспрота не в формате 99 99'
+                assert re.fullmatch('\d{6}', self.docnum), \
+                    f'{id}-Номер паспорта не 6 цифр'
+                
         # self.os_sluch= 2 if self.dost.find('1') > 0 else None
 
 

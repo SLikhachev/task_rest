@@ -71,6 +71,9 @@ def hmData(data):
     def _vidpom(data):
         if data.profil in (78, 82):
             vidpom = 11
+            # MTR only since may 2020
+            if not data.smo:
+                 vidpom = 13
         elif data.prvs in (76, ) and data.profil in (97, 160):
             vidpom = 12
         else:

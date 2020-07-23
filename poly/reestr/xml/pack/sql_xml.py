@@ -61,8 +61,8 @@ def write_sluch(check, data, file, pm, usl, usp, stom=None):
     assert (data.specfic in dcons) and len(
         usl) > 0, f'{data.idcase}-Для спец. {data.specfic} нет ПМУ'
     '''
-    assert (data.prvs in USL_PRVS) and len(
-        usl) > 0, f'{data.idcase}-Write sluch: Для SPEC {data.specfic}, PRVS. {data.prvs} нет ПМУ'
+    assert (data.prvs in USL_PRVS) and len(usl) > 0, \
+        f'{data.idcase}-Случай SL tag : Для SPEC {data.specfic}, PRVS. {data.prvs} нет ПМУ'
 
     pm.set_usl('usl', data, usl, usp)
     if stom and len(stom) > 0:
@@ -198,7 +198,7 @@ def write_data(
         except Exception as e:
             if errorFile:
                 errorFile.write(f'{rdata.card}-{e}\n')
-
+            print(e)
             qurs1.execute(_sql.set_error, (rdata.idcase,
                                            rdata.card, str(e).split('-')[1]))
             errors += 1
