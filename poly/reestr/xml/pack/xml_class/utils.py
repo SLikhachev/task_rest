@@ -229,15 +229,17 @@ class DataObject(FormatVal):
             crd.dul_date as docdate,
             crd.dul_org as docorg
         '''
+        
         assert self.fam, f'{id}-Нет Фамилии пациента'
         assert self.dr, f'{id}-Нет дня рождения пациента'
         if self.vpolis != 3:
+            print(self.doctype, self.docser, self.docnum)
             assert self.doctype and self.docnum and self.docser and \
                 self.docdate and self.docorg, \
                     f'{id}-Тип полиса не ЕНП и неуказан полностью ДУЛ'
             if self.doctype and self.doctype == 14: # pass RF
-                assert re.fullmatch('\d\d \d\d', self.docnum), \
-                    f'{id}-Серия паспрота не в формате 99 99'
+                assert re.fullmatch('\d\d \d\d', self.docser), \
+                    f'{id}-Серия паспрота не в формате 99 99: {self.docser}'
                 assert re.fullmatch('\d{6}', self.docnum), \
                     f'{id}-Номер паспорта не 6 цифр'
                 
