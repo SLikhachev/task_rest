@@ -238,9 +238,9 @@ class DataObject(FormatVal):
                 self.docdate and self.docorg, \
                     f'{id}-Тип полиса не ЕНП и неуказан полностью ДУЛ'
             if self.doctype and self.doctype == 14: # pass RF
-                assert re.fullmatch('\d\d \d\d', self.docser), \
+                assert re.fullmatch('^\d\d \d\d$', self.docser), \
                     f'{id}-Серия паспрота не в формате 99 99: {self.docser}'
-                assert re.fullmatch('\d{6}', self.docnum), \
+                assert re.fullmatch('^\d{6}$', self.docnum), \
                     f'{id}-Номер паспорта не 6 цифр'
                 
         # self.os_sluch= 2 if self.dost.find('1') > 0 else None
