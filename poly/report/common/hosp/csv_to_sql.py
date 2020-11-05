@@ -36,12 +36,15 @@ def csv_to_sql(app, csv_file, csvClass, test=1, clear=False):
                     errors += 1
                     continue
                 if test > 0:
-                    continue
+                    #continue
+                    pass
                 #app.logger.debug(f'{insert} {data}')
                 qurs.execute(insert, data)
                 wc += qurs.rowcount
                 #qonn.commit()
             except Exception as e:
+                #print(f'{insert} {data}')
+                raise e
                 print (e)
                 continue
                 #app.logger.debug( insert, str(data) )
@@ -54,6 +57,6 @@ def csv_to_sql(app, csv_file, csvClass, test=1, clear=False):
     procClass.close()
     qonn.close()
     
-    return test, rc, wc, errors
+    return test, rc, wc, errors, procClass
     
 

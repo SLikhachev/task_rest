@@ -1,7 +1,17 @@
-import re
+import re, hashlib
 from . import hosp_config as config
-#import hosp_config as config # for test
 from datetime import date
+
+class Hasher(object):
+    def __init__(self):
+        self.md5 = hashlib.md5()
+
+    def __call__(self, o):
+        self.md5.update(o.encode())
+        _hash = self.md5.hexdigest()
+        self.md5 = hashlib.md5()
+        return _hash
+
 
 class HospEir:
     
@@ -12,12 +22,18 @@ class HospEir:
         # self func return native python objects
         self.logger = logger
         self.none = lambda _ : None
+        self.mo = dict()
+        self.hash = Hasher()
+        
         self.fields = (
             ("nap_num",  self.to_int), 
             ("nap_date", self.to_date),
-            ("for_pom", self.get_for_pom),
-            ("usl_ok", self.get_usl_ok),
-            ("to_mo", self.get_mo),
+            #("for_pom", self.get_for_pom),
+            ("for_pom", self.none),
+            #("usl_ok", self.get_usl_ok),
+            ("usl_ok", self.get_usl),
+            #("to_mo", self.get_mo),
+            ("to_mo", self.get_mo_hash),
             ("date_hosp", self.to_date),
             ("p_ser", self.to_str),
             ("p_num", self.to_str),
@@ -28,13 +44,14 @@ class HospEir:
             ("date_birth", self.to_date),
             ("ds", self.get_ds),
             ("prof", self.none),
-            ("host_stat", self.to_int),
+            ("hosp_stat", self.to_int),
             ("ann_stat", self.to_int),
             ("nap_hospl", self.to_int),
             ("date_hospl", self.to_date),
-            ("mo_hospl", self.get_mo),
+            #("mo_hospl", self.get_mo),
+            ("mo_hospl", self.get_mo_hash),
             ("act_date_hospl", self.to_date),
-            ("for_pom_hospl", self.get_for_pom),
+            ("for_pom_hospl", self.get_pom),
             ("specfic", self.get_doc)
         )
         
@@ -86,12 +103,31 @@ class HospEir:
     
     def get_for_pom(self, val):
         q = "select id from public.for_pom where name ilike '%s'" % val
-        #print(q)
+        print(q)
         return self.get_from_db(q)
+    
+    def get_pom(self, val):
+        try:
+            return config.FOR_POM.index(val)
+        except Exception:
+            return 0
     
     def get_usl_ok(self, val):
         q = "select id from public.usl_ok where name ilike '%s'" % val
         return self.get_from_db(q)
+    
+    def get_usl(self, val):
+        try:
+            return config.USL.index(val)
+        except Exception:
+            return 0
+    
+    def get_mo_hash(self, val):
+        hash = self.hash(val)
+        mo = self.mo.get(hash, None)
+        if mo is None:
+            self.mo[hash] = val
+        return hash
         
     def get_mo(self, val):
         q = "select scode from public.mo_local where similarity (name, '%s') > 0.9" % val
@@ -105,7 +141,7 @@ class HospEir:
         q = "select code from public.mkb10 where name ilike '%s'" % val 
         return self.get_from_db(q)
     
-    def get_doc(self, val):
+    def _get_doc(self, val):
         if val == '' or len(val) < 4:
             return None
         d= re.search('(^\d+)([ ,./])*(\d+$)', val)
@@ -120,6 +156,20 @@ class HospEir:
         if self.get_from_db(q) is not None:
             return '%i.%i' % (spec, code) 
         return None
+    
+    def get_doc(self, val):
+        if val == '':
+            return None
+        d= re.search('(^\d+)([ ,./])*(\d+$)', val)
+        if d is None:
+            return None
+        code = f'{d.group(1)}{d.group(3)}' \
+            if d.group(2) is not None \
+            else d.group(0)
+        
+        q = "select family from doctor where spec::text || code::text = '%s'" % code 
+        return self.get_from_db(q)
+    
         
     def getData(self, data):
         # data arr of strings filds
@@ -130,12 +180,13 @@ class HospEir:
             print(vv)
         return []
         '''
-        
+        data_length = len(self.fields)
+        #print(data_length)
         #return ', '.join( [ self.fields[ f[1](val) ]  for f, val in enumerate(data) ] )
-        s = [ self.fields[f][1](val) for f, val in enumerate(data) ]
+        s = [ self.fields[f][1](val) for f, val in enumerate(data) if f < data_length ]
         if s[0] is None or s[0] in self.napr: # nap num must be int and uniq
             return None
-        self.napr.add(s[0])            
+        self.napr.add(s[0])
         return s
         
     def close(self):

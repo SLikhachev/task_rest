@@ -14,13 +14,18 @@ INSUR = {
     'ООО Восточно-страховой альянс': '011',
     'СК "Милосердие"': '012'
 }
+
+USL = ["Стационарно", "В дневном стационаре"]
+
+FOR_POM = ["Плановая", "Экстренная"]
+
 GET_MO = '''
 SELECT DISTINCT hsp.to_mo, mol.name
     FROM hospital AS hsp, mo_local AS mol
     WHERE hsp.to_mo = mol.scode
     ORDER BY hsp.to_mo
 '''
-GET_HOSP = '''
+_GET_HOSP = '''
 SELECT
     hsp.fam, hsp.im, hsp.ot, hsp.date_birth,
     hsp.ds, hsp.usl_ok,
@@ -31,5 +36,12 @@ FROM
 WHERE
     doc.spec=cast (split_part(hsp.specfic, '.', 1) as integer) AND
     doc.code=cast (split_part(hsp.specfic, '.', 2) as integer) AND
+    hsp.to_mo = %s ORDER BY hsp.nap_date
+'''
+
+GET_HOSP = '''
+SELECT * FROM
+    hospital AS hsp
+WHERE
     hsp.to_mo = %s ORDER BY hsp.nap_date
 '''

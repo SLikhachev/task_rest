@@ -1,6 +1,6 @@
 import os
 from datetime import date
-#from pathlib import Path
+from time import perf_counter
 from flask import request, current_app
 from werkzeug import secure_filename
 from flask_restful import Resource
@@ -47,14 +47,15 @@ class MakeReport(Resource):
         filename = secure_filename(files.filename)
         if not self.allowed_file(files.filename):
             return self.result(filename, " File type not allowed", False), current_app.config['CORS']
-
+    
         # save file to disk
         up_file = os.path.join(catalog, filename)
         files.save(up_file)
-
+        
+        time1 = perf_counter()
         test = 1 if bool(tst) else 0
         try:
-            test, rc, wc, errors = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
+            test, rc, wc, errors, procClass = csv_to_sql(current_app, up_file, HospEir, test, clear=True)
         except Exception as e:
             #current_app.logger.debug(e)
             raise e
@@ -67,16 +68,17 @@ class MakeReport(Resource):
         if errors > 0:
             msg += 'обнаружено ошибок %s (игнорируем) ' % errors
         msg += 'обработано записей %s' % rc
-        #current_app.logger.debug(msg)
+        current_app.logger.debug(msg)
         print(msg, filename)
         if test > 0: #or errors > 0:
             os.remove(up_file)
             return self.result(None, msg, True), current_app.config['CORS']
 
 
-        report = make_report(current_app, year, month)
-        msg = 'Обработан файл %s Записей считано %s, записано %s. Ошибок %s (игнорируем)' % (
-            filename, rc, wc, errors)
+        report = make_report(current_app, year, month, procClass)
+        tm = f'Время: {round( (perf_counter() - time1), 2)} сек'
+        msg = """Обработан файл %s Записей считано %s, записано %s.
+            Ошибок %s (игнорируем). %s""" % (filename, rc, wc, errors, tm)
         os.remove(up_file)
         #files.close()
 

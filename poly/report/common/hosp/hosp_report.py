@@ -6,6 +6,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, colors, Font
 #from datetime import date
 from . import hosp_config as config 
+from poly.utils.files import get_name_tail
 
 def extract(row):
     if row.nap_num is None:
@@ -17,17 +18,19 @@ def extract(row):
     d[0] = '%s %s %s' % (row.fam, im[0].upper(), ot[0].upper())  
     d[1] = row.date_birth.strftime('%d.%m.%Y')
     d[2] = row.ds
-    d[3] = row.doc_fam
+    d[3] = row.specfic or ''
     d[4] = '%s' % row.nap_num
     d[5] = row.nap_date.strftime('%d.%m.%Y')
-    if row.for_pom_hospl == 1:
-        d[6] = 'ЭКСТР'
-    if row.usl_ok == 2:
-        d[7] = 'ДНЕВНОЙ'
+    
+    if int(row.for_pom_hospl) > 0:
+        d[6] = "ЭКСТР"
+    
+    if row.usl_ok > 0:
+        d[7] = 'ДНЕВНОЙ СТ'
     
     return d
     
-def make_report(app, year, month):
+def make_report(app, year, month, procClass):
     
     sh1 = 'ЕИР'
 
@@ -37,7 +40,11 @@ def make_report(app, year, month):
     mnt = int(month)
     base_dir = os.path.join( app.config['UPLOAD_FOLDER'],  config.BASE_DIR )
     xlr = os.path.join( base_dir, config.TPL_DIR, (file + '.xlsx'))
-    xlw = os.path.join( base_dir, config.REPORT_DIR , (file + '_0%s.xlsx' % ( mnt )))
+    xlw = os.path.join(
+        base_dir, config.REPORT_DIR , (
+            file + f'_0{mnt}_{get_name_tail(5)}.xlsx'
+        )
+    )
     #year = date.today().isocalendar()[0]
     period = 'За %s %s года' % (config.MONTHS[mnt-1], year)
     
@@ -69,32 +76,44 @@ def make_report(app, year, month):
     
     # begin from 6 string
     rowXls = 6
-    rcTotal = 1
-        
-    qurs.execute(config.GET_MO)
-    for _mo in qurs.fetchall():
-        mo_cell = sheet.cell(column=1, row = rowXls, value = _mo.name)
+    rcTotal = 0
+    #print(procClass.mo)
+    #qurs.execute(config.GET_MO)
+    #for _mo in qurs.fetchall():
+    for mo_hash, mo_name in procClass.mo.items():
+        #print(f'{mo_hash} -- {mo_name}')
+        if not bool(mo_name):
+            #print(f'mo -- {mo_name}')
+            continue
+        mo_cell = sheet.cell(column=1, row = rowXls, value = mo_name)
         mo_cell.font=mo_font
         mo_cell.border= mo_border
         rowXls += 2
-        qurs.execute(config.GET_HOSP, (_mo.to_mo, ))
+        qurs.execute(config.GET_HOSP, (mo_hash,))
         total_mo = 0
         for _hosp in qurs.fetchall():
-            total_mo += 1
+           
             data = extract(_hosp)
             if data is None:
                 continue
             for xcol, val in enumerate(data):
                 sheet.cell(column=xcol+1, row=rowXls, value=val )
             rowXls += 1
+            total_mo += 1
         c1 = sheet.cell(column=1, row=rowXls, value = 'Итого по МО')
         c2 = sheet.cell(column=2, row=rowXls, value = '%i' % total_mo)
         c1.font = total_font
         c2.font = total_font
         rowXls += 2
-        print('-- %s --' % rcTotal, end='\r')
-        rcTotal += 1
-       
+        #print('-- %s --' % rcTotal, end='\r')
+        rcTotal += total_mo
+    
+    rowXls += 2
+    c1 = sheet.cell(column=1, row=rowXls, value = 'Итого по в ФАЙЛЕ')
+    c2 = sheet.cell(column=2, row=rowXls, value = '%i' % rcTotal)
+    c1.font = total_font
+    c2.font = total_font   
+    
     wb.save(xlw)
     wb.close()
     qurs.close()
