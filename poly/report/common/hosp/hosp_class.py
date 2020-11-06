@@ -16,7 +16,7 @@ class Hasher(object):
 class HospEir:
     
     CLEAR_TABLE = 'TRUNCATE TABLE %s'
-    
+        
     def __init__(self, db, logger):
         self.table = 'hospital'
         # self func return native python objects
@@ -60,13 +60,22 @@ class HospEir:
         self.qonn = db
         self.qurs = db.cursor()
         self.napr= set()
-    
+        self.doctor = self.get_doctor()
+        
     def clear_tbl(self):
         self.qurs.execute(HospEir.CLEAR_TABLE % self.table)
         self.qonn.commit()
         #print(' table truncated ')
         if self.logger:
             self.logger.info('table truncated')
+
+    def get_doctor(self):
+        self.qurs.execute(config.GET_DOCTOR)
+        d = dict()
+        for r in self.qurs.fetchall():
+            spec, code, scode, fam = r
+            d[scode] = (f'{spec}.{code}', fam)
+        return d
         
     def to_str(self, val):
         if val == '':
@@ -163,13 +172,11 @@ class HospEir:
         d= re.search('(^\d+)([ ,./])*(\d+$)', val)
         if d is None:
             return None
-        code = f'{d.group(1)}{d.group(3)}' \
+        scode = f'{d.group(1)}{d.group(3)}' \
             if d.group(2) is not None \
             else d.group(0)
-        
-        q = "select family from doctor where spec::text || code::text = '%s'" % code 
-        return self.get_from_db(q)
-    
+        doc = self.doctor.get(scode, None)
+        return doc[1] if doc is not None else val
         
     def getData(self, data):
         # data arr of strings filds

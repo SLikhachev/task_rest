@@ -19,6 +19,25 @@ USL = ["Стационарно", "В дневном стационаре"]
 
 FOR_POM = ["Плановая", "Экстренная"]
 
+"""
+По умолчанию результат приходит в виде кортежа.
+Кортеж неудобен тем, что доступ происходит по индексу
+(изменить это можно, если использовать NamedTupleCursor).
+Если хотите работать со словарём, то при вызове .cursor
+передайте аргумент cursor_factory:
+
+from psycopg2.extras import DictCursor
+with psycopg2.connect(...) as conn:
+    with conn.cursor(cursor_factory=DictCursor) as cursor:
+        ...
+"""
+
+GET_DOCTOR = '''select spec, code,
+    spec::text || code:: text as scode, family
+    from doctor
+    order by spec
+'''
+
 GET_MO = '''
 SELECT DISTINCT hsp.to_mo, mol.name
     FROM hospital AS hsp, mo_local AS mol
