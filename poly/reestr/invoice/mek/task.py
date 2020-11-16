@@ -28,16 +28,17 @@ class MoveMek(RestTask):
             return self.busy(ts)
         
         self.year, self.month = month_field( request.form.get('month', '') )
+        _, self.target_month = month_field( request.form.get('target', '') )
         
         if self.this_year != self.year:
             return self.close_task('', f'Переносить МЭК можно только в текущем году', False)
-        if self.this_month != self.month + 1:
-            return self.close_task('', f'Переносить МЭК можно только на один месяц вперед', False)
+        if self.target_month <= self.month:
+            return self.close_task('', f'Переносить МЭК можно только вперед', False)
         
         #return self.close_task('', 'Done', True)
         
         try:
-            rc= move_mek(self.month, self.this_year)
+            rc= move_mek(self.this_year, self.month, self.target_month)
         except Exception as e:
             #self.abort_task()
             raise e
@@ -48,7 +49,7 @@ class MoveMek(RestTask):
             month_str= self.month_str(self.month, self.year)
             return self.close_task('', f'Нет МЭКов за {month_str}', False)
         
-        month_str= self.month_str(self.month+1, self.year)
+        month_str= self.month_str(self.target_month, self.year)
         msg = f'Пернесли МЭКи на {month_str} записей {rc}.'
        
         return self.close_task('', msg, True)

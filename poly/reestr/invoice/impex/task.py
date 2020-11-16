@@ -28,9 +28,7 @@ class InvImpex(RestTask):
         self.pack_type= int( request.form.get('pack', 1) )
 
         # correct smo flag
-        csmo= False
-        if request.form.get('csmo', '') == 'on':
-            csmo= True
+        csmo= bool(request.form.get('csmo', 0))
 
         files= request.files.get('file', None)
         if not bool(files):

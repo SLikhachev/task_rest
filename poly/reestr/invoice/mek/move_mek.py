@@ -5,10 +5,11 @@ from flask import g
 from poly.reestr.invoice.mek import config
 
 
-def move_mek(month: int, year: int) -> int:
+def move_mek(year: int, month: int, target_month: int) -> int:
     
     qurs= g.qonn.cursor()
-    imon= int(month)
+    source_mon= int(month)
+    target_mon = int(target_month)
     ar= year - 2000
     
     qurs.execute(config.COUNT_MEK, (ar, month ))
@@ -17,7 +18,7 @@ def move_mek(month: int, year: int) -> int:
         qurs.close()
         return 0
     
-    move_mek= config.MOVE_MEK % (ar, imon+1, imon)
+    move_mek= config.MOVE_MEK % (ar, target_mon, source_mon)
     qurs.execute(move_mek)
     g.qonn.commit()
     rc= qurs.rowcount
