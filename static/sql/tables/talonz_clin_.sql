@@ -1,4 +1,4 @@
-CREATE TABLE public.talonz_clin_tpl
+CREATE TABLE IF NOT EXISTS public.talonz_clin_21
 (
   tal_num serial PRIMARY KEY,
   crd_num character varying(20) REFERENCES cardz_clin (crd_num) NOT NULL,

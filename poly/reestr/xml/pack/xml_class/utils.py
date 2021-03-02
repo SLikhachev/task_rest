@@ -204,7 +204,7 @@ class DataObject(FormatVal):
         assert (self.prvs in USL_PRVS) and (self.purp in USL_PURP), \
             f'{id}-Для спец. {self.specfic}, prvs {self.prvs} неверная цель - {self.purp}'
 
-        self.iddokt = self.iddokt.replace(" ", "-")
+        #self.iddokt = self.iddokt.replace(" ", "-")
 
         # 2020 FOMS 495 letter
         if (self.prvs in USL_PRVS) and (self.for_pom != 2):

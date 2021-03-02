@@ -126,7 +126,8 @@ class HdrMix(TagMix):
         self.version = '3.1'
         self.lpu= mo
         self.year= f'{year}'
-        self.month= "{0:02d}".format( month )
+        #self.month= "{0:02d}".format( month )
+        self.month= f'{month}'
         self.pack= int(pack)
         self.pack_num= "{0:02d}".format( self.pack )
         self.code_mo= '250%s' % mo

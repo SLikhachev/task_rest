@@ -51,7 +51,7 @@ class LmHdr(HdrMix):
         self.endTag = '</PERS_LIST>'
         self.filename = self.l_file
         self.filename1 = self.h_file
-        self.version = '3.1'
+        self.version = '3.2'
 
         self.zglv_tags = (
             'version',
