@@ -139,7 +139,7 @@ class HmHdr(HdrMix):
     def __init__(self, mo, year, month, pack, sd_z, sumv):
         super().__init__(mo, year, month, pack)
         self.sd_z = '%s' % sd_z
-        self.code = '%s%s%s' % (mo, self.year[2:], self.month)
+        self.code = '%s%s%s' % (mo, self.year[2:], self.pack_month)
         self.nschet = f'{self.code}{self.pack_num}'
         self.dschet = self.data
         self.summav = sumv
