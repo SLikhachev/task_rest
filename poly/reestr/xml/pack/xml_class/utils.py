@@ -233,7 +233,7 @@ class DataObject(FormatVal):
         assert self.fam, f'{id}-Нет Фамилии пациента'
         assert self.dr, f'{id}-Нет дня рождения пациента'
         if self.vpolis != 3:
-            print(self.doctype, self.docser, self.docnum)
+            #print(self.doctype, self.docser, self.docnum)
             assert self.doctype and self.docnum and self.docser and \
                 self.docdate and self.docorg, \
                     f'{id}-Тип полиса не ЕНП и неуказан полностью ДУЛ'
@@ -242,7 +242,10 @@ class DataObject(FormatVal):
                     f'{id}-Серия паспрота не в формате 99 99: {self.docser}'
                 assert re.fullmatch('^\d{6}$', self.docnum), \
                     f'{id}-Номер паспорта не 6 цифр'
-                
+        
+        # local person no doc_date doc_org needed
+        if bool(self.smo):
+             self.docdate, self.docorg = None, None
         # self.os_sluch= 2 if self.dost.find('1') > 0 else None
 
 
