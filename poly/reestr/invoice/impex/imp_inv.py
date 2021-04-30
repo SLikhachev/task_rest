@@ -61,6 +61,7 @@ def zp_xml(xml: str, tags: tuple) -> None:
         set_zp(rec, elem.tag)
 
 def set_mek(ar):
+    # ar - 2 last digits of year
     global sn
     # set mek flag
     sn.qurs.execute(config.GET_MEK_TABLE, ( int(ar),) )
@@ -78,9 +79,9 @@ def set_mek(ar):
     return mr
 
 def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
-    # app - flask app
-    # name - file to process
+    # zipfile - file to process
     # typ - invoice type
+    # ar - 2 last digits of year
     # returns tuple of 1 if any arrors occured else records count and meta info 
     
     global sn

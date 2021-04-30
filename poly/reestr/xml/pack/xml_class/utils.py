@@ -108,6 +108,8 @@ class DataObject(FormatVal):
                 self.npolis) == 16, f'{id}-Тип полис не ЕНП, не соответвует типу 3'
         else:
             raise AttributeError(f'{id}-Тип полиса не поддерживаем')
+        if not bool(self.smo):
+            self.smo = None
         assert self.smo or self.smo_ok, f'{id}-Нет ни СМО ни СМО ОКАТО'
 
         try:
