@@ -1,14 +1,9 @@
-#import os
-from datetime import datetime
-from time import perf_counter
-#from pathlib import Path
+
 from flask import request, current_app, g
-#from werkzeug import secure_filename
 from poly.reestr.task import RestTask
 from poly.utils.fields import month_field
-from poly.utils.exept import printException
 from poly.reestr.xml.pack.sql_xml import make_xml
-from poly.reestr.xml.pack import config_sql
+
 
 class MakeXml(RestTask):
 
@@ -21,7 +16,7 @@ class MakeXml(RestTask):
         ts = self.open_task()
         if len(ts) > 0:
             return self.busy(ts)
-
+        #ints
         self.year, self.month = month_field( request.form.get('month', '') )
 
         # pack number
@@ -44,7 +39,16 @@ class MakeXml(RestTask):
             fresh= True
         #current_app.logger.debug(year, month, pack, sent)
         try:
-            ph, lm, file, errors = make_xml(
+            if current_app.config.get('BARSXML', False):
+                from poly.reestr.xml.pack import barsxml_config as bcfg
+                from barsxml.xmlprod.barsxml import BarsXml  
+                setattr(bcfg, 'YEAR', str(self.year))
+                setattr(bcfg, 'db', g.qonn)
+                #print(bcfg.db.dsn)
+                xml = BarsXml(bcfg, 'xml', str(self.month), self.pack_num)
+                ph, lm, file, errors =  xml.make_xml(sent, fresh, check)
+            else:
+                ph, lm, file, errors = make_xml(
                 current_app, self.year, self.month, self.pack_num, check, sent, fresh)
             # if check is check, file is csv errors file
             # if check is None, ignore, file is pack.zip

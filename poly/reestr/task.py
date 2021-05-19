@@ -63,7 +63,7 @@ class RestTask(Resource):
         return ''
 
     def perf(self):
-        return f'Время: {round( (perf_counter() - self.time1), 2)}'
+        return f'Время: {round( (perf_counter() - self.time1), 2)} cek.'
 
     def close_task(self, file, msg, done, abort=''):
         self.qurs.execute(STOP_TASK,
@@ -83,7 +83,7 @@ class RestTask(Resource):
         return ''
 
     def result(self, filename, message, done=False):
-        if 'qonn' in g:
+        if 'qonn' in g and g.qonn.closed == 0:
             g.qonn.close()
         return dict(
             file=self.fname(filename),

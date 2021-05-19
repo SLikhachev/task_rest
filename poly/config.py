@@ -19,6 +19,7 @@ class BaseConfig(object):
              'Апрель', 'Май', 'Июнь',
              'Июль', 'Август', 'Сентябрь',
              'Октябрь', 'Ноябрь', 'Декабрь')
+    BARSXML = False
    
 class Lpu228Config(BaseConfig):
     'Development environment specific config'
@@ -41,6 +42,7 @@ class Lpu796Config(BaseConfig):
     DB_USER = 'postgres'
     DB_PASS = 'boruh'
     OGRN= '1112539013696'
+    BARSXML=True
 
 
 """
