@@ -1,13 +1,10 @@
 import types
-#import pyodbc
-#import datetime
-#import json
 from collections import namedtuple
 import psycopg2
 import psycopg2.extras
-from flask import g
 import xml.etree.cElementTree as ET
-from poly.reestr.xml.vmx import config
+from poly.utils.sqlbase import SqlProvider
+from poly.reestr.xml.errs import config
 
 sn= types.SimpleNamespace(
     Tal=namedtuple('Tal', ('tal_num', 'open_date', 'close_date', 'crd_num', 'fam')),
@@ -116,38 +113,38 @@ def mark_talons(qurs):
     global sn
     for t in sn.Terr:
         qurs.execute(sn.mark, (t,))
-    sn.Terr.clear()    
+    sn.Terr.clear()
 
-def to_sql(file, year, ignore, errors='ignore'):
+def geterrs(fd: object, sql_srv: dict, year: str, ignore: tuple, errors='ignore') -> int:
     
     global sn
+
+    with SqlProvider(sql_srv) as db:
+        qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+        qurs.execute(config.TRUNCATE_ERROR)
+        db.commit()
     
-    qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    qurs.execute(config.TRUNCATE_ERROR)
-    g.qonn.commit()
+        tal_tbl= 'talonz_clin_%s' % year
+        sn.talon= config.GET_TALON % (tal_tbl, 'cardz_clin') + config.TAL
+        sn.mark= config.MARK_TALON % tal_tbl + '%s;'
     
-    tal_tbl= 'talonz_clin_%s' % year
-    sn.talon= config.GET_TALON % (tal_tbl, 'cardz_clin') + config.TAL
-    sn.mark= config.MARK_TALON % tal_tbl + '%s;'
+        context = ET.iterparse(fd, events=("start", "end"))
+        event, root = next(context)
+        root.clear()
+        cnt = 0
+        for event, elem in context:
+            if event == "end" and elem.tag == "ZAP":
+                root = elem
+                res = process(root, ignore, errors)
+                if res is not None:
+                    _ = write_error(qurs, res)
+                    cnt += 1
+                root.clear()
     
-    context = ET.iterparse(file, events=("start", "end"))
-    event, root = next(context)
-    root.clear()
-    cnt = 0
-    for event, elem in context:
-        if event == "end" and elem.tag == "ZAP":
-            root = elem
-            res = process(root, ignore, errors)
-            if res is not None:
-                r= write_error(qurs, res)
-                g.qonn.commit()
-                cnt += 1
-            root.clear()
+        mark_talons(qurs)
     
-    mark_talons(qurs)
-    
-    g.qonn.commit()
-    qurs.close()
+        db.commit()
+        qurs.close()
 
     return cnt
 

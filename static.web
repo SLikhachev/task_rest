@@ -1,0 +1,173 @@
+<configuration>
+    <system.webServer>
+        <handlers>
+           <clear />
+            <add 
+                name="StaticFile" 
+                path="*" verb="*" 
+                modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule" 
+                resourceType="Either" 
+                requireAccess="Read" />
+        </handlers>
+        <staticContent>
+            <mimeMap fileExtension=".*" mimeType="application/octet-stream" />
+        </staticContent>
+    </system.webServer>
+</configuration>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <handlers>
+            <add name="httpplatformhandler" path="*" verb="*" modules="httpPlatformHandler" resourceType="Unspecified" requireAccess="Script" />
+        </handlers>
+        <!-- To uncomment on server! (Azure Websites)
+             <httpPlatform stdoutLogEnabled="true" stdoutLogFile="d:\home\site\wwwroot\rails.log" startupTimeLimit="180" processPath="d:\home\site\wwwroot\Ruby21\bin\ruby.exe" arguments="d:\home\site\wwwroot\bin\rails server -p %HTTP_PLATFORM_PORT% -b 127.0.0.1">
+          <environmentVariables>
+            <environmentVariable name="RAILS_ENV" value="production" />
+            <environmentVariable name="SECRET_KEY_BASE" value="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" />
+          </environmentVariables>            
+        </httpPlatform> -->
+        <httpPlatform stdoutLogEnabled="true" stdoutLogFile="rails.log" startupTimeLimit="20" processPath="c:\ruby\Ruby21\bin\ruby.exe" arguments="C:\inetpub\wwwroot\personal_site\bin\rails server -p %HTTP_PLATFORM_PORT% -b 127.0.0.1">
+            <environmentVariables>
+              <environmentVariable name="RAILS_ENV" value="production" />
+              <environmentVariable name="SECRET_KEY_BASE" value="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" />
+            </environmentVariables>            
+        </httpPlatform>
+        <rewrite>
+            <rules>
+                <rule name="asset-url-rewrite" stopProcessing="true">
+                    <match url="[0-9a-z\/\-\s]+\.[0-9a-z]+$" />
+                    <conditions>
+                    </conditions>
+                    <action type="Rewrite" url="public/{R:0}" />
+                </rule>
+            </rules>
+        </rewrite>
+        <httpErrors>
+            <remove statusCode="500" subStatusCode="-1" />
+            <remove statusCode="404" subStatusCode="-1" />
+            <error statusCode="404" prefixLanguageFilePath="" path="/404.html" responseMode="ExecuteURL" />
+            <error statusCode="422" path="/422.html" responseMode="ExecuteURL" />
+            <error statusCode="500" prefixLanguageFilePath="" path="/500.html" responseMode="ExecuteURL" />
+        </httpErrors>
+    </system.webServer>
+</configuration>
+
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+      	<rule name="wwwroot-static" stopProcessing="true">
+          <match url="([\S]+[.](html|htm|svg|js|css|png|gif|jpg|jpeg))" />
+          <action type="Rewrite" url="wwwroot/{R:1}" />
+        </rule> 
+        
+        <rule name="empty-root-index" stopProcessing="true">
+          <match url="^$" />
+          <action type="Rewrite" url="wwwroot/index.html" />
+        </rule>
+      
+        <!-- 
+             Make sure you have a <base href="/" /> tag to fix the root path 
+             or all relative links will break on rewrite 
+        -->
+    	<rule name="AngularJS-Html5-Routes" stopProcessing="true">
+          <match url=".*" />
+          <conditions logicalGrouping="MatchAll">
+                <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+                <add input="{REQUEST_URI}" pattern="api/" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="wwwroot/index.html"  />
+        </rule> 
+      </rules>
+    </rewrite>
+
+    <handlers>
+      <add name="StaticFileModuleHtml" path="*.htm*" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+      <add name="StaticFileModuleSvg" path="*.svg" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+      <add name="StaticFileModuleJs" path="*.js" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+      <add name="StaticFileModuleCss" path="*.css" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+      <add name="StaticFileModuleJpeg" path="*.jpeg" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+      <add name="StaticFileModuleJpg" path="*.jpg" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+      <add name="StaticFileModulePng" path="*.png" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+      <add name="StaticFileModuleGif" path="*.gif" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+      <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModule" resourceType="Unspecified" />
+    </handlers>
+    <aspNetCore processPath="dotnet" arguments=".\AlbumViewerNetCore.dll" stdoutLogEnabled="false" 
+                stdoutLogFile=".\logs\stdout" forwardWindowsAuthToken="false" />
+  </system.webServer>
+</configuration>
+
+        <staticContent>
+            <mimeMap fileExtension=".*" mimeType="application/octet-stream" />
+        </staticContent>
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+ 
+  <system.webServer>
+    <security>
+      <authorization>
+        <!-- Deny all users access to the root of the website, since it
+             contains this web.config -->
+        <remove users="*" roles="" verbs="" />
+        <add accessType="Deny" users="*" />
+      </authorization>
+    </security>
+  </system.webServer>
+ 
+  <location path="Public" allowOverride="false">
+    <system.webServer>
+      <directoryBrowse enabled="true"
+                       showFlags="Date, Time, Size, Extension" />
+      <defaultDocument>
+        <files>
+          <!-- When requesting a file listing, don't serve up the default 
+               index.html file if it exists. -->
+          <clear />
+        </files>
+      </defaultDocument>
+ 
+      <security>
+        <authorization>
+          <!-- Allow all users access to the Public folder -->
+          <remove users="*" roles="" verbs="" />
+          <add accessType="Allow" users="*" roles="" />
+        </authorization>
+ 
+        <!-- Unblock all sourcecode related extensions (.cs, .aspx, .mdf)
+             and files/folders (web.config, \bin) -->
+        <requestFiltering>
+          <hiddenSegments>
+            <clear />
+          </hiddenSegments>
+          <fileExtensions>
+            <clear />
+          </fileExtensions>
+        </requestFiltering>
+      </security>
+ 
+      <!-- Remove all ASP.NET file extension associations.
+           Only include this if you have the ASP.NET feature installed, 
+           otherwise this produces an Invalid configuration error. -->
+      <handlers>
+        <clear />
+        <add name="StaticFile" path="*" verb="*"
+             modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule"
+             resourceType="Either" requireAccess="Read" />
+      </handlers>
+ 
+      <!-- Map all extensions to the same MIME type, so all files can be
+           downloaded. -->
+      <staticContent>
+        <clear />
+        <mimeMap fileExtension="*" mimeType="application/octet-stream" />
+      </staticContent>
+    </system.webServer>
+  </location>
+ 
+</configuration>

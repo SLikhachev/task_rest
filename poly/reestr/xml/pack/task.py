@@ -1,76 +1,60 @@
 
-from flask import request, current_app, g
+from types import SimpleNamespace as bcfg
+from flask import current_app
+from flask_restful import reqparse, inputs, abort
+from barsxml.xmlprod.barsxml import BarsXml
 from poly.reestr.task import RestTask
 from poly.utils.fields import month_field
-from poly.reestr.xml.pack.sql_xml import make_xml
+
+
+parser = reqparse.RequestParser()
+parser.add_argument('db_srv', type=inputs.url, default=None)
+parser.add_argument('mo_code', required=True, help='MO CODE in 250795 fornat required')
+parser.add_argument('month', type=month_field, help='Date in YYYY-MM-DD format required')
+parser.add_argument('type', default='xml', help='Pack type to make. Default APP')
+parser.add_argument('pack', type=int, default=1, dest='pack_num', help='Pack number 0-9' )
+# if CHECK is True to check only, else make reestr ignore errors
+parser.add_argument('test', type=inputs.boolean, default=False, dest='check' )
+#if SENT is flase dont setup talon_type=2 as sent talon
+parser.add_argument('sent', type=inputs.boolean, default=False)
+# if FRESH is false ignore already sent and accepted talons and produce full pack
+parser.add_argument('fresh', type=inputs.boolean, default=False)
 
 
 class MakeXml(RestTask):
 
     def __init__(self):
         super().__init__()
-        self.task= 'make_xml'
 
     def post(self):
-
-        ts = self.open_task()
-        if len(ts) > 0:
-            return self.busy(ts)
-        #ints
-        self.year, self.month = month_field( request.form.get('month', '') )
-
-        # pack number
-        self.pack_num = request.form.get('pack', None)
-        if not self.pack_num:
-            self.pack_num = '01'
-        
-        ### if CHECK is  'check' then checlk only if 'ignore' then make reestr ignore errors
-        # if chek is True to check only, else make reestr ignore errors
-        check= False
-        if bool(request.form.get('test', None)):
-            check= True
-
-        # if SENT is flase dont setup talon_type=2 as sent talon
-        sent= fresh= False
-        if bool(request.form.get('sent', None)):
-            sent= True
-        # if FRESH is false ignore already sent and accepted talons and produce full pack
-        if bool(request.form.get('fresh', None)):
-            fresh= True
-        #current_app.logger.debug(year, month, pack, sent)
+        args = parser.parse_args()
+        cfg = bcfg(
+            SQL=self.sql_provider, # String
+            SQL_SRV=self.sql_srv, # dict
+            YEAR = args['month'][0], #String
+            BASE_XML_DIR=current_app.config['BASE_XML_DIR']
+        )
         try:
-            if current_app.config.get('BARSXML', False):
-                from poly.reestr.xml.pack import barsxml_config as bcfg
-                from barsxml.xmlprod.barsxml import BarsXml  
-                setattr(bcfg, 'YEAR', str(self.year))
-                setattr(bcfg, 'db', g.qonn)
-                #print(bcfg.db.dsn)
-                xml = BarsXml(bcfg, 'xml', str(self.month), self.pack_num)
-                ph, lm, file, errors =  xml.make_xml(sent, fresh, check)
-            else:
-                ph, lm, file, errors = make_xml(
-                current_app, self.year, self.month, self.pack_num, check, sent, fresh)
-            # if check is check, file is csv errors file
-            # if check is None, ignore, file is pack.zip
+            xml = BarsXml(
+                cfg, args['type'], # String
+                args['mo_code'], #String
+                args['month'][1], #String
+                args['pack_num'] #Int
+            )
+            ph, lm, file, errors = xml.make_xml(
+               args['sent'], args['fresh'], args['check']
+            )
         except Exception as e:
-            self.abort_task()
-            raise e
-            #ex= printException()
-            current_app.logger.debug( e )
-            return self.close_task ('', f'Исключение: {e}', False)
-        
-        t= f'{self.perf()}'
-        z= f'H записей: {ph}, L записей: {lm} '
+            current_app.logger.debug(e)
+            return abort(500, message=e)
+
+        z= f'H записей: {ph}, L записей: {lm}. '
+        e = ''
+        if args['check']: file = ''
+        done = True
         if errors > 0:
-            msg = f'{z}, НАЙДЕНО ОШИБОК: {errors}. {t}'
+            e = f'НАЙДЕНО ОШИБОК: {errors}. '
             done = False
             # file -> zip if check is False else error_pack.csv
-        else:
-            if check: # == 'check':
-                file= ''
-            # file is NONE if no errors found and no request for pack to make 
-            
-            msg = f'{z}. {t}'
-            done= True
-            
-        return self.close_task (file, msg, done)
+
+        return self.resp(file, f'{z} {e}', done)

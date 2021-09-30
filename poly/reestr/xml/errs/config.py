@@ -1,10 +1,4 @@
 
-GET_VMX_TASK='''SELECT smo FROM invoice_meta WHERE lpu= %s;
-'''
-# set smo to running task
-SET_VMX_TASK='''UPDATE invoice_meta SET smo=%s WHERE  lpu =%s;
-'''
-
 TRUNCATE_ERROR= 'TRUNCATE TABLE vmx_errors;'
 
 GET_TALON= '''

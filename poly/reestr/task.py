@@ -1,18 +1,15 @@
 
 from datetime import date
 from time import perf_counter
-from flask import g, current_app
-from flask_restful import Resource
+import requests
+from flask import current_app
+from flask_restful import Resource, fields, marshal
 
-GET_TASK='SELECT running FROM task_rest WHERE task= %s;'
-RUN_TASK='UPDATE task_rest SET running=1 WHERE  task =%s;'
-#STOP_TASK= 'UPDATE task_rest SET running=0 WHERE  task =%s;'
-
-STOP_TASK='''
-UPDATE task_rest SET 
-running=0, task_year=%s, task_month=%s, smo=%s, pack_num=%s, pack_type=%s, file_name=%s
-WHERE task=%s;
- '''
+res_fields = {
+    'file': fields.String,
+    'message': fields.String,
+    'done': fields.Boolean,
+}
 
 
 class RestTask(Resource):
@@ -26,6 +23,9 @@ class RestTask(Resource):
         self.pack_type= None
         self.this_year= date.today().year
         self.this_month= date.today().month
+        self.time1 = perf_counter()
+        self.sql_provider = current_app.config['SQL_PROVIDER']
+        self.sql_srv = current_app.config[self.sql_provider.upper()]
 
     def parse_xml_name(self, name: str) -> tuple:
         
@@ -44,38 +44,8 @@ class RestTask(Resource):
         #print( lpu: str(3), smo: int, year: str(2), month: str(2))
         return lpu, smo, year, month
 
-    def open_task(self):
-        g.qonn = current_app.config.db()
-        self.qurs = g.qonn.cursor()
-
-        # check if task is running
-        self.qurs.execute(GET_TASK, (self.task,))
-        tsk = self.qurs.fetchone()
-        print(tsk)
-        if tsk is None:
-            return 'Нет такой задачи в таблице задач'
-        if len(tsk) and bool(tsk[0]):
-            self.qurs.close()
-            return 'Задача уже запущена'
-        self.qurs.execute(RUN_TASK, (self.task,))
-        g.qonn.commit()
-        self.time1= perf_counter()
-        return ''
-
     def perf(self):
         return f'Время: {round( (perf_counter() - self.time1), 2)} cek.'
-
-    def close_task(self, file, msg, done, abort=''):
-        self.qurs.execute(STOP_TASK,
-            (self.year, self.month, self.smo, self.pack_num, self.pack_type, self.fname(file), self.task,  ))
-        g.qonn.commit()
-        self.qurs.close()
-        if abort:
-            return None
-        return self.out(file, msg, done)
-
-    def abort_task(self):
-        return self.close_task('', '', False, 'abort')
 
     def fname(self, file):
         if bool(file) and len(file) > 0:
@@ -83,16 +53,11 @@ class RestTask(Resource):
         return ''
 
     def result(self, filename, message, done=False):
-        if 'qonn' in g and g.qonn.closed == 0:
-            g.qonn.close()
         return dict(
             file=self.fname(filename),
-            message=message,
+            message=f'{message} {self.perf()}',
             done=done
         )
 
-    def out(self, file, msg, done):
-        return self.result(file, msg, done), current_app.config['CORS']
-
-    def busy(self, msg):
-        return self.out('', msg, False)
+    def resp(self, file, msg, done):
+        return marshal(self.result(file, msg, done), res_fields), 200, current_app.config['CORS']

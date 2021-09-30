@@ -2,10 +2,9 @@
 class BaseConfig(object):
     
     'Base config class'
-    SECRET_KEY = 'A random secret key'
+    SECRET_KEY =  'Rwhbye6453mnlkhgtfbdl8893kbctrwmhmfytrbvxzds'
     DEBUG = True
-    TESTING = False
-    NEW_CONFIG_VARIABLE = 'my value'
+    TESTING = True
     DATA_FOLDER = 'data'
     LOGGING_FOLDER = 'logging'
     UPLOAD_FOLDER = ''
@@ -19,41 +18,14 @@ class BaseConfig(object):
              'Апрель', 'Май', 'Июнь',
              'Июль', 'Август', 'Сентябрь',
              'Октябрь', 'Ноябрь', 'Декабрь')
-    BARSXML = False
-   
-class Lpu228Config(BaseConfig):
-    'Development environment specific config'
-    DEBUG = True
-    TESTING = True
-    SECRET_KEY = 'Another random secret key'
-    MO_CODE = ('228', '229')
-    DB_NAME = 'prive'
-    DB_USER = 'postgres'
-    DB_PASS = 'boruh'
-    OGRN= ''
-    
-class Lpu796Config(BaseConfig):
-    'Development environment specific config'
-    DEBUG = True
-    TESTING = True
-    SECRET_KEY = 'Another random secret key'
-    MO_CODE = ('796',)
-    DB_NAME = 'hokuto'
-    DB_USER = 'postgres'
-    DB_PASS = 'boruh'
-    OGRN= '1112539013696'
-    BARSXML=True
 
-
-"""
-class StagConfig(BaseConfig):
+class DevConfig(BaseConfig):
     'Staging specific config'
-    DEBUG = True
 
-class ProductConfig(BaseConfig):
+class ProdConfig(BaseConfig):
     'Production specific config'
     DEBUG = False
-    SECRET_KEY = open('help/sk.txt').read()
-"""    
+    TESTING = False
+
 
 
