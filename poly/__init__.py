@@ -15,8 +15,12 @@ else:
 #import poly.clinic.views
 
 # with Blueprint and factory
-def create_app(static_dir, config_class=Config):
-    app = Flask(__name__, instance_relative_config=True)
+def create_app(site_dir, static_dir, config_class=Config):
+    app = Flask(
+        __name__,
+        instance_path=site_dir / 'instance',
+        instance_relative_config=True
+    )
     app.config.from_object(config_class)
     app.config.from_pyfile('config.py')
 

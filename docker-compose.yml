@@ -1,0 +1,14 @@
+
+# -v ~/venvs/bars/task_rest/media/data:/app/static/data
+
+version: "3.9"  # optional since v1.27.0
+services:
+  task:
+    build: .
+    ports:
+      - "8787:80
+    command: python main.py
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/python-flask

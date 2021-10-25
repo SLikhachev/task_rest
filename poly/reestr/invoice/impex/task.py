@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 from flask import request, current_app, Response, g
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 from poly.reestr.task import RestTask
 #from flask_restful import Resource
 from poly.reestr.invoice.impex.imp_inv import imp_inv

@@ -5,7 +5,7 @@ from secrets import choice
 from flask import request, redirect, url_for, send_from_directory
 from flask import current_app
 from flask_restful import Resource
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 from poly.utils.uploadfile import uploadfile
 
 

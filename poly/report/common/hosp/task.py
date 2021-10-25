@@ -2,7 +2,7 @@ import os
 from datetime import date
 from time import perf_counter
 from flask import request, current_app
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 from flask_restful import Resource
 from .hosp_class import HospEir
 from .csv_to_sql import csv_to_sql
