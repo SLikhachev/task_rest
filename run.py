@@ -5,8 +5,9 @@ from poly import create_app
 
 SITE_DIR = Path (os.path.abspath ( os.path.dirname(__file__) ))
 #BASE_DIR = os.path.split(SITE_DIR)
-#STATIC_DIR = os.path.join(SITE_DIR, 'static')
 STATIC_DIR = SITE_DIR.parent / 'media'
+STATIC_DIR = os.path.join(SITE_DIR, 'static')
+
 
 #print('from run.py -> ', STATIC_DIR)
 
@@ -14,4 +15,4 @@ app = create_app(SITE_DIR, STATIC_DIR)
 
 if __name__ == "__main__":
     #app = create_app()
-    app.run(debug=True, port=8787)
+    app.run(debug=True, host='127.0.0.1', port=8787)

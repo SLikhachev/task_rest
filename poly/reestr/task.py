@@ -61,3 +61,6 @@ class RestTask(Resource):
 
     def resp(self, file, msg, done):
         return marshal(self.result(file, msg, done), res_fields), 200, current_app.config['CORS']
+
+    def abort(self, code, msg ):
+        return marshal(self.result('', msg, False), res_fields), code, current_app.config['CORS']
