@@ -3,5 +3,6 @@
 __pycache__/
 logs/
 static/logging/
+static/pkg/
 instance/
 *.komodoproject

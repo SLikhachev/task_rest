@@ -2,8 +2,14 @@
 .idea/
 .vscode/
 .gitignore
+.dockerignore
 *.bat
 *.sh
 *.komodoproject
+web.*
+*.web
+*.yml
+static/db_data/
+static/sql/
 
 

@@ -4,11 +4,23 @@
 version: "3.9"  # optional since v1.27.0
 services:
   task:
-    build: .
+    image: task:0.1
+    container_name: task
+    network_mode: bridge
+    #restart: always
+    environment:
+      DB_HOST: "192.168.1.31"
+      DB_NAME: hokuto
+      DB_USER: postgres
+      DB_PASSWORD: boruh
     ports:
-      - "8787:80
-    command: python main.py
-    ports:
-      - "5000:5000"
+      - "8787:8787"
     volumes:
-      - .:/python-flask
+      - task-static:/opt/venv/app/static/data
+
+volumes:
+  task-static:
+    external: true
+
+
+  
