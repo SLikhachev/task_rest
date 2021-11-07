@@ -1,8 +1,8 @@
 
 # makes by paraclin code calculating file
 
-import os
-from collections import defaultdict
+import os, types
+#from collections import defaultdict
 import psycopg2
 import psycopg2.extras
 from openpyxl import load_workbook
@@ -13,19 +13,25 @@ from poly.utils.files import get_name_tail
 from poly.reestr.invoice.impex.exp_inv import get_mo_smo_name
 from poly.reestr.invoice.impex import config
 
-def data_source_init():
-    g.qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+sn = types.SimpleNamespace()
+
+def data_source_init(db):
+    global sn
+    sn.qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 
 def data_source_get():
-    g.qurs.execute(config.GET_USL)
-    return g.qurs.fetchall()
+    global sn
+    sn.qurs.execute(config.GET_USL)
+    return sn.qurs.fetchall()
 
 def data_source_close():
-    g.qurs.close()
+    global sn
+    sn.qurs.close()
 
 
-def exp_usl(app: object, smo: int, month: str, year: str, inv_path: str) -> (int, str):
-    
+def exp_usl(app: object, db: object, mo_code, smo: int, month: str, year: str, inv_path: str) -> (int, str):
+
+    global sn
     typ=6 # pmu
     tpl= config.TYPE[typ-1][2]
     sh1 = 'Лист1'
@@ -54,8 +60,8 @@ def exp_usl(app: object, smo: int, month: str, year: str, inv_path: str) -> (int
     cnt = 21
     rc = 1
 
-    data_source_init()
-    mo_name, smo_name = get_mo_smo_name(app, smo, config)
+    data_source_init(db)
+    mo_name, smo_name = get_mo_smo_name(sn, mo_code, smo, config)
     sheet['B15'].value = '%s   %s' % (period, smo_name)
 
     for row in data_source_get():

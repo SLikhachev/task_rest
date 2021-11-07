@@ -42,11 +42,11 @@ class Tarif(TarifSql):
 
     _para = 'SELECT code_usl, kol_usl FROM para_clin_%s WHERE tal_num=%s'
 
-    def __init__(self, db: object, mo: tuple, year: int) -> None:
+    def __init__(self, db: object, mo: tuple, year: str) -> None:
         TarifSql.__init__(self, db)
         self.qurs = db.cursor()
         self.rpq = Tarif._para
-        self.ya= year - 2000
+        self.ya= int(year[2:])
         self.row = None
         self.sluch = None
         self.none = (0.0, 0.0, 'None')

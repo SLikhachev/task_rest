@@ -1,7 +1,7 @@
 
+import os, re
 from datetime import date
 from time import perf_counter
-import requests
 from flask import current_app
 from flask_restful import Resource, fields, marshal
 
@@ -10,6 +10,14 @@ res_fields = {
     'message': fields.String,
     'done': fields.Boolean,
 }
+
+tail = '_(?P<year>\d{2})(?P<month>\d{2})(?P<lpu>\d{3})'
+fnames= dict(
+# FHТ25М250796_21107961.xml
+    errs=re.compile("^(?:\w{6})(?P<mo_code>\d*)" + tail),
+# HM250796S25011_211079610.zip
+    invs=re.compile("(?:\w{2})(?P<mo_code>\d*)S(?P<smo>\d*)" + tail)
+)
 
 
 class RestTask(Resource):
@@ -27,22 +35,20 @@ class RestTask(Resource):
         self.sql_provider = current_app.config['SQL_PROVIDER']
         self.sql_srv = current_app.config[self.sql_provider.upper()]
 
-    def parse_xml_name(self, name: str) -> tuple:
-        
-        nlist= name.split('_')
-        hdr, tail= nlist[0], nlist[1]
-        s= hdr.find('S') + 1
-        if s <= 0:
-            smo= 0
-        else:
-            smo= int( hdr[s:] ) #int 25016
-        if len(tail) < 7:
-            return ()
-        lpu= tail[4:7] # str 796
-        year= tail[:2] # str 20
-        month= tail[2:4] #  str 01
-        #print( lpu: str(3), smo: int, year: str(2), month: str(2))
-        return lpu, smo, year, month
+    def catalog(self, base, *args):
+        if len(base) == 0:
+            base = 'UPLOAD_FOLDER'
+        return  os.path.join(current_app.config[base], *args)
+
+
+    def parse_fname(self, name: str, type: str) -> list:
+        m = fnames[type].search(name).groupdict()
+        smo = int(m.get('smo', '0'))
+        for k in ('mo_code', 'lpu', 'year', 'month'):
+            if len(m[k]) == 0:
+                return ()
+        return m['mo_code'], m['lpu'], smo, \
+               m['year'], m['month']
 
     def perf(self):
         return f'Время: {round( (perf_counter() - self.time1), 2)} cek.'
@@ -63,4 +69,5 @@ class RestTask(Resource):
         return marshal(self.result(file, msg, done), res_fields), 200, current_app.config['CORS']
 
     def abort(self, code, msg ):
+        current_app.logger.debug(msg)
         return marshal(self.result('', msg, False), res_fields), code, current_app.config['CORS']

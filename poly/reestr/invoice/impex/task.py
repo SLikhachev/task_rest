@@ -1,143 +1,95 @@
+
 import os
-from datetime import datetime
-from pathlib import Path
-from flask import request, current_app, Response, g
+from tempfile import TemporaryDirectory as stmp
+from flask import current_app
 from werkzeug.utils import secure_filename
+from werkzeug import datastructures
+from flask_restful import reqparse
+from poly.utils.sqlbase import SqlProvider
 from poly.reestr.task import RestTask
-#from flask_restful import Resource
 from poly.reestr.invoice.impex.imp_inv import imp_inv
 from poly.reestr.invoice.impex.exp_usl import exp_usl
 from poly.reestr.invoice.impex.exp_inv import exp_inv
-from poly.reestr.invoice.impex.correct_ins import correct_ins
+#from poly.reestr.invoice.impex.correct_ins import correct_ins
 from poly.reestr.invoice.impex import config 
 from poly.utils.files import allowed_file
 
+
+parser = reqparse.RequestParser()
+parser.add_argument('pack', type=int,
+    default=1, location='form',
+    help="{Тип фала счета: 1-АПП 2-Онкология ...}")
+parser.add_argument('files', required=True, type=datastructures.FileStorage,
+    location='files',  action='append',  help="{Нет файла счета}"
+)
+#correct SMO flag not used
+#csmo = bool(request.form.get('csmo', 0))
 
 class InvImpex(RestTask):
 
     def __init__(self):
         super().__init__()
-        self.task= 'import_invoice'
 
     def post(self):
+        try:
+            args = parser.parse_args()
+            csmo = False
+            pack_type = args['pack']
+        except Exception as e:
+            return self.abort(400, f'{e}')
 
-        ts = self.open_task()
-        if len(ts) > 0:
-            return self.busy(ts)
+        file = args['files'][0]  # only first FileStorage
+        filename = secure_filename(file.filename)
+        if not allowed_file(filename, current_app.config) or not filename.endswith('.zip'):
+            return self.abort(400, f"Допустимое расширение имени файла .zip {filename}")
 
-        self.pack_type= int( request.form.get('pack', 1) )
-
-        # correct smo flag
-        csmo= bool(request.form.get('csmo', 0))
-
-        files= request.files.get('file', None)
-        if not bool(files):
-            return self.close_task('', 'Нет файла счета', False)
-        
-        catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'inv')
-        filename = secure_filename(files.filename)
-        fp= Path(filename)
-
-        if not allowed_file( files.filename, current_app.config ) or fp.suffix != '.zip':
-            return self.close_task(filename, " Допустимый тип файла .zip", False)
-        
-        fname= self.parse_xml_name(filename)
+        fname= self.parse_fname(filename, 'invs')
         if len(fname) == 0:
-            return self.close_task(filename, " Имя файла не соответствует шаблону", False)
+            return self.abort(400, f"Имя файла не соответствует шаблону: {filename}")
         
-        lpu, self.smo, ar, self.month = fname
-        if lpu not in current_app.config['MO_CODE']:
-            return self.close_task('', config.FAIL[0], False)
+        mo_code, lpu, self.smo, ar, self.month = fname
+        if mo_code not in current_app.config['MOS'].keys():
+            return self.abort(400, f"Код МО: {mo_code}, не зарегистрирован")
+
         self.year= f'20{ar}'
-        #test
-        #return self.close_task( filename, f'typ {typ} , csmo {csmo}', False  )
 
         # save file to disk
-        up_file = os.path.join(catalog, filename)
-        files.save(up_file)
+        self.cwd = self.catalog('', 'reestr', 'inv')
+        self.sf = stmp(dir=self.cwd)
+        up_file = os.path.join(self.sf.name, filename)
+        file.save(up_file)
 
-        wc= 0
-        dc = rc= (0, 0)
+        wc = 0
+        dc = rc = (0, 0)
 
         try:
-            rc, res= imp_inv(up_file, self.pack_type, ar) # returns either invoice or usl data 
-            if not res:
-                current_app.logger.debug( config.FAIL[ rc[0] ] )
-                return self.close_task('', config.FAIL[ rc[0]], False)
+            with SqlProvider(self.sql_srv) as db:
+                rc, res= imp_inv(up_file, db, pack_type, ar) # returns either invoice or usl data
+                if not res:
+                    return self.exit(self.abort, 400 , config.FAIL[ rc[0]])
 
-            if self.pack_type == 6:
-                wc, xreestr = exp_usl(current_app, self.smo, self.month, self.year, catalog)
-            else:
-               wc, xreestr= exp_inv(
-                    current_app, self.smo, self.month, self.year, self.pack_type, catalog)
-               if csmo and wc > 0:
-                   dc= correct_ins(self.smo, self.month, self.year)
+                if pack_type == 6:
+                    wc, xreestr = exp_usl(
+                        current_app, db, mo_code, self.smo, self.month, self.year, self.cwd)
+                else:
+                    wc, xreestr= exp_inv(
+                        current_app, db, mo_code, self.smo, self.month, self.year, pack_type, self.cwd)
+                    if csmo and wc > 0:
+                        pass
+                        #dc= correct_ins(self.smo, self.month, self.year)
         except Exception as e:
-            #self.abort_task()
-            raise e
-            current_app.logger.debug(e)
-            return self.close_task(filename, 'Ошибка сервера (детали в журнале)', False)
-        
-        #msg = f'Счет {filename} Записей считано {rc}. Время: {(time2-time1)}'
-        msg = f'Счет {filename} Записей в счете {rc[0]}, (МЭК {rc[1]}), \
-         записей в реестре {wc}. \
-         Испр. СМО: {dc[0]}. {self.perf()}'
-        os.remove(up_file)
+            return self.exit(self.abort, 500, f"Ошибка сервера: {e}")
 
-        return self.close_task(xreestr, msg, True)
+        #os.chdir(catalog)
+        #sf.cleanup()
+        return self.exit(self.resp, xreestr,
+            f"Счет {filename}. Записей в счете {rc[0]}, (МЭК {rc[1]}), \
+          записей в реестре {wc}.", True)
+
+    def exit(self, fn, *args):
+        os.chdir(self.cwd)
+        self.sf.cleanup()
+        return fn(*args)
 
     def get(self):
         raise NotImplemented
-
-# future implementation
-'''       
-class TestSse(Resource):
-
-    def result(self, filename, message, detail=None):
-        return dict(
-            file=filename.split('\\')[-1],
-            message=message,
-            detail=detail
-        )
-    
-    def init(self, total=None):
-        self.total= 150
-        return self.total
-    
-    def proc(self, coro):
-        total= 0
-        res= self.result('', '', 0 )
-        while total < self.total:
-            time.sleep(1.0)
-            total += 10 # 15 sec
-            res['detail']= total
-            coro.send( res )
-        res['filename']= 'my_file.zip'
-        res['msg']= 'done'
-        coro.send( res )
-                
-    def get(self):
-        # this id the Event listener for real processing 
-        def coro():
-            d= (yield)
-            yield f'filename: {d["filename"]} message: {d["message"]} detail: {d["detail"] } '
-        
-        
-        return Respose( coro(), mimetype='text/event-stream', headers=current_app.config['CORS'] )
-    
-    def post(self):
-
-        time1 = datetime.now()
-
-        """
-        try:
-            ph, lm, file = make_xml(current_app, year, month, pack, sent)
-        except Exception as e:
-            current_app.logger.debug(e)
-            return self.result('', 'ERROR', detail=None), current_app.config['CORS']
-        """
-        time2 = datetime.now()
-        msg = f'время: {(time2 - time1)} '
-        detail= self.init()
-        # just return total value to neeed process
-        return self.result('', msg, detail=detail), current_app.config['CORS']'''

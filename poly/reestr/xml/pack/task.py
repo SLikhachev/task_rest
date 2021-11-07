@@ -1,6 +1,5 @@
 
 from types import SimpleNamespace as bcfg
-from flask import current_app
 from flask_restful import reqparse, inputs
 from barsxml.xmlprod.barsxml import BarsXml
 from poly.reestr.task import RestTask
@@ -37,13 +36,12 @@ class MakeXml(RestTask):
         try:
             args = parser.parse_args()
         except Exception as e:
-            current_app.logger.debug(f'{e}')
             return self.abort(400, f'{e}')
         cfg = bcfg(
             SQL=self.sql_provider, # String
             SQL_SRV=self.sql_srv, # dict
             YEAR = args['month'][0], #String
-            BASE_XML_DIR=current_app.config['BASE_XML_DIR']
+            BASE_XML_DIR=self.catalog('BASE_XML_DIR')
         )
         try:
             xml = BarsXml(
@@ -56,7 +54,6 @@ class MakeXml(RestTask):
                args['sent'], args['fresh'], args['check']
             )
         except Exception as e:
-            current_app.logger.debug(e)
             return self.abort(500, e)
 
         z= f'H записей: {ph}, L записей: {lm}. '

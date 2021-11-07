@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 #from tempfile import TemporaryFile as stmp
 from tempfile import TemporaryDirectory as stmp
-from flask_restful import reqparse, abort
+from flask_restful import reqparse
 from flask import current_app
 from werkzeug import datastructures
 from werkzeug.utils import secure_filename
@@ -24,12 +24,12 @@ class ErrsXml(RestTask):
 
     def __init__(self):
         super().__init__()
+        self.cwd = self.catalog('', 'reestr', 'vmx')
 
     def post(self):
         try:
             args = parser.parse_args()
         except Exception as e:
-            current_app.logger.debug(f'{e}')
             return self.abort(400, f'{e}')
 
         file = args['files'][0] # only first FileStorage
@@ -37,23 +37,24 @@ class ErrsXml(RestTask):
         if not allowed_file( filename, current_app.config ) or not filename.endswith('.xml'):
             return self.abort(400, f"Допустимое расширение имени файла .xml {filename}")
 
-        _, _, ar, _ = self.parse_xml_name(filename)
+        fname = self.parse_fname(filename, 'errs')
+        if len(fname) == 0:
+            return self.abort(400, f"Имя файла не соответствует шаблону: {filename}")
+        _, _, _, ar, _ =  fname
 
-        catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')
-        sf= stmp(dir=catalog)
+        sf= stmp(dir=self.cwd)
         up_file = os.path.join(sf.name, filename)
         file.save(up_file)
 
         try:
             rc= geterrs(up_file, self.sql_srv, ar, ('824',), 'ignore')
         except Exception as e:
-            current_app.logger.debug(e)
-            sf.cleanup()
             return self.abort(500, f"Ошибка при обработке файла {filename}: {e}")
-
-        sf.cleanup()
-        return self.resp(filename,
-            f"Файл ошибок: {filename} Записей считано {rc}", True)
+        else:
+            return self.resp(filename,
+                f"Файл ошибок: {filename} Записей считано {rc}", True)
+        finally:
+            sf.cleanup()
 
     def get(self):
 
@@ -65,14 +66,12 @@ class ErrsXml(RestTask):
             if not bool(rc[0]):
                 return self.resp('', "Нет принятых ошибок", False)
         
-            catalog = os.path.join(current_app.config['UPLOAD_FOLDER'], 'reestr', 'vmx')
             df= str(datetime.now()).split(' ')[0]
             filename= f"ERR_{df}_{get_name_tail(5)}.csv"
-            _file = os.path.join(catalog, filename)
+            _file = os.path.join(self.cwd, filename)
             try:
                 qurs.execute(config.TO_CSV % _file)
             except Exception as e:
-                current_app.logger.debug(e)
                 return self.abort(500, f"Не удалось сформировать файл ошибокю {e}")
 
         return self.resp(_file, "Посдение ошибки", True)

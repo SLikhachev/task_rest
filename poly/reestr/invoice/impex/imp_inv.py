@@ -1,11 +1,9 @@
-"""
-"""
-import sys, os, types
+import os, types
 import xml.etree.cElementTree as ET
 #from datetime import datetime
 from pathlib import Path
 from zipfile import ZipFile
-from flask import g
+from poly.utils.sqlbase import SqlProvider
 from poly.reestr.invoice.impex import config
 from poly.reestr.invoice.impex.utils import get_text
 from poly.reestr.invoice.impex.imp_usl import imp_usl
@@ -51,12 +49,9 @@ def zp_xml(xml: str, tags: tuple) -> None:
     context = ET.iterparse(xml)
     for event, elem in context:
         rec= list()
-        #rc += 1
-        #print('-- EXPO HM tags %s --' % rc, end='\r')
+
         if elem.tag not in sn.zp_tags:
             continue
-        #et = ET.ElementTree(elem)
-        # if generator then for chunk in get_zp: rec.append(chunk)
         get_zp(elem, tags, rec)
         set_zp(rec, elem.tag)
 
@@ -75,11 +70,11 @@ def set_mek(ar):
     for row in sn.qurs.fetchall():
         sn.qurs.execute(set_mek, row)
         mr += 1
-    g.qonn.commit()
     return mr
 
-def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
+def imp_inv(zipfile: str, db: object, typ: int, ar: str) -> tuple:
     # zipfile - file to process
+    # db - data base connection
     # typ - invoice type
     # ar - 2 last digits of year
     # returns tuple of 1 if any arrors occured else records count and meta info 
@@ -87,10 +82,11 @@ def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
     global sn
    
     # 1 unpack file
-    p= Path(zipfile)
-    zipdir= p.parent
-    file= p.name
-    
+    zipwd= Path(zipfile)
+    zipdir= zipwd.parent
+    file= zipwd.name
+    print(zipdir, file)
+
     os.chdir(zipdir)
     _hm= ''
     with ZipFile(file) as zfile:
@@ -111,23 +107,20 @@ def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
     
     # import PMUs with tarifs
     if typ == 6:
-        return imp_usl(_hm)
+        return imp_usl(_hm, db)
 
-    #qonn = app.config.db()
-    sn.qurs = g.qonn.cursor()
-    #sn.qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    sn.qurs = db.cursor()
     sn.qurs.execute(config.TRUNC_TBL_INV)
-    #sn.qurs.execute(config.CREATE_TBL_INV)
-    g.qonn.commit()
-    
+    db.commit()
+
     # 2. process files
     # ---------------------------------------------
     for (f, r) in ( (_hm, sn.zap), (_lm, sn.pers)):
         zp_xml(f, r)
-        g.qonn.commit()
+        db.commit()
 
     mek= set_mek(ar)
-    
+    db.commit()
     sn.qurs.execute(config.COUNT_INV)
     rc= sn.qurs.fetchone()
 
@@ -135,5 +128,4 @@ def imp_inv(zipfile: str, typ: int, ar: str) -> tuple:
 
     os.remove(_hm)
     os.remove(_lm)
-    #print (rc)
     return (( rc[0], mek), True) if bool(rc) and len(rc) > 0 else (( 2, 0), False)

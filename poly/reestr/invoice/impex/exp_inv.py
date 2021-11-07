@@ -1,32 +1,31 @@
 
-import os
+import os, types
 from datetime import date
 from pathlib import Path
 import psycopg2
 import psycopg2.extras
 from flask import g
 from openpyxl import load_workbook
-#from openpyxl.compat import range
 from openpyxl.styles import Border, Side, colors
 from poly.utils.files import get_name_tail
-
 from poly.reestr.invoice.impex import config
 
-def get_mo_smo_name(app,  smo, cfg):
+sn = types.SimpleNamespace()
 
-    assert 'qurs' in g, 'get_mo_smo_name:: Нет связи с БД'
+def get_mo_smo_name(sn, mo_code, smo, cfg):
+    assert hasattr(sn, 'qurs'), 'get_mo_smo_name:: Нет связи с БД'
 
-    mo_code= app.config['MO_CODE'][0] 
-    g.qurs.execute(cfg.GET_MO_NAME, ( mo_code, ) )
-    mq= g.qurs.fetchone()
+    _code= mo_code[-3:] # just last 3 digits i.e short code
+    sn.qurs.execute(cfg.GET_MO_NAME, ( _code, ) )
+    mq= sn.qurs.fetchone()
     if mq:
         mo_name= mq[0]
     else:
         mo_name= cfg.STUB_MO
     if smo > 0:
         #ins= 25000 + int(smo)
-        g.qurs.execute(cfg.GET_SMO_NAME, ( smo, ))
-        mq= g.qurs.fetchone()
+        sn.qurs.execute(cfg.GET_SMO_NAME, ( smo, ))
+        mq= sn.qurs.fetchone()
         if mq:
             smo_name=  mq[0]
         else:
@@ -108,32 +107,38 @@ def for_foms(dex, rc):
     return d
 
 
-def data_source_init(is_calc):
-    g.qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+def data_source_init(db, is_calc):
+    global sn
+    sn.qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     if len(is_calc) == 0:
         _data = config.COUNT_INV
     else:
         _data= config.COUNT_MO
-    g.qurs.execute(_data)
-    rc= g.qurs.fetchone()
-    if bool(rc[0]): return True
-    g.qurs.close()
+    sn.qurs.execute(_data)
+    rc= sn.qurs.fetchone()
+    if bool(rc[0]):
+        return True
+    sn.qurs.close()
     return False
 
 def data_source_get(is_calc):
+    global sn
     if len(is_calc) == 0:
         _data = config.GET_ROW_INV
     else:
         _data= config.GET_ROW_MO
-    g.qurs.execute(_data)
-    return g.qurs.fetchall()
+    sn.qurs.execute(_data)
+    return sn.qurs.fetchall()
 
 def data_source_close():
-    g.qurs.close()
+    global sn
+    sn.qurs.close()
 
 
 def exp_inv(
         app: object, # current app object
+        db: object, # db connection
+        mo_code: str, # long MO_CODE i.e 250796
         smo: int, # int (0,  25011, 25016 )
         month: str, #str(2) 01..12  
         year: str, #str(4) 2020
@@ -141,8 +146,10 @@ def exp_inv(
         inv_path: str, # path to the data folder
         is_calc='' # flag str if not empty then self calculated reestr
     ) -> (int, str):
-    
-    if not data_source_init(is_calc):
+
+    global sn
+
+    if not data_source_init(db, is_calc):
         return (0, '')
        
     m= int(month)
@@ -162,14 +169,15 @@ def exp_inv(
     wb.active
     sheet = wb[sh1]
     
-    mo_name, smo_name = get_mo_smo_name(app, smo, config)
+    mo_name, smo_name = get_mo_smo_name(sn, mo_code, smo, config)
 
     if smo == 0:
         sheet['C4'].value = period
         # begin from 17 string
         cntRowXls = 17
     else:
-        sheet['E2'].value = '%s ОГРН %s' % (mo_name, app.config['OGRN'])
+        # local config has MOS dict with mo_code as KEY and tuple(OGRN, ) as value
+        sheet['E2'].value = '%s ОГРН %s' % (mo_name, app.config['MOS'][mo_code][0])
         sheet['E7'].value = smo_name
         sheet['J1'].value = period
         # begin from 13 string
@@ -203,10 +211,6 @@ def exp_inv(
                     app.logger.debug(data)
                     raise e
             cntRowXls += 1   
-            #dc += 1
-            #if dc > 250:
-            #   print('-- %s --' % rcTotal, end='\r')
-            #    dc = 0
             rcTotal += 1
         
     wb.save(xlw)

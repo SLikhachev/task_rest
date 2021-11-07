@@ -1,9 +1,5 @@
 
-#import sys, os, types
-from decimal import Decimal
 import xml.etree.cElementTree as ET
-#from datetime import datetime
-from flask import g
 from poly.reestr.invoice.impex import config
 from poly.reestr.invoice.impex.utils import get_text
 
@@ -23,7 +19,7 @@ def proc(el):
              u[tag]= None
     return u
     
-def imp_usl(hm: str) -> tuple:
+def imp_usl(hm: str, db: object) -> tuple:
     global rec    
     usld= dict()
     
@@ -38,22 +34,20 @@ def imp_usl(hm: str) -> tuple:
                 usld[ ud['CODE_USL'] ][0] += ud['KOL_USL'] 
     
             
-    #qonn = app.config.db()
-    qurs = g.qonn.cursor()
+
+    qurs = db.cursor()
     qurs.execute(config.TRUNC_TBL_USL)
-    #qurs.execute(config.CREATE_TBL_USL)
-    g.qonn.commit()
+    db.commit()
     
     for k in usld.keys():
         try:
             r= [k]
-            #t= [ i for i in usld[k] ]
             r.extend ( usld[k] )
             qurs.execute(config.INS_USL, r )
         except Exception as e:
             raise e
     
-    g.qonn.commit()
+        db.commit()
     
     qurs.execute(config.COUNT_USL)
     rc= qurs.fetchone()

@@ -1,16 +1,13 @@
 
-import psycopg2
-import psycopg2.extras
-from flask import g
 from poly.reestr.invoice.mek import config
 
 
-def move_mek(year: int, month: int, target_month: int) -> int:
+def move_mek(db: object, year: str, month: str, target_month: str) -> int:
     
-    qurs= g.qonn.cursor()
+    qurs= db.cursor()
     source_mon= int(month)
     target_mon = int(target_month)
-    ar= year - 2000
+    ar= year[2:]
     
     qurs.execute(config.COUNT_MEK, (ar, month ))
     mc= qurs.fetchone()
@@ -20,7 +17,7 @@ def move_mek(year: int, month: int, target_month: int) -> int:
     
     move_mek= config.MOVE_MEK % (ar, target_mon, source_mon)
     qurs.execute(move_mek)
-    g.qonn.commit()
+    db.commit()
     rc= qurs.rowcount
    
     qurs.close()

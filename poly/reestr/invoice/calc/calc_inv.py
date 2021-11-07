@@ -1,10 +1,12 @@
 
-from flask import g
+import types
 import psycopg2
 import psycopg2.extras
 from poly.reestr.invoice.impex import config as imp_conf
 from poly.reestr.invoice.calc import config
 from poly.reestr.invoice.tarif.tarif_class import Tarif
+
+sn = types.SimpleNamespace()
 
 def vidpom(row):
     if row.profil in (78, 82):
@@ -38,8 +40,9 @@ def gender(gen):
         return 1
 
 def calc_row(row: tuple) -> tuple:
+    global sn
     # row: NamedTuple
-    tarif, summa, event = g.sTarif.set_data(row).process()
+    tarif, summa, event = sn.sTarif.set_data(row).process()
     mek= 1.00 if row.mek else 0.00
     return (
         row.n_zap, row.id_pac, row.spolis, row.npolis,
@@ -50,23 +53,25 @@ def calc_row(row: tuple) -> tuple:
         row.fam, row.im, row.ot, gender(row.w), row.dr
     )
 
-def calc_inv(app: object, year: int, month: int, smo: int, typ: int) -> tuple:
+def calc_inv(app: object, db: object, smo: int, month: str, year: str, typ: int) -> tuple:
     # app - flask app
+    global sn
     print(smo)
     #global sn
     # only one allowed yet
     if typ-1 > 0:
         return (1, False)
     
-    qurs = g.qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    qurs1 = g.qonn.cursor()
+    qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    qurs1 = db.cursor()
     qurs1.execute(imp_conf.TRUNC_TBL_MO)
-    g.qonn.commit()
-    g.sTarif= Tarif(g.qonn, app.config['MO_CODE'], year )
+    db.commit()
+    lpu_code = app.config.get('LPU_CODE', ()) # sort code
+    sn.sTarif= Tarif(db, lpu_code, year )
     
     # 2. process table
     # ---------------------------------------------
-    ya= year-2000
+    ya= int(year[2:])
     #so = int(smo) + 25000
     qurs.execute(config.GET_SMO_AMBUL, ( ya, month, smo ))
     rc= 0
@@ -75,7 +80,7 @@ def calc_inv(app: object, year: int, month: int, smo: int, typ: int) -> tuple:
         qurs1.execute(imp_conf.INS_MO, res)
         rc += 1
     
-    g.qonn.commit()
+    db.commit()
     #qurs1.execute(imp_conf.COUNT_MO)
     #rc= qurs.fetchone()
     
