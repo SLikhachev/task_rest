@@ -54,8 +54,9 @@ class RestTask(Resource):
         return f'Время: {round( (perf_counter() - self.time1), 2)} cek.'
 
     def fname(self, file):
-        if bool(file) and len(file) > 0:
-            return file.split('\\')[-1]
+        f = os.path.basename(file)
+        if bool(f) and len(f) > 0:
+            return f
         return ''
 
     def result(self, filename, message, done=False):

@@ -11,7 +11,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-ADD ./static/pkg/barsxml.tar.gz .
+ADD ./static/pkg/barsxml-0.1.21.tar.gz .
 RUN pip install --no-deps ./barsxml-0.1.21
 
 FROM python:3.6-slim-buster as runtime
