@@ -11,51 +11,51 @@ sn= types.SimpleNamespace(
     Terr= set()
 )
 
-"""
- <?xml version="1.0" encoding="utf-8" ?> 
+""" Struct of parsed file
+ <?xml version="1.0" encoding="utf-8" ?>
 - <FLK_P>
-    <FNAME>VM250228T25_19072285.xml</FNAME> 
-    <FNAME_I>HM250228T25_19072285.xml</FNAME_I> 
+    <FNAME>VM250228T25_19072285.xml</FNAME>
+    <FNAME_I>HM250228T25_19072285.xml</FNAME_I>
 -   <SCHET>
-        <CODE>2281908</CODE> 
-        <CODE_MO>250228</CODE_MO> 
-        <YEAR>2019</YEAR> 
-        <MONTH>7</MONTH> 
-        <NSCHET>228190801</NSCHET> 
-        <DSCHET>2019-07-31</DSCHET> 
+        <CODE>2281908</CODE>
+        <CODE_MO>250228</CODE_MO>
+        <YEAR>2019</YEAR>
+        <MONTH>7</MONTH>
+        <NSCHET>228190801</NSCHET>
+        <DSCHET>2019-07-31</DSCHET>
     </SCHET>
 -   <ZAP>
-        <N_ZAP>55665</N_ZAP> 
+        <N_ZAP>55665</N_ZAP>
 -       <SL>
-            <SL_ID>1</SL_ID> 
-            <IDCASE>55665</IDCASE> 
-            <NHISTORY>55665</NHISTORY> 
-            <CARD /> 
-            <SMO>25016</SMO> 
-            <SMO_FOND>25016</SMO_FOND> 
+            <SL_ID>1</SL_ID>
+            <IDCASE>55665</IDCASE>
+            <NHISTORY>55665</NHISTORY>
+            <CARD />
+            <SMO>25016</SMO>
+            <SMO_FOND>25016</SMO_FOND>
 -           <OTKAZ>
-                <I_TYPE>910</I_TYPE> 
-                <COMMENT>-1 - Нет информации о страхованиях в ЦС ЕРЗ ОМС!</COMMENT> 
+                <I_TYPE>910</I_TYPE>
+                <COMMENT>-1 - Нет информации о страхованиях в ЦС ЕРЗ ОМС!</COMMENT>
             </OTKAZ>
 -           <OTKAZ>
-                <I_TYPE>910</I_TYPE> 
-                <COMMENT /> 
+                <I_TYPE>910</I_TYPE>
+                <COMMENT />
             </OTKAZ>
 -           <OTKAZ>
-                <I_TYPE>903</I_TYPE> 
-                <COMMENT /> 
+                <I_TYPE>903</I_TYPE>
+                <COMMENT />
             </OTKAZ>
         </SL>
     </ZAP>
 """
 
 def process(zap, ignore, errors='ignore'):
-    
+
     ite= []
     res= []
     sl = zap.find('SL')
     card = sl.find('CARD').text
-    idcase = int( sl.find('IDCASE').text) 
+    idcase = int( sl.find('IDCASE').text)
     for ot in sl.findall('OTKAZ'):
         err = ot.find('I_TYPE').text # was int
         if errors == 'ignore' and err in ignore:
@@ -68,7 +68,7 @@ def process(zap, ignore, errors='ignore'):
         cmt= ot.find('COMMENT').text
         ite.append( err )
         res.append( ( idcase, card, err, cmt ) )
-     
+
     if res == []:
         return None
 
@@ -103,7 +103,7 @@ def write_error(qurs, res):
         en= 'Нет описания'
         if enr:
             en= enr[0]
-            
+
         qurs.execute( config.WRITE_ERROR,
             ( tal.tal_num,  tal.open_date, tal.close_date, tal.crd_num, tal.fam, err[2], str(en) )
         )
@@ -116,18 +116,18 @@ def mark_talons(qurs):
     sn.Terr.clear()
 
 def geterrs(fd: object, sql_srv: dict, year: str, ignore: tuple, errors='ignore') -> int:
-    
+
     global sn
 
     with SqlProvider(sql_srv) as db:
         qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
         qurs.execute(config.TRUNCATE_ERROR)
         db.commit()
-    
+
         tal_tbl= 'talonz_clin_%s' % year
         sn.talon= config.GET_TALON % (tal_tbl, 'cardz_clin') + config.TAL
         sn.mark= config.MARK_TALON % tal_tbl + '%s;'
-    
+
         context = ET.iterparse(fd, events=("start", "end"))
         event, root = next(context)
         root.clear()
@@ -140,9 +140,9 @@ def geterrs(fd: object, sql_srv: dict, year: str, ignore: tuple, errors='ignore'
                     _ = write_error(qurs, res)
                     cnt += 1
                 root.clear()
-    
+
         mark_talons(qurs)
-    
+
         db.commit()
         qurs.close()
 

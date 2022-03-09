@@ -32,9 +32,9 @@ def get_mo_smo_name(sn, mo_code, smo, cfg):
             smo_name= cfg.STUB_SMO
     else:
         smo_name= ''
-    
+
     return mo_name, smo_name
-    
+
 
 def extract(row):
     d = [ '' for i in range(20)]
@@ -42,14 +42,14 @@ def extract(row):
     fam = row.fam or ' '
     im = row.im or ' '
     ot = row.ot or ' '
-    d[1] = '%s %s %s' % (row.fam, im[0].upper(), ot[0].upper())  
+    d[1] = '%s %s %s' % (row.fam, im[0].upper(), ot[0].upper())
     d[2] = row.w
     d[3] = row.dr
     #d[4] = ''
     #docser = row.docser or ' '
     #docnum = row.docnum or ' '
     #d[5] = '%s %s' % (docser, docnum)
-    #d[6], d[7], d[8] = '', '', '' 
+    #d[6], d[7], d[8] = '', '', ''
     spolis = row.spolis or ''
     npolis = row.npolis or ''
     d[9] = '%s %s' % (spolis, npolis)
@@ -70,35 +70,45 @@ def extract(row):
         else:
             d[5]= 'ХЭК'
         price= 0.00
-    d[17] = price 
-    
+    d[17] = price
+
     d[18] = row.rslt
     #d[19] = row.ishod
-    
+
     return d
 
 
 def for_foms(dex, rc):
     # d - list from extract
     d = ['' for i in range(20)]
+
     d[0] = rc
+
     # nusl, fio
     d[1], d[2] = dex[0], dex[1]
+
     # pol
     #d[3] = ['м', 'ж'].index( dex[2] ) - 1
     d[3]= dex[2]
+
     # date_birth, place_birth
     d[4], d[5] = dex[3], dex[4]
+
     # d[6] # document
     # d[7] # snils
+
     # polis
     d[8] = dex[9]
+
     # vid_pom
     d[9] = dex[10]
+
     # DS
     d[10] = dex[11]
+
     # date
     d[11], d[12] = dex[12].split("~")
+
     i = 13
     for v in dex [13:]:
         d[ i ] = v
@@ -140,35 +150,35 @@ def exp_inv(
         db: object, # db connection
         mo_code: str, # long MO_CODE i.e 250796
         smo: int, # int (0,  25011, 25016 )
-        month: str, #str(2) 01..12  
+        month: str, #str(2) 01..12
         year: str, #str(4) 2020
         typ: int, # 1-5
         inv_path: str, # path to the data folder
         is_calc='' # flag str if not empty then self calculated reestr
-    ) -> (int, str):
+    ): # -> (int, str):
 
     global sn
 
     if not data_source_init(db, is_calc):
         return (0, '')
-       
+
     m= int(month)
     tpl= config.TYPE[typ-1][2]
 
     sh1 = 'Лист1'
-    
+
     xtpl = f'{tpl}.xlsx'
-    xlr = os.path.join(inv_path, 'tpl', xtpl)   
+    xlr = os.path.join(inv_path, 'tpl', xtpl)
 
     xout = f'{tpl}{is_calc}_{smo}_{month}_{year}_{get_name_tail(5)}.xlsx'
-    xlw = os.path.join(inv_path, xout)   
+    xlw = os.path.join(inv_path, xout)
 
     period = 'За %s %s года' % (app.config['MONTH'][m-1], year)
-    
+
     wb = load_workbook(filename = xlr)
     wb.active
     sheet = wb[sh1]
-    
+
     mo_name, smo_name = get_mo_smo_name(sn, mo_code, smo, config)
 
     if smo == 0:
@@ -188,7 +198,7 @@ def exp_inv(
         right=Side(border_style='thin', color=colors.BLACK),
         top=Side(border_style='thin', color=colors.BLACK),
         bottom=Side(border_style='thin', color=colors.BLACK)
-    )    
+    )
 
     rcTotal = 1
     irang=20 # 20 cells in row
@@ -210,11 +220,11 @@ def exp_inv(
                     app.logger.debug('\n row %s ' % rcTotal)
                     app.logger.debug(data)
                     raise e
-            cntRowXls += 1   
+            cntRowXls += 1
             rcTotal += 1
-        
+
     wb.save(xlw)
     wb.close()
     data_source_close()
-    
+
     return (rcTotal-1, xlw)

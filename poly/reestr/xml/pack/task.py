@@ -54,6 +54,7 @@ class MakeXml(RestTask):
                args['sent'], args['fresh'], args['check']
             )
         except Exception as e:
+            raise e
             return self.abort(500, e)
 
         z= f'H записей: {ph}, L записей: {lm}. '

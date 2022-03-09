@@ -1,3 +1,5 @@
+""" module defines the class to parse BARS errors file and fill the errors table"""
+
 import os
 from datetime import datetime
 #from tempfile import TemporaryFile as stmp
@@ -21,6 +23,7 @@ parser.add_argument('files', required=True, type=datastructures.FileStorage,
 )
 
 class ErrsXml(RestTask):
+    """ class definition """
 
     def __init__(self):
         super().__init__()
@@ -62,10 +65,10 @@ class ErrsXml(RestTask):
             qurs= db.cursor()
             qurs.execute(config.COUNT_ERRORS)
             rc= qurs.fetchone()
-        
+
             if not bool(rc[0]):
                 return self.resp('', "Нет принятых ошибок", False)
-        
+
             df= str(datetime.now()).split(' ')[0]
             filename= f"ERR_{df}_{get_name_tail(5)}.csv"
             _file = os.path.join(self.cwd, filename)
