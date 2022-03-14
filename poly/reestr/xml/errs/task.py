@@ -61,8 +61,9 @@ class ErrsXml(RestTask):
 
     def get(self):
 
-        with SqlProvider(self.sql_srv) as db:
-            qurs= db.cursor()
+        with SqlProvider(self.sql_srv) as sql:
+            qurs= sql.db.cursor()
+            sql.init_db(qurs)
             qurs.execute(config.COUNT_ERRORS)
             rc= qurs.fetchone()
 

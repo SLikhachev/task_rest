@@ -39,7 +39,7 @@ def gender(gen):
     except:
         return 1
 
-def calc_row(row: tuple) -> tuple:
+def calc_row(row: tuple):#  -> tuple:
     global sn
     # row: NamedTuple
     tarif, summa, event = sn.sTarif.set_data(row).process()
@@ -53,7 +53,7 @@ def calc_row(row: tuple) -> tuple:
         row.fam, row.im, row.ot, gender(row.w), row.dr
     )
 
-def calc_inv(app: object, db: object, smo: int, month: str, year: str, typ: int) -> tuple:
+def calc_inv(app: object, sql: object, smo: int, month: str, year: str, typ: int): # -> tuple:
     # app - flask app
     global sn
     print(smo)
@@ -61,14 +61,15 @@ def calc_inv(app: object, db: object, smo: int, month: str, year: str, typ: int)
     # only one allowed yet
     if typ-1 > 0:
         return (1, False)
-    
-    qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    qurs1 = db.cursor()
+
+    qurs = sql.db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    qurs1 = sql.db.cursor()
+    sql.init_db(qurs1)
     qurs1.execute(imp_conf.TRUNC_TBL_MO)
-    db.commit()
+    sql.db.commit()
     lpu_code = app.config.get('LPU_CODE', ()) # sort code
-    sn.sTarif= Tarif(db, lpu_code, year )
-    
+    sn.sTarif= Tarif(sql.db, lpu_code, year )
+
     # 2. process table
     # ---------------------------------------------
     ya= int(year[2:])
@@ -79,11 +80,11 @@ def calc_inv(app: object, db: object, smo: int, month: str, year: str, typ: int)
         res= calc_row(row)
         qurs1.execute(imp_conf.INS_MO, res)
         rc += 1
-    
-    db.commit()
+
+    sql.db.commit()
     #qurs1.execute(imp_conf.COUNT_MO)
     #rc= qurs.fetchone()
-    
+
     qurs.close()
     qurs1.close()
 

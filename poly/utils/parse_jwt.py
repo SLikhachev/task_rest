@@ -7,7 +7,7 @@ def parse_jwt_token(header, secret):
     """ parse """
     _jw = header.strip()
     key = _jw.split(' ') # list of 2 els: 1st "Bearer " 2nd is jwt key
-    print(key)
+    #print(key)
     if len(key) < 2 or len(key[1]) < 2:
         return 401, "Bad Authorization Bearer's header", ''
     try:

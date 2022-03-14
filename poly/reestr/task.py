@@ -40,15 +40,19 @@ class RestTask(Resource):
         self.user = ''
 
     def dispatch_request(self, *args, **kwargs):
-        if request.authorization:
-            status, self.role, self.user = parse_jwt_token(
-                request.authorization.to_header(), current_app.config['JWT_TOKEN_SECRET']
-            )
-            if status != 200:
-                response = make_response(self.role)
-                response.status = status
-                return response
-
+        if current_app.config.get('AUTH', False):
+            # may be authorized request
+            if request.authorization:
+                # check request
+                secret= current_app.config.get('JWT_TOKEN_SECRET', '')
+                status, self.role, self.user = parse_jwt_token(
+                request.authorization.to_header(), secret
+                )
+                if status != 200:
+                    response = make_response(self.role)
+                    response.status = status
+                    return response
+        # ordinal requst
         return super().dispatch_request(*args, **kwargs)
 
     def options(self, *args, **kwargs):

@@ -115,14 +115,16 @@ def mark_talons(qurs):
         qurs.execute(sn.mark, (t,))
     sn.Terr.clear()
 
-def geterrs(fd: object, sql_srv: dict, year: str, ignore: tuple, errors='ignore') -> int:
+def geterrs(fd: object, sql_srv: dict, year: str, ignore: tuple, errors='ignore'):#  -> int:
 
     global sn
 
-    with SqlProvider(sql_srv) as db:
-        qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    with SqlProvider(sql_srv) as sql:
+
+        qurs = sql.db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+        sql.init_db(qurs)
         qurs.execute(config.TRUNCATE_ERROR)
-        db.commit()
+        sql.db.commit()
 
         tal_tbl= 'talonz_clin_%s' % year
         sn.talon= config.GET_TALON % (tal_tbl, 'cardz_clin') + config.TAL
@@ -143,7 +145,7 @@ def geterrs(fd: object, sql_srv: dict, year: str, ignore: tuple, errors='ignore'
 
         mark_talons(qurs)
 
-        db.commit()
+        sql.db.commit()
         qurs.close()
 
     return cnt

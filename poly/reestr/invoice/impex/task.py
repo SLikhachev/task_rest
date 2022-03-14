@@ -11,7 +11,7 @@ from poly.reestr.invoice.impex.imp_inv import imp_inv
 from poly.reestr.invoice.impex.exp_usl import exp_usl
 from poly.reestr.invoice.impex.exp_inv import exp_inv
 #from poly.reestr.invoice.impex.correct_ins import correct_ins
-from poly.reestr.invoice.impex import config 
+from poly.reestr.invoice.impex import config
 from poly.utils.files import allowed_file
 
 
@@ -46,7 +46,7 @@ class InvImpex(RestTask):
         fname= self.parse_fname(filename, 'invs')
         if len(fname) == 0:
             return self.abort(400, f"Имя файла не соответствует шаблону: {filename}")
-        
+
         mo_code, lpu, self.smo, ar, self.month = fname
         if mo_code not in current_app.config['MOS'].keys():
             return self.abort(400, f"Код МО: {mo_code}, не зарегистрирован")
@@ -61,23 +61,23 @@ class InvImpex(RestTask):
 
         wc = 0
         dc = rc = (0, 0)
-
         try:
-            with SqlProvider(self.sql_srv) as db:
-                rc, res= imp_inv(up_file, db, pack_type, ar) # returns either invoice or usl data
+            with SqlProvider(self.sql_srv) as sql:
+                rc, res= imp_inv(up_file, sql, pack_type, ar) # returns either invoice or usl data
                 if not res:
                     return self.exit(self.abort, 400 , config.FAIL[ rc[0]])
 
                 if pack_type == 6:
                     wc, xreestr = exp_usl(
-                        current_app, db, mo_code, self.smo, self.month, self.year, self.cwd)
+                        current_app, sql, mo_code, self.smo, self.month, self.year, self.cwd)
                 else:
                     wc, xreestr= exp_inv(
-                        current_app, db, mo_code, self.smo, self.month, self.year, pack_type, self.cwd)
+                        current_app, sql, mo_code, self.smo, self.month, self.year, pack_type, self.cwd)
                     if csmo and wc > 0:
                         pass
                         #dc= correct_ins(self.smo, self.month, self.year)
         except Exception as e:
+            raise e
             return self.exit(self.abort, 500, f"Ошибка сервера: {e}")
 
         #os.chdir(catalog)

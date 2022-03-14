@@ -1,5 +1,5 @@
 
-TRUNCATE_ERROR= 'TRUNCATE TABLE vmx_errors;'
+TRUNCATE_ERROR= 'DELETE FROM vmx_errors WEHRE true;'
 
 GET_TALON= '''
 SELECT
@@ -21,8 +21,8 @@ SELECT name FROM errors_bars WHERE num=%s;
 COUNT_ERRORS= 'SELECT count(id) FROM vmx_errors'
 
 TO_CSV= '''COPY (
-select tal_num, crd_num, fam, open_date, close_date, error, cmt from vmx_errors ) to 
-'%s' With CSV 
+select tal_num, crd_num, fam, open_date, close_date, error, cmt from vmx_errors ) to
+'%s' With CSV
 DELIMITER ';' HEADER QUOTE '"' FORCE QUOTE * ENCODING 'win1251'
 '''
 

@@ -36,18 +36,18 @@ class InvCalc(RestTask):
         mo_code = current_app.config['STUB_MO_CODE']
         wc= 0
         cwd = self.catalog('', 'reestr', 'calc')
-        with SqlProvider(self.sql_srv) as db:
+        with SqlProvider(self.sql_srv) as sql:
             try:
                 # PMU
                 if self.pack_type == 6:
                     return self.resp('', 'Расчет услуг не реализован', True)
 
                 rc, res = calc_inv(
-                    current_app,  db, args['smo'], month, year, pack_type)
+                    current_app,  sql, args['smo'], month, year, pack_type)
                 if  not res:
                     return self.abort(400, config.FAIL[rc])
                 wc, xreestr = exp_inv(
-                    current_app, db, mo_code,
+                    current_app, sql, mo_code,
                     args['smo'], month, year, pack_type, cwd, '_calc')
 
             except Exception as e:

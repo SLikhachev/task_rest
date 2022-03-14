@@ -5,6 +5,8 @@ import psycopg2
 # Postgres Sql PROVIDER
 class SqlProvider(object):
 
+    SET_SCHEMA = 'SET SCHEMA %s'
+
     def __init__(self, sql_srv: dict):
         dbc = sql_srv or {}
         try:
@@ -15,13 +17,18 @@ class SqlProvider(object):
                 user=dbc['user'],
                 password=dbc['password']
             )
-        except KeyError as e:
-            raise AttributeError(f'Inavalid DBC {e}')
-        except psycopg2.Error as e:
-            raise EnvironmentError(f"Can't connect to DB {e}")
+        except KeyError as kex:
+            raise AttributeError(f'Inavalid DBC {kex}') from kex
+        except psycopg2.Error as pex:
+            raise EnvironmentError(f"Can't connect to DB {pex}") from pex
+        self.schema=dbc['schema']
+        self.inv_table = ''
 
     def __enter__(self):
-        return self.db
+        return self
 
     def __exit__(self, type, value, traceback):
         self.db.close()
+
+    def init_db(self, curs):
+        curs.execute(SqlProvider.SET_SCHEMA, (self.schema,))

@@ -58,13 +58,13 @@ class MoveMek(RestTask):
         if self.target_month <= self.month:
             return self.abort(400, f'Переносить МЭК можно только вперед')
 
-        with SqlProvider(self.sql_srv) as db:
+        with SqlProvider(self.sql_srv) as sql:
             try:
-                rc= move_mek(db, self.this_year, self.month, self.target_month)
+                rc= move_mek(sql, self.this_year, self.month, self.target_month)
             except Exception as e:
                 raise e
                 return self.abort(500, f'Ошибка переноса МЭК {e}')
-        
+
         if not bool(rc):
             return self.resp('',
                 f'Нет МЭКов за {self.month_str()}', False)
@@ -76,8 +76,9 @@ class MoveMek(RestTask):
     # export to csv task
     def get(self):
 
-        with SqlProvider(self.sql_srv) as db:
-            qurs= db.cursor()
+        with SqlProvider(self.sql_srv) as sql:
+            qurs= sql.db.cursor()
+            sql.init_db(qurs)
             ar= self.year-2000
             qurs.execute(config.COUNT_MEK, (ar, self.month))
             mc= qurs.fetchone()
@@ -86,13 +87,13 @@ class MoveMek(RestTask):
                 qurs.close()
                 return self.resp('',
                     f'Нет записей с МЭК за месяц {self.month_str()}', True)
-        
+
             mc= mc[0]
             cwd = self.catalog('', 'reestr', 'mek')
             df= str(datetime.now()).split(' ')[0]
             filename= f"MEK_{df}_{get_name_tail(4)}.csv"
             file = os.path.join(cwd, filename)
-        
+
             _q= config.MEK_FILE % file
             # actually
             _q = f'{config.TO_CSV}{_q}'

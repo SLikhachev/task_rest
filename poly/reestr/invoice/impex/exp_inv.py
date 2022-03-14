@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 import psycopg2
 import psycopg2.extras
+from psycopg2 import sql
 from flask import g
 from openpyxl import load_workbook
 from openpyxl.styles import Border, Side, colors
@@ -117,11 +118,12 @@ def for_foms(dex, rc):
     return d
 
 
-def data_source_init(db, is_calc):
+def data_source_init(pdb, is_calc):
     global sn
-    sn.qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    sn.qurs = pdb.db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     if len(is_calc) == 0:
-        _data = config.COUNT_INV
+        #_data = config.COUNT_INV
+        _data = sql.SQL(config.COUNT_INV_TMP).format(pdb.inv_table)
     else:
         _data= config.COUNT_MO
     sn.qurs.execute(_data)
@@ -131,10 +133,11 @@ def data_source_init(db, is_calc):
     sn.qurs.close()
     return False
 
-def data_source_get(is_calc):
+def data_source_get(pdb, is_calc):
     global sn
     if len(is_calc) == 0:
-        _data = config.GET_ROW_INV
+        #_data = config.GET_ROW_INV
+        _data = sql.SQL(config.GET_ROW_INV_TMP).format(pdb.inv_table)
     else:
         _data= config.GET_ROW_MO
     sn.qurs.execute(_data)
@@ -146,8 +149,13 @@ def data_source_close():
 
 
 def exp_inv(
+    app: object, pdb: object,
+    mo_code: str, smo: int,
+    month: str, year: str, typ: int,
+    inv_path: str, is_calc='' ): # -> (int, str):
+    """
         app: object, # current app object
-        db: object, # db connection
+        pdb: object, # sql context manager
         mo_code: str, # long MO_CODE i.e 250796
         smo: int, # int (0,  25011, 25016 )
         month: str, #str(2) 01..12
@@ -156,10 +164,10 @@ def exp_inv(
         inv_path: str, # path to the data folder
         is_calc='' # flag str if not empty then self calculated reestr
     ): # -> (int, str):
-
+    """
     global sn
 
-    if not data_source_init(db, is_calc):
+    if not data_source_init(pdb, is_calc):
         return (0, '')
 
     m= int(month)
@@ -205,7 +213,7 @@ def exp_inv(
     #irang=21 # 21 cells in row
     dc= 0
 
-    for row in data_source_get(is_calc):
+    for row in data_source_get(pdb, is_calc):
 
         data = extract(row)
         if smo == 0:
