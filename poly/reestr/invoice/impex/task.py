@@ -36,7 +36,7 @@ class InvImpex(RestTask):
             csmo = False
             pack_type = args['pack']
         except Exception as e:
-            return self.abort(400, f'{e}')
+            return self.abort(400, f'Impex args parser: {e}')
 
         file = args['files'][0]  # only first FileStorage
         filename = secure_filename(file.filename)

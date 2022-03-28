@@ -3,11 +3,11 @@
 FROM python:3.6-slim-buster as build
 
 RUN apt-get update \
-    && apt-get -y install gcc libpq-dev 
+    && apt-get -y install gcc libpq-dev
 
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"    
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -35,6 +35,6 @@ COPY . /opt/venv/app
 ENV PATH="/opt/venv/bin:$PATH"
 EXPOSE 8787
 
-CMD ["gunicorn", "--conf", "gunicorn_conf.py", "--bind", "0.0.0.0:8787",  "main:app"]
+CMD ["gunicorn", "--conf", "dgunicorn_conf.py", "--bind", "0.0.0.0:8787",  "main:app"]
 
 

@@ -89,7 +89,7 @@ def get_talon(qurs, tal_num):
     qurs.execute(sn.talon, (tal_num,))
     return qurs.fetchone()
 
-def write_error(qurs, res):
+def write_error(qurs, res, cuser):
     global sn
     tal = get_talon(qurs, res[0][0])
     if tal is None:
@@ -105,7 +105,8 @@ def write_error(qurs, res):
             en= enr[0]
 
         qurs.execute( config.WRITE_ERROR,
-            ( tal.tal_num,  tal.open_date, tal.close_date, tal.crd_num, tal.fam, err[2], str(en) )
+            (tal.tal_num, tal.open_date, tal.close_date, tal.crd_num, tal.fam,
+            err[2], str(en), cuser )
         )
     return tal
 
@@ -115,20 +116,17 @@ def mark_talons(qurs):
         qurs.execute(sn.mark, (t,))
     sn.Terr.clear()
 
-def geterrs(fd: object, sql_srv: dict, year: str, ignore: tuple, errors='ignore'):#  -> int:
+def geterrs(
+    fd: object, sql: dict,
+    mo_code: str, year: str, month: str,
+    ignore: tuple, errors='ignore'):#  -> int:
 
     global sn
 
-    with SqlProvider(sql_srv) as sql:
+    with SqlProvider(sql, mo_code, year, month) as _sql:
 
-        qurs = sql.db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-        sql.init_db(qurs)
-        qurs.execute(config.TRUNCATE_ERROR)
-        sql.db.commit()
-
-        tal_tbl= 'talonz_clin_%s' % year
-        sn.talon= config.GET_TALON % (tal_tbl, 'cardz_clin') + config.TAL
-        sn.mark= config.MARK_TALON % tal_tbl + '%s;'
+        sn.talon= config.GET_TALON % ( _sql.talon_tbl, 'cardz_clin') + config.TAL
+        sn.mark= config.MARK_TALON % _sql.talon_tbl + '%s;'
 
         context = ET.iterparse(fd, events=("start", "end"))
         event, root = next(context)
@@ -139,14 +137,14 @@ def geterrs(fd: object, sql_srv: dict, year: str, ignore: tuple, errors='ignore'
                 root = elem
                 res = process(root, ignore, errors)
                 if res is not None:
-                    _ = write_error(qurs, res)
+                    _ = write_error(_sql.qurs, res, _sql.cuser)
                     cnt += 1
                 root.clear()
 
-        mark_talons(qurs)
+        mark_talons(_sql.qurs)
 
-        sql.db.commit()
-        qurs.close()
+        _sql._db.commit()
+        _sql.qurs.close()
 
     return cnt
 

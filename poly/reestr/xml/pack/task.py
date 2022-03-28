@@ -36,12 +36,12 @@ class MakeXml(RestTask):
         try:
             args = parser.parse_args()
         except Exception as e:
-            return self.abort(400, f'{e}')
+            return self.abort(400, f'Pack args parser: {e}')
         cfg = bcfg(
-            SQL=self.sql_provider, # String
+            SQL_PROVIDER=self.sql_provider, # String
             SQL_SRV=self.sql_srv, # dict
             YEAR = args['month'][0], #String
-            BASE_XML_DIR=self.catalog('BASE_XML_DIR')
+            BASE_XML_DIR=self.catalog('BASE_XML_DIR'),
         )
         try:
             xml = BarsXml(

@@ -39,20 +39,20 @@ def create_app(site_dir, static_dir, config_class=Config):
 
     from poly.utils import bp as utils_bp
     app.register_blueprint(utils_bp)
-    
-    from poly.report import bp as report_bp
-    app.register_blueprint(report_bp)
+
+    #from poly.report import bp as report_bp
+    #app.register_blueprint(report_bp)
 
     from poly.reestr import bp as reestr_bp
     app.register_blueprint(reestr_bp)
 
     #from poly.clinic import bp as clinic_bp
     #app.register_blueprint(clinic_bp)
-    
+
     #from poly.sprav import bp as sprav_bp
     #app.register_blueprint(sprav_bp)
-    
+
     return app
-    
-    
+
+
 

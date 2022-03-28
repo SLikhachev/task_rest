@@ -1,5 +1,5 @@
 
-TRUNCATE_ERROR= 'DELETE FROM vmx_errors WEHRE true;'
+ERRORS_TABLE_NAME= 'vmx_errors'
 
 GET_TALON= '''
 SELECT
@@ -10,8 +10,8 @@ TAL= ' WHERE tal.tal_num=%s AND tal.crd_num=crd.crd_num;'
 
 WRITE_ERROR= '''
 INSERT INTO vmx_errors
-(tal_num, open_date, close_date, crd_num, fam, error, cmt) VALUES
-(%s, %s, %s, %s, %s, %s, %s);
+(tal_num, open_date, close_date, crd_num, fam, error, cmt, cuser) VALUES
+(%s, %s, %s, %s, %s, %s, %s, %s);
 '''
 
 GET_ERROR_NAME='''

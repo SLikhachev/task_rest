@@ -17,6 +17,4 @@ api.add_resource(ListDir, '/listdir/<path:dir>/<path:subdir>', endpoint='list_di
 api.add_resource(TakeFile,
      '/file/<path:dir>/<path:subdir>',
      '/file/<path:dir>/<path:subdir>/<path:filename>',
-    
-   
     endpoint='take_file')

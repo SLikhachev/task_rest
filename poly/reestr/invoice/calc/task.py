@@ -31,7 +31,7 @@ class InvCalc(RestTask):
             pack_type = args['pack']
             year, month = args['month']
         except Exception as e:
-            return self.abort(400, f'{e}')
+            return self.abort(400, f'Icalc args parser: {e}')
 
         mo_code = current_app.config['STUB_MO_CODE']
         wc= 0

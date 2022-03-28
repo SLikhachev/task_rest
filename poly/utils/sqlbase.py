@@ -1,34 +1,27 @@
 
-import psycopg2
-
+#import psycopg2
+from barsxml.sql import get_sql_provider
 
 # Postgres Sql PROVIDER
 class SqlProvider(object):
 
-    SET_SCHEMA = 'SET SCHEMA %s'
-
-    def __init__(self, sql_srv: dict):
-        dbc = sql_srv or {}
-        try:
-            self.db = psycopg2.connect(
-                port=dbc.get('port', 5432),
-                host=dbc.get('host', 'localhost'),
-                dbname=dbc['dbname'],
-                user=dbc['user'],
-                password=dbc['password']
-            )
-        except KeyError as kex:
-            raise AttributeError(f'Inavalid DBC {kex}') from kex
-        except psycopg2.Error as pex:
-            raise EnvironmentError(f"Can't connect to DB {pex}") from pex
-        self.schema=dbc['schema']
+    def __init__(self, config, mo_code, year, month):
+        """ init """
+        """ get provider class """
+        self.SQL_PROVIDER= config['provider']
+        self.SQL_SRV = config
+        self.ERRORS_TABLABLE_NAME = config['errors_table']
+        self.mo_code = mo_code
+        self.year = year
+        self.month = month
         self.inv_table = ''
 
     def __enter__(self):
-        return self
+        self.sql = get_sql_provider(self).SqlProvider(
+            self, self.mo_code, self.year, self.month
+        )
+        return self.sql
 
     def __exit__(self, type, value, traceback):
-        self.db.close()
+        self.sql.close()
 
-    def init_db(self, curs):
-        curs.execute(SqlProvider.SET_SCHEMA, (self.schema,))

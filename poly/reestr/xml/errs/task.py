@@ -28,12 +28,13 @@ class ErrsXml(RestTask):
     def __init__(self):
         super().__init__()
         self.cwd = self.catalog('', 'reestr', 'vmx')
+        self.sql_srv['errors_table'] = config.ERRORS_TABLE_NAME
 
     def post(self):
         try:
             args = parser.parse_args()
         except Exception as e:
-            return self.abort(400, f'{e}')
+            return self.abort(400, f'Errs args parser: {e}')
 
         file = args['files'][0] # only first FileStorage
         filename = secure_filename(file.filename)
@@ -41,17 +42,20 @@ class ErrsXml(RestTask):
             return self.abort(400, f"Допустимое расширение имени файла .xml {filename}")
 
         fname = self.parse_fname(filename, 'errs')
-        if len(fname) == 0:
-            return self.abort(400, f"Имя файла не соответствует шаблону: {filename}")
-        _, _, _, ar, _ =  fname
+        if isinstance(fname, str):
+            return self.abort(400, fname)
+        mo_code, _, _, ar, month =  fname
 
         sf= stmp(dir=self.cwd)
         up_file = os.path.join(sf.name, filename)
         file.save(up_file)
 
         try:
-            rc= geterrs(up_file, self.sql_srv, ar, ('824',), 'ignore')
+            rc= geterrs(
+                up_file, self.sql_srv, mo_code, ar, month, ('824',), 'ignore'
+            )
         except Exception as e:
+            raise e
             return self.abort(500, f"Ошибка при обработке файла {filename}: {e}")
         else:
             return self.resp(filename,
@@ -60,22 +64,22 @@ class ErrsXml(RestTask):
             sf.cleanup()
 
     def get(self):
-
-        with SqlProvider(self.sql_srv) as sql:
-            qurs= sql.db.cursor()
-            sql.init_db(qurs)
-            qurs.execute(config.COUNT_ERRORS)
-            rc= qurs.fetchone()
+        mo_code, year, month = ('000000', '2020', '12')
+        with SqlProvider(self.sql_srv, mo_code, year, month) as _sql:
+            _sql.qurs.execute(config.COUNT_ERRORS)
+            rc= _sql.qurs.fetchone()
 
             if not bool(rc[0]):
                 return self.resp('', "Нет принятых ошибок", False)
 
             df= str(datetime.now()).split(' ')[0]
             filename= f"ERR_{df}_{get_name_tail(5)}.csv"
+            os.chdir(str(self.cwd))
             _file = os.path.join(self.cwd, filename)
+
             try:
-                qurs.execute(config.TO_CSV % _file)
+                _sql.qurs.execute(config.TO_CSV % _file)
             except Exception as e:
-                return self.abort(500, f"Не удалось сформировать файл ошибокю {e}")
+                return self.abort(500, f"Не удалось сформировать файл ошибок: {e}")
 
         return self.resp(_file, "Посдение ошибки", True)
