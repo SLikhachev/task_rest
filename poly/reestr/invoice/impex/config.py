@@ -13,6 +13,7 @@ FAIL= ('Неверный код МО', 'Тип счета не поддержи�
 SET_META= '''INSERT INTO invoice_meta( lpu, smo, yar, mon, typ )
 VALUES ( %s, %s, %s, %s, %s );
 '''
+ERRORS_TABLE_NAME= 'None'
 
 INVOICE='''
 (n_zap int primary key,

@@ -3,35 +3,40 @@
 
 import os, types
 #from collections import defaultdict
-import psycopg2
-import psycopg2.extras
+#import psycopg2
+#import psycopg2.extras
 from psycopg2 import sql
 from openpyxl import load_workbook
 #from openpyxl.compat import range
 from openpyxl.styles import Border, Side, colors
-from flask import g
+#from flask import g
 from poly.utils.files import get_name_tail
 from poly.reestr.invoice.impex.exp_inv import get_mo_smo_name
 from poly.reestr.invoice.impex import config
 
 sn = types.SimpleNamespace()
 
-def data_source_init(pdb):
-    global sn
-    sn.qurs = pdb.db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
 
-def data_source_get(pdb):
+def data_source_init(_sql):
     global sn
-    sn.qurs.execute(sql.SQL(config.GET_USL_TMP).format(pdb.usl_table))
+    sn.qurs = _sql.qurs
+    assert hasattr(_sql, 'usl_table'), f'Экспорт услуг: имя таблицы не определено'
+
+
+def data_source_get(_sql):
+    global sn
+    sn.qurs.execute(sql.SQL(config.GET_USL_TMP).format(_sql.usl_table))
     return sn.qurs.fetchall()
 
+
 def data_source_close():
-    global sn
-    sn.qurs.close()
+    #global sn
+    #sn.qurs.close()
+    pass
 
 
 def exp_usl(
-    app: object, pdb: object, mo_code, smo: int, month: str, year: str, inv_path: str
+    app: object, _sql: object, mo_code, smo: int, month: str, year: str, inv_path: str
     ):# -> (int, str):
 
     global sn
@@ -63,11 +68,11 @@ def exp_usl(
     cnt = 21
     rc = 1
 
-    data_source_init(pdb)
-    mo_name, smo_name = get_mo_smo_name(sn, mo_code, smo, config)
+    data_source_init(_sql)
+    _, smo_name = get_mo_smo_name(sn, mo_code, smo, config)
     sheet['B15'].value = '%s   %s' % (period, smo_name)
 
-    for row in data_source_get(pdb):
+    for row in data_source_get(_sql):
 
         data = ( row.code_usl, row.name,  row.tarif, row.kol_usl, row.kol_usl*row.tarif)
         for xrow in range(cnt, cnt+1):

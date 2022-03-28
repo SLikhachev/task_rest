@@ -62,17 +62,18 @@ class InvImpex(RestTask):
         wc = 0
         dc = rc = (0, 0)
         try:
-            with SqlProvider(self.sql_srv) as sql:
-                rc, res= imp_inv(up_file, sql, pack_type, ar) # returns either invoice or usl data
+            with SqlProvider(self.sql_srv, mo_code, self.year, self.month ) as _sql:
+                # returns either invoice or usl data
+                rc, res= imp_inv(up_file, _sql, pack_type, ar)
                 if not res:
                     return self.exit(self.abort, 400 , config.FAIL[ rc[0]])
 
                 if pack_type == 6:
                     wc, xreestr = exp_usl(
-                        current_app, sql, mo_code, self.smo, self.month, self.year, self.cwd)
+                        current_app, _sql, mo_code, self.smo, self.month, self.year, self.cwd)
                 else:
                     wc, xreestr= exp_inv(
-                        current_app, sql, mo_code, self.smo, self.month, self.year, pack_type, self.cwd)
+                        current_app, _sql, mo_code, self.smo, self.month, self.year, pack_type, self.cwd)
                     if csmo and wc > 0:
                         pass
                         #dc= correct_ins(self.smo, self.month, self.year)

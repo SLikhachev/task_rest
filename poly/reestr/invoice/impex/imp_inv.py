@@ -75,7 +75,7 @@ def set_mek(ar):
         mr += 1
     return mr
 
-def imp_inv(zipfile: str, pdb: object, typ: int, ar: str): # -> tuple
+def imp_inv(zipfile: str, _sql: object, typ: int, ar: str): # -> tuple
     # zipfile - file to process
     # pdb - data base context manager
     # typ - invoice type
@@ -109,10 +109,9 @@ def imp_inv(zipfile: str, pdb: object, typ: int, ar: str): # -> tuple
 
     # import PMUs with tarifs
     if typ == 6:
-        return imp_usl(_hm, pdb)
+        return imp_usl(_hm, _sql)
 
-    sn.qurs = pdb.db.cursor()
-    pdb.init_db(sn.qurs)
+    sn.qurs = _sql.qurs
     sn.inv_table = tmp_table_name()
     create= sql.SQL(config.CREATE_TBL_INV).format(sn.inv_table)
     sn.qurs.execute(create)
@@ -126,17 +125,17 @@ def imp_inv(zipfile: str, pdb: object, typ: int, ar: str): # -> tuple
     # ---------------------------------------------
     for (f, r) in ( (_hm, sn.zap), (_lm, sn.pers)):
         zp_xml(f, r)
-        pdb.db.commit()
+        _sql._db.commit()
 
     mek= set_mek(ar)
-    pdb.db.commit()
+    _sql._db.commit()
     count= sql.SQL(config.COUNT_INV_TMP).format(sn.inv_table)
     sn.qurs.execute(count)
     rc= sn.qurs.fetchone()
 
-    sn.qurs.close()
+    #sn.qurs.close()
 
     os.remove(_hm)
     os.remove(_lm)
-    pdb.inv_table = sn.inv_table
+    setattr(_sql, 'inv_table', sn.inv_table)
     return ((rc[0], mek), True) if bool(rc) and len(rc) > 0 else ((2, 0), False)

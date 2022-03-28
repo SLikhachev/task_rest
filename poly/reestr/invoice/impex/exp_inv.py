@@ -118,44 +118,47 @@ def for_foms(dex, rc):
     return d
 
 
-def data_source_init(pdb, is_calc):
+def data_source_init(_sql, is_calc):
+
     global sn
-    sn.qurs = pdb.db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    sn.qurs = _sql.qurs
+
+    assert hasattr(_sql, 'inv_table'), f'Экспорт реестра: имя таблицы не определено'
     if len(is_calc) == 0:
         #_data = config.COUNT_INV
-        _data = sql.SQL(config.COUNT_INV_TMP).format(pdb.inv_table)
+        _data = sql.SQL(config.COUNT_INV_TMP).format(_sql.inv_table)
     else:
         _data= config.COUNT_MO
     sn.qurs.execute(_data)
     rc= sn.qurs.fetchone()
     if bool(rc[0]):
         return True
-    sn.qurs.close()
+    #sn.qurs.close()
     return False
 
-def data_source_get(pdb, is_calc):
+def data_source_get(_sql, is_calc):
     global sn
     if len(is_calc) == 0:
         #_data = config.GET_ROW_INV
-        _data = sql.SQL(config.GET_ROW_INV_TMP).format(pdb.inv_table)
+        _data = sql.SQL(config.GET_ROW_INV_TMP).format(_sql.inv_table)
     else:
         _data= config.GET_ROW_MO
     sn.qurs.execute(_data)
     return sn.qurs.fetchall()
 
 def data_source_close():
-    global sn
-    sn.qurs.close()
-
+    #global sn
+    #sn.qurs.close()
+    pass
 
 def exp_inv(
-    app: object, pdb: object,
+    app: object, _sql: object,
     mo_code: str, smo: int,
     month: str, year: str, typ: int,
     inv_path: str, is_calc='' ): # -> (int, str):
     """
         app: object, # current app object
-        pdb: object, # sql context manager
+        _sql: object, # sql context manager
         mo_code: str, # long MO_CODE i.e 250796
         smo: int, # int (0,  25011, 25016 )
         month: str, #str(2) 01..12
@@ -167,7 +170,7 @@ def exp_inv(
     """
     global sn
 
-    if not data_source_init(pdb, is_calc):
+    if not data_source_init(_sql, is_calc):
         return (0, '')
 
     m= int(month)
@@ -213,7 +216,7 @@ def exp_inv(
     #irang=21 # 21 cells in row
     dc= 0
 
-    for row in data_source_get(pdb, is_calc):
+    for row in data_source_get(_sql, is_calc):
 
         data = extract(row)
         if smo == 0:
