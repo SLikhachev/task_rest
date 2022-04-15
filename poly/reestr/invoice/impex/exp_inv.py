@@ -64,7 +64,7 @@ def extract(row):
     d[15] = row.prvs
     d[16] = price = row.sumv
     #d[17] = row.foms_price
-    if row.sank_it:
+    if row.sump == 0.00:
         #price -= row.sank_it
         if price:
             d[5]= 'МЭК'

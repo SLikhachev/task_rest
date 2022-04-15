@@ -1,15 +1,23 @@
-#import pytest
+import pytest
 from pathlib import Path
+
+
+@pytest.fixture
+def fname():
+    return 'HM250796S25011_22037964.zip'
+
+@pytest.fixture
+def invf(fname):
+    return Path(__file__).parent / 'files' / fname
 
 
 def test_create(app):
     assert app.testing
 
 
-def test_inv_imp_app(client):
+def test_inv_imp_app(client, invf, fname):
+    """ testing import ambulance invoice file """
 
-    fname = 'HM250796S25011_22027963.zip'
-    invf = Path(__file__).parent / 'files' / fname
     resp = client.post('/reestr/inv/impex', data={
         'pack':1,
         'files': (open(invf, 'rb'), fname)
@@ -22,10 +30,9 @@ def test_inv_imp_app(client):
         print(f'{k}: {v}')
 
 
-def test_inv_imp_usl(client):
+def test_inv_imp_usl(client, invf, fname):
+    """ testing import ambulance invoice file as USL table """
 
-    fname = 'HM250796S25011_22027963.zip'
-    invf = Path(__file__).parent / 'files' / fname
     resp = client.post('/reestr/inv/impex', data={
         'pack':6,
         'files': (open(invf, 'rb'), fname)
@@ -38,10 +45,9 @@ def test_inv_imp_usl(client):
         print(f'{k}: {v}')
 
 
-def test_inv_imp_foms(client):
+def test_inv_imp_foms(client, invf, fname):
+    """ testing import ambulance invoice file for TFOMS """
 
-    fname = 'HM250796T25_22027961.zip'
-    invf = Path(__file__).parent / 'files' / fname
     resp = client.post('/reestr/inv/impex', data={
         'pack':1,
         'files': (open(invf, 'rb'), fname)

@@ -16,7 +16,7 @@ sn= types.SimpleNamespace(
         ('z_sl', (
             'usl_ok', 'vidpom', 'for_pom', 'date_z_1', 'date_z_2', 'rslt', 'ishod',
             ('sl', ( 'profil', 'nhistory', 'ds1', 'prvs',)),
-            'idsp', 'sumv', 'sank_it',
+            'idsp', 'sumv', 'sump',
         ))
     ),
 
@@ -54,26 +54,34 @@ def zp_xml(xml: str, tags: tuple):
         rec= list()
 
         if elem.tag not in sn.zp_tags:
+            # skip non ZAP tags
             continue
         get_zp(elem, tags, rec)
         set_zp(rec, elem.tag)
 
-def set_mek(ar):
+def set_mek(_ar):
     # ar - 2 last digits of year
     global sn
     # set mek flag
-    sn.qurs.execute(config.GET_MEK_TABLE, ( int(ar),) )
-    t= sn.qurs.fetchone()
-    if t is None:
+    sn.qurs.execute(config.GET_MEK_TABLE, ( int(_ar),) )
+    _t = sn.qurs.fetchone()
+    if _t is None:
         return 0
-    mr = 0
-    sn.qurs.execute(sql.SQL(config.GET_MEK_TMP).format(sn.inv_table))
+    mekr, mekw = 0, 0
+    set_mek= (config.SET_MEK % _ar) + '%s;'
 
-    set_mek= (config.SET_MEK % ar) + '%s;'
+    sn.qurs.execute(sql.SQL(config.GET_MEK_TMP).format(sn.inv_table))
     for row in sn.qurs.fetchall():
-        sn.qurs.execute(set_mek, row)
-        mr += 1
-    return mr
+        # read mek
+        mekr += 1
+        try:
+            sn.qurs.execute(set_mek, row)
+            # write mek
+            mekw += 1
+        except Exception as _exc:
+            raise _exc
+
+    return mekr, mekw
 
 def imp_inv(zipfile: str, _sql: object, typ: int, ar: str): # -> tuple
     # zipfile - file to process
@@ -127,7 +135,9 @@ def imp_inv(zipfile: str, _sql: object, typ: int, ar: str): # -> tuple
         zp_xml(f, r)
         _sql._db.commit()
 
-    mek= set_mek(ar)
+    mekr, mekw = set_mek(ar)
+    print(f'MEK invoice: {mekr} talonz: {mekw}')
+
     _sql._db.commit()
     count= sql.SQL(config.COUNT_INV_TMP).format(sn.inv_table)
     sn.qurs.execute(count)
@@ -138,4 +148,4 @@ def imp_inv(zipfile: str, _sql: object, typ: int, ar: str): # -> tuple
     os.remove(_hm)
     os.remove(_lm)
     setattr(_sql, 'inv_table', sn.inv_table)
-    return ((rc[0], mek), True) if bool(rc) and len(rc) > 0 else ((2, 0), False)
+    return ((rc[0], mekw), True) if bool(rc) and len(rc) > 0 else ((2, 0), False)
