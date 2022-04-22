@@ -6,3 +6,5 @@ static/logging/
 static/pkg/
 instance/
 *.komodoproject
+*.target
+*.service

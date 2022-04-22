@@ -1,1 +1,1 @@
-gunicorn --conf gunicorn_conf.py --bind 0.0.0.0:8787 main:app
+gunicorn --conf gunicorn.conf.py
