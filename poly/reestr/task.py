@@ -43,7 +43,7 @@ class RestTask(Resource):
 
     def dispatch_request(self, *args, **kwargs):
         role = cuser = None
-        if self.sql_srv.get('dbauth', False):
+        if self.sql_srv.get('dbauth', 'no') == 'yes':
             # may be authorized request
             if request.authorization:
                 # check request

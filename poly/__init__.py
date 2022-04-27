@@ -28,7 +28,11 @@ def create_app(site_dir, static_dir, config_class=Config):
     xmldir = Path(app.config['UPLOAD_FOLDER'])
     app.config['BASE_XML_DIR'] = xmldir / 'reestr'
 
-    log_file = os.path.join(static_dir, app.config['LOGGING_FOLDER'], 'applog.log')
+    if app.config.get('LOGGING_FOLDER', None):
+        log_file = os.path.join(app.config['LOGGING_FOLDER'], 'applog.log')
+    else:
+        log_file = os.path.join(static_dir, 'logs', 'applog.log')
+
     file_handler = logging.FileHandler(log_file)
     console_handler = logging.StreamHandler()
     file_handler.setLevel(logging.DEBUG)
