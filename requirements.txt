@@ -1,6 +1,8 @@
 Flask==2.0.2
 Flask-RESTful==0.3.9
 openpyxl==3.0.9
-psycopg2-binary>=2.8,<2.9
-requests
+psycopg2-binary==2.9.2
+requests==2.27.1
+pytest==6.2.5
+pytest-env
 gunicorn==20.1.0

@@ -1,10 +1,11 @@
+import os
 import pytest
 from pathlib import Path
 
 
 @pytest.fixture
 def fname():
-    return 'HM250796S25011_22037964.zip'
+    return os.getenv('BARS_INVOICE_FILE') or ''
 
 @pytest.fixture
 def invf(fname):

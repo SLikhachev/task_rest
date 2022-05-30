@@ -1,4 +1,5 @@
 #import pytest
+import os
 from pathlib import Path
 
 
@@ -7,10 +8,13 @@ def test_create(app):
 
 
 def test_calc(client):
+    test_year = os.getenv('TEST_YEAR') or '2021'
+    test_month = os.getenv('TEST_MONTH') or '11'
+    month = f'{test_year}-{test_month}'
     resp = client.post('/reestr/inv/calc', data={
        'pack': 1,
        'smo': '25011',
-       'month': '2021-11',
+       'month': month,
     })
     assert resp.status_code == 200
     assert resp.headers.get('Content-Type') == 'application/json'
