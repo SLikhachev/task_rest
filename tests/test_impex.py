@@ -9,7 +9,7 @@ def fname():
 
 @pytest.fixture
 def invf(fname):
-    return Path(__file__).parent / 'files' / fname
+    return Path(__file__).parent / 'data' / fname
 
 
 def test_create(app):

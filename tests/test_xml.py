@@ -31,7 +31,7 @@ def test_xml_pack(client):
 
 def test_xml_errf(client):
     fname = os.getenv('BARS_ERR_FILE') or ''
-    errf = Path(__file__).parent / 'files' / fname
+    errf = Path(__file__).parent / 'data' / fname
     resp = client.post('/reestr/xml/errf', data={
         'ptype':1,
         'files': (open( errf, 'rb'), fname)
