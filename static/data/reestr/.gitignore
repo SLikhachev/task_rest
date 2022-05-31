@@ -1,10 +1,8 @@
-calc/
-dbf/
-inv/
-~inv/tpl/
-mek/
-vmx/
-xml/
+calc/*.xlsx
+inv/*.xlsx
+mek/*.csv
+vmx/*.*
+xml/*.*
 
 
 
