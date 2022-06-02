@@ -22,7 +22,10 @@ def create_app(site_dir, static_dir, config_class=Config):
         instance_relative_config=True
     )
     app.config.from_object(config_class)
-    app.config.from_pyfile('config.py')
+    if env == 'production':
+        app.config.from_pyfile('config_prod.py')
+    else:
+        app.config.from_pyfile('config_dev.py')
 
     app.config['UPLOAD_FOLDER'] = os.path.join(static_dir, app.config['DATA_FOLDER'])
     xmldir = Path(app.config['UPLOAD_FOLDER'])
