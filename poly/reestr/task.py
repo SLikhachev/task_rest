@@ -43,13 +43,22 @@ class RestTask(Resource):
 
     def dispatch_request(self, *args, **kwargs):
         role = cuser = None
+
+        dev = os.getenv('FLASK_ENV')
+        if dev == 'development':
+            auth=os.getenv('DB_AUTH')
+            user=os.getenv('USER')
+            webuser=os.getenv('WEBUSER')
+            print(f'auth: {auth}, user: {user}, webuser: {webuser}')
+
         if self.sql_srv.get('dbauth', 'no') == 'yes':
             # may be authorized request
-            if request.authorization:
-                # check request
+            auth_hdr=request.headers.get('Authorization', None)
+            if auth_hdr is not None :
+                # check auth header
                 secret= current_app.config.get('JWT_TOKEN_SECRET', '')
                 status, role, cuser = parse_jwt_token(
-                request.authorization.to_header(), secret
+                    auth_hdr, secret
                 )
                 if status != 200:
                     response = make_response(self.role)
@@ -59,6 +68,8 @@ class RestTask(Resource):
         self.sql_srv['provider'] = self.sql_provider
         self.sql_srv['role']=role
         self.sql_srv['cuser']=cuser
+        if dev == 'development':
+            print(f'role: {role}, user: {cuser}')
         return super().dispatch_request(*args, **kwargs)
 
     def options(self, *args, **kwargs):
