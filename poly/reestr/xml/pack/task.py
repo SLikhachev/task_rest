@@ -37,6 +37,7 @@ class MakeXml(RestTask):
             args = parser.parse_args()
         except Exception as e:
             return self.abort(400, f'Pack args parser: {e}')
+        #print(self.sql_srv)
         cfg = bcfg(
             SQL_PROVIDER=self.sql_provider, # String
             SQL_SRV=self.sql_srv, # dict

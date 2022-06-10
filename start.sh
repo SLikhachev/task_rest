@@ -1,1 +1,1 @@
-gunicorn --conf gunicorn.conf.py
+gunicorn --conf gunicorn.local.conf.py
