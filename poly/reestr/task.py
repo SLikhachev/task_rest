@@ -38,8 +38,7 @@ class RestTask(Resource):
         self.sql_provider = current_app.config['SQL_PROVIDER']
         # dict
         self.sql_srv = current_app.config[self.sql_provider.upper()]
-        #self.role = ''
-        #self.user = ''
+
 
     def dispatch_request(self, *args, **kwargs):
         role = cuser = None
@@ -62,9 +61,10 @@ class RestTask(Resource):
                     auth_hdr, secret
                 )
                 if status != 200:
-                    response = make_response(self.role)
+                    response = make_response(role)
                     response.status = status
                     return response
+
         # ordinal requst
         self.sql_srv['provider'] = self.sql_provider
         self.sql_srv['role']=role
