@@ -39,41 +39,41 @@ class RestTask(Resource):
         # dict
         self.sql_srv = current_app.config[self.sql_provider.upper()]
 
-
     def dispatch_request(self, *args, **kwargs):
-        role = cuser = None
-        auth=os.getenv('DB_AUTH', 'no')
-        user=os.getenv('USER', 'user')
-        webuser=os.getenv('WEBUSER', 'webuser')
+
+        if request.method not in ['GET', 'POST']:
+            return super().dispatch_request(*args, **kwargs)
+
+        role = user = None
+        auth=os.getenv('DB_AUTH')
+        secret=os.getenv('JWT_TOKEN_SECRET')
 
         dev = os.getenv('FLASK_ENV')
         if dev == 'development':
-            print(f'auth: {auth}, user: {user}, webuser: {webuser}')
+            print(f'dev auth: {auth}, secret: {secret}')
 
         #if self.sql_srv.get('dbauth', 'no') == 'yes':
-        if auth == 'yes':
+        if auth == 'yes' and secret is not None:
             # may be authorized request
-            auth_hdr=request.headers.get('Authorization', None)
-            if auth_hdr is not None :
-                # check auth header
-                secret= os.getenv('JWT_TOKEN_SECRET', 'no_secret_token_defined')
-                status, role, cuser = parse_jwt_token(
-                    auth_hdr, secret
-                )
-                if status != 200:
-                    response = make_response(role)
-                    response.status = status
-                    return response
+            status, role, user = parse_jwt_token(
+                request.headers.get('Authorization', None),
+                secret
+            )
+            # check status
+            if status != 200:
+                response = make_response(role)
+                response.status = status
+                return response
 
-        # ordinal requst
+        # ordinal request
         self.sql_srv['provider'] = self.sql_provider
         self.sql_srv['role']=role
-        self.sql_srv['cuser']=cuser
+        self.sql_srv['cuser']=user
         if dev == 'development':
-            print(f'role: {role}, user: {cuser}')
+            print(f'dev role: {role}, user: {user}')
         return super().dispatch_request(*args, **kwargs)
 
-    def options(self, *args, **kwargs):
+    def options(self):
         """ return respose to OPTIONS request """
         response = make_response()
         response.headers['Access-Control-Allow-Origin'] = '*'

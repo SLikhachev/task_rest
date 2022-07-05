@@ -4,6 +4,7 @@ __pycache__/
 logs/
 static/logging/
 static/pkg/
+static/data
 instance/
 *.komodoproject
 *.target
