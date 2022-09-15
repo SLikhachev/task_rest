@@ -105,7 +105,7 @@ class RestTask(Resource):
         return  os.path.join(current_app.config[base], *args)
 
 
-    def parse_fname(self, _name: str, _type: str) -> Tuple[str] | str:
+    def parse_fname(self, _name: str, _type: str) -> Tuple[str]:
         """ @param: _name: name of the file
             @param: _type: key in fnames dict ('errs', 'invs')
             return tuple of (
