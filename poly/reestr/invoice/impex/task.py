@@ -1,3 +1,4 @@
+""" defines import export invoice's files class """
 
 import os
 from tempfile import TemporaryDirectory as stmp
@@ -7,12 +8,11 @@ from werkzeug import datastructures
 from flask_restful import reqparse
 from poly.utils.sqlbase import SqlProvider
 from poly.reestr.task import RestTask
-from poly.reestr.invoice.impex.imp_inv import imp_inv
-from poly.reestr.invoice.impex.exp_usl import exp_usl
-from poly.reestr.invoice.impex.exp_inv import exp_inv
-#from poly.reestr.invoice.impex.correct_ins import correct_ins
 from poly.reestr.invoice.impex import config
 from poly.utils.files import allowed_file
+from .import_invoice import XmlImport
+from .export_invoice import SqlExportInvoice
+from .export_pmus import SqlExportPmus
 
 
 parser = reqparse.RequestParser()
@@ -26,17 +26,20 @@ parser.add_argument('files', required=True, type=datastructures.FileStorage,
 #csmo = bool(request.form.get('csmo', 0))
 
 class InvImpex(RestTask):
+    """ class def """
 
     def __init__(self):
         super().__init__()
 
+    # upload file
     def post(self):
         try:
             args = parser.parse_args()
+            #correct SMO flag not used here
             csmo = False
             pack_type = args['pack']
-        except Exception as e:
-            return self.abort(400, f'Impex args parser: {e}')
+        except Exception as exc:
+            return self.abort(400, f'Неверные параметры запроса: {exc}')
 
         file = args['files'][0]  # only first FileStorage
         filename = secure_filename(file.filename)
@@ -47,50 +50,65 @@ class InvImpex(RestTask):
         if len(fname) == 0:
             return self.abort(400, f"Имя файла не соответствует шаблону: {filename}")
 
-        mo_code, lpu, self.smo, ar, self.month = fname
+        mo_code, _, self.smo, _ar, self.month = fname
         if mo_code not in current_app.config['MOS'].keys():
+            """ in the moment the 'mo_code' must be key in config dict kind of
+                MOS: {'250999': ('3334445556667',)}
+                where keys: mo_code, values: tuple('MO OGRN',)
+            """
             return self.abort(400, f"Код МО: {mo_code}, не зарегистрирован")
 
-        self.year= f'20{ar}'
+        self.year= f'20{_ar}'
 
         # save file to disk
         self.cwd = self.catalog('', 'reestr', 'inv')
-        self.sf = stmp(dir=self.cwd)
-        up_file = os.path.join(self.sf.name, filename)
+        self._tmp_dir = stmp(dir=self.cwd)
+        up_file = os.path.join(self._tmp_dir.name, filename)
         file.save(up_file)
 
-        wc = 0
-        dc = rc = (0, 0)
+        self._year = _ar
+        self.mo_code= mo_code
+
         try:
-            with SqlProvider(self.sql_srv, mo_code, self.year, self.month ) as _sql:
-                # returns either invoice or usl data
-                rc, res= imp_inv(up_file, _sql, pack_type, ar)
-                if not res:
-                    return self.exit(self.abort, 400 , config.FAIL[ rc[0]])
+            with SqlProvider(self) as _sql:
 
-                if pack_type == 6:
-                    wc, xreestr = exp_usl(
-                        current_app, _sql, mo_code, self.smo, self.month, self.year, self.cwd)
-                else:
-                    wc, xreestr= exp_inv(
-                        current_app, _sql, mo_code, self.smo, self.month, self.year, pack_type, self.cwd)
-                    if csmo and wc > 0:
-                        pass
-                        #dc= correct_ins(self.smo, self.month, self.year)
-        except Exception as e:
-            raise e
-            return self.exit(self.abort, 500, f"Ошибка сервера: {e}")
+                # import either patients or pmus, as of the pack_type
+                _import = XmlImport(_sql, up_file, pack_type, _ar)
+                imp_recs, done= _import.invoice()
+                if not done:
+                    return self.exit(self.abort, 400 , config.FAIL[ imp_recs[0]])
 
-        #os.chdir(catalog)
-        #sf.cleanup()
-        return self.exit(self.resp, xreestr,
-            f"Счет {filename}. Записей в счете {rc[0]}, (МЭК {rc[1]}), \
-          записей в реестре {wc}.", True)
+                # export DB table to xlsx
+                exp_recs, _reestr= self.export(_sql, pack_type, mo_code)
+                if exp_recs < 0:
+                    # error of
+                    return self.exit(self.resp, '', _reestr, False)
+        except Exception as exc:
+            raise exc
+            #return self.exit(self.abort, 500, f"Ошибка сервера: {e}")
+
+        return self.exit(self.resp, _reestr,
+            f"Счет {filename}. Записей в счете {imp_recs[0]}, (МЭК {imp_recs[1]}),\
+            записей в реестре {exp_recs}.", True)
+
+
+    def export(self, sql, pack_type, mo_code):
+        if pack_type == 6:
+            return SqlExportPmus(
+                current_app, sql, mo_code, self.smo,
+                self.month, self.year, 6, self.cwd
+            ).export()
+
+        return SqlExportInvoice(
+            current_app, sql, mo_code, self.smo,
+            self.month, self.year, pack_type, self.cwd
+        ).export()
+
 
     def exit(self, fn, *args):
         os.chdir(self.cwd)
-        self.sf.cleanup()
+        self._tmp_dir.cleanup()
         return fn(*args)
 
     def get(self):
-        raise NotImplemented
+        raise NotImplemented("Метод не реализован")

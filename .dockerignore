@@ -6,9 +6,9 @@
 *.bat
 *.sh
 *.komodoproject
-web.*
 *.web
 *.yml
+web.*
 static/db_data/
 static/sql/
 

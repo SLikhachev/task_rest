@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS errors_bars(
 
 create index errors_bars_num on errors_bars(num)
 
-pg_dump -t errors_bars -U postgres -d hokuto > errors_bars.sql
+pg_dump -t errors_bars -U postgres -d db > errors_bars.sql

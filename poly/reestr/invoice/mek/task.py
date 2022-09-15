@@ -44,6 +44,7 @@ class MoveMek(RestTask):
             vals = parser.parse_args()
             self.year, self.month = vals['month']
             _, self.target_month = vals['target']
+            self._year = self.year[2:]
             self.year = int(self.year)
             self.month= self.month_val(self.month)
             self.target_month = self.month_val(self.target_month)
@@ -59,7 +60,7 @@ class MoveMek(RestTask):
         if self.target_month <= self.month:
             return self.abort(400, f'Переносить МЭК можно только вперед')
 
-        with SqlProvider(self.sql_srv, self.mo_code, self.year, self.month) as _sql:
+        with SqlProvider(self) as _sql:
             try:
                 rc= move_mek(_sql, self.this_year, self.month, self.target_month)
             except Exception as e:
@@ -77,7 +78,7 @@ class MoveMek(RestTask):
     # export to csv task
     def get(self):
 
-        with SqlProvider(self.sql_srv, self.mo_code, self.year, self.month) as _sql:
+        with SqlProvider(self) as _sql:
             ar= self.year-2000
             _sql.qurs.execute(config.COUNT_MEK, (ar, self.month))
             mc= _sql.qurs.fetchone()

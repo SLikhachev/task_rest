@@ -45,8 +45,11 @@ def calc_row(row: tuple):#  -> tuple:
     # row: NamedTuple
     tarif, summa, event = sn._tarif.set_data(row).process()
     mek= 1.00 if row.mek else 0.00
+    spolis = row.spolis
+    if not spolis:
+        spolis = ''
     return (
-        row.n_zap, row.id_pac, row.spolis, row.npolis,
+        row.n_zap, row.id_pac, spolis, row.npolis,
         row.usl_ok, vidpom(row), row.for_pom,
         row.date_z_1, row.date_z_2, row.rslt, row.ishod,
         row.profil, row.nhistory, row.ds1, row.prvs, idsp(row),
@@ -65,7 +68,10 @@ def calc_inv(app: object, _sql: object, smo: int, month: str, year: str, typ: in
 
     sn.inv_table = tmp_table_name()
     create= sql.SQL(imp_conf.CREATE_TBL_INV).format(sn.inv_table)
+    insert_zap = sql.SQL(imp_conf.INS_MO_TMP).format(sn.inv_table)
     _sql.qurs.execute(create)
+
+
     lpu_code = app.config.get('LPU_CODE', ()) # sort code
     sn._tarif= Tarif(_sql, lpu_code, year )
 
@@ -77,7 +83,7 @@ def calc_inv(app: object, _sql: object, smo: int, month: str, year: str, typ: in
     rc= 0
     for row in _sql.qurs.fetchall():
         res= calc_row(row)
-        _sql.qurs1.execute(imp_conf.INS_MO, res)
+        _sql.qurs1.execute(insert_zap, res)
         rc += 1
 
     _sql._db.commit()

@@ -4,7 +4,7 @@ https://github.com/postgrespro/pg_probackup
 
 https://github.com/postgrespro/pg_probackup/blob/master/Documentation.md
 
-only vanilla exe was worked 
+only vanilla exe was worked
 
 --- INIT and SETTINGS
 
@@ -12,7 +12,7 @@ pg_probackup init -B C:\Users\Public\znap\db_backup\pg_backup\
 
 pg_probackup add-instance -B C:\Users\Public\znap\db_backup\pg_backup -D C:/"Program Files"/PostgreSQL/9.6/data/ --instance znap
 
-makes it in hokuto db
+makes it in name db
 BEGIN;
 CREATE ROLE backup WITH LOGIN;
 GRANT USAGE ON SCHEMA pg_catalog TO backup;
@@ -40,10 +40,10 @@ ALTER ROLE backup WITH REPLICATION;
 -- add to pg_hba_conf --
 host    replication    backup        127.0.0.1/32            md5
 
--- set in postgresql.conf -- 
-wal_level = replica	
+-- set in postgresql.conf --
+wal_level = replica
 archive_mode = on
-archive_command = 'pg_probackup archive-push -B E:\pgsql\pg_backup\ --instance znap --wal-file-path=%p --wal-file-name=%f'		
+archive_command = 'pg_probackup archive-push -B E:\pgsql\pg_backup\ --instance znap --wal-file-path=%p --wal-file-name=%f'
 ==============================================
 
 now we can makes ARCHIVE backup
@@ -54,7 +54,7 @@ pg_probackup backup -B  E:\pgsql\pg_backup\ --instance znap -b FULL
 
 VERIFY copy
 -------------------------------------------------
-pg_probackup checkdb -B E:\pgsql\pg_backup\ --instance znap 
+pg_probackup checkdb -B E:\pgsql\pg_backup\ --instance znap
 ========================================
 
 RESTORING a Cluster
@@ -77,7 +77,7 @@ CREATE EXTENSION amcheck;
 =================================================
 
 
-Additional settings for backup MAKE IT BOFORE FIRST BACKUP 
+Additional settings for backup MAKE IT BOFORE FIRST BACKUP
 ---------------------------------------------------------
 Install extension amcheck or amcheck_next in every database of the cluster:
 
@@ -131,7 +131,7 @@ RESTORE
 
 pg_probackup restore -B backup_dir --instance instance_name -i backup_id
 
-DELETE 
+DELETE
 
 pg_probackup delete -B E:\pgsql\pg_backup --instance znap -i Q2A1CV
 

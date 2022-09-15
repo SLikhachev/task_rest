@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(
-    name="medstat",
+    name="task_rest",
     packages=["poly"],
     include_package_data=True,
     install_requires=[

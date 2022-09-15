@@ -1,3 +1,5 @@
+""" create Flask applcation fn """
+
 import os
 from pathlib import Path
 import logging
@@ -22,11 +24,14 @@ def create_app(site_dir, static_dir, config_class=Config):
         instance_relative_config=True
     )
     app.config.from_object(config_class)
+
+    # import configs from instance
     if env == 'production':
         app.config.from_pyfile('config_prod.py')
     else:
         app.config.from_pyfile('config_dev.py')
 
+    # folder for files aupload (errors, invoice)
     app.config['UPLOAD_FOLDER'] = os.path.join(static_dir, app.config['DATA_FOLDER'])
     xmldir = Path(app.config['UPLOAD_FOLDER'])
     app.config['BASE_XML_DIR'] = xmldir / 'reestr'
@@ -44,18 +49,23 @@ def create_app(site_dir, static_dir, config_class=Config):
     app.logger.addHandler(file_handler)
     app.logger.addHandler(console_handler)
 
+    # http GET for file download
     from poly.utils import bp as utils_bp
     app.register_blueprint(utils_bp)
 
+    # --- reports don't served now ---
     #from poly.report import bp as report_bp
     #app.register_blueprint(report_bp)
 
+    # REST reestr only
     from poly.reestr import bp as reestr_bp
     app.register_blueprint(reestr_bp)
 
+    # --- clinic don't served now ---
     #from poly.clinic import bp as clinic_bp
     #app.register_blueprint(clinic_bp)
 
+    # --- sprav don't served now ---
     #from poly.sprav import bp as sprav_bp
     #app.register_blueprint(sprav_bp)
 

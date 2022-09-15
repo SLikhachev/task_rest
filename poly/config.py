@@ -2,7 +2,9 @@
 class BaseConfig(object):
 
     'Base config class'
+    # rewrite in instance
     SECRET_KEY =  'Rwhbye6453mnlkhgtfbdl8893kbctrwmhmfytrbvxzds'
+
     DEBUG = True
     TESTING = True
     DATA_FOLDER = 'data'

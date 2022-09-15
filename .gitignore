@@ -1,5 +1,6 @@
 .idea/
 .vscode/
+.pytest_cache/
 __pycache__/
 logs/
 static/logging/
@@ -9,3 +10,10 @@ instance/
 *.komodoproject
 *.target
 *.service
+*.sh
+*.bat
+*.conf.py
+pytest_hokuto.ini
+pytest_zero.ini
+pytest_zero_auth.py
+

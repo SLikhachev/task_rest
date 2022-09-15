@@ -1,11 +1,11 @@
+""" definition of the xml maker class """
 
-from types import SimpleNamespace as bcfg
 from flask_restful import reqparse, inputs
 from barsxml.xmlprod.barsxml import BarsXml
 from poly.reestr.task import RestTask
 from poly.utils.fields import month_field
 
-
+# def requests args
 parser = reqparse.RequestParser(bundle_errors=True)
 #parser.add_argument('db_srv', type=inputs.url, default=None)
 parser.add_argument('mo_code', required=False, default='250796',
@@ -32,39 +32,39 @@ class MakeXml(RestTask):
     def __init__(self):
         super().__init__()
 
+
     def post(self):
         try:
             args = parser.parse_args()
-        except Exception as e:
-            return self.abort(400, f'Pack args parser: {e}')
-        #print(self.sql_srv)
-        cfg = bcfg(
-            SQL_PROVIDER=self.sql_provider, # String
-            SQL_SRV=self.sql_srv, # dict
-            YEAR = args['month'][0], #String
-            BASE_XML_DIR=self.catalog('BASE_XML_DIR'),
-        )
+        except Exception as exc:
+            return self.abort(400, f'Неверный запрос: {exc}')
+
         try:
-            xml = BarsXml(
-                cfg, args['type'], # String
+            self.year = args['month'][0] #String
+            self.base_xml_dir=self.catalog('BASE_XML_DIR')
+            # init XmlReporter class
+            xml = BarsXml(self,
+                args['type'], # String
                 args['mo_code'], #String
                 args['month'][1], #String
                 args['pack_num'] #Int
             )
-            ph, lm, file, errors = xml.make_xml(
+
+            # call main method
+            _ph, _lm, file, errors = xml.make_xml(
                args['sent'], args['fresh'], args['check']
             )
-        except Exception as e:
-            #raise e
-            return self.abort(500, e)
+        except Exception as exc:
+            raise exc
+            return self.abort(500, exc)
 
-        z= f'H записей: {ph}, L записей: {lm}. '
-        e = ''
+        rslt = f'H записей: {_ph}, L записей: {_lm}. '
+        error_msg = ''
         if args['check']: file = ''
         done = True
         if errors > 0:
-            e = f'НАЙДЕНО ОШИБОК: {errors}. '
+            error_msg = f'НАЙДЕНО ОШИБОК: {errors}. '
             done = False
             # file -> zip if check is False else error_pack.csv
 
-        return self.resp(file, f'{z} {e}', done)
+        return self.resp(file, f'{rslt} {error_msg}', done)

@@ -126,6 +126,7 @@ INS_INV= f'{_INS_INV}{_DATA_HM}'
 INS_INV_TMP = f'{_INS} {{}} {_DATA_HM}'
 
 INS_MO= f'{_INS_MO}{_DATA_MO}'
+INS_MO_TMP = f'{_INS} {{}} {_DATA_MO}'
 
 INS_USL= f'{_INS_USL}{_DATA_USL}'
 INS_USL_TMP= f'{_INS} {{}} {_DATA_USL}'

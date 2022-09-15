@@ -13,26 +13,26 @@ from poly.reestr.invoice.impex import config as imp_cfg
 from poly.reestr.invoice.tarif import config as tarif_config
 from poly.reestr.invoice.calc import config
 
-def calc_pmu(app: object, insurer: str, month: str, yar: str, typ: int, inv_path: str) -> (int, str):
-    
+def calc_pmu(app: object, insurer: str, month: str, yar: str, typ: int, inv_path: str) -> tuple:
+
     qonn= app.config.db()
     qurs = qonn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-    
+
     tpl= imp_cfg.TYPE[typ-1][2]
     sh1 = 'Лист1'
     xtpl = f'{tpl}.xlsx'
-    xlr = os.path.join(inv_path, 'tpl', xtpl)   
+    xlr = os.path.join(inv_path, 'tpl', xtpl)
     xout = f'{tpl}_0{insurer}_{month}-{yar}.xlsx'
-    
+
     mon= int(month)
     smo= int(insurer)
-    
-    xlw = os.path.join(inv_path, xout)   
+
+    xlw = os.path.join(inv_path, xout)
     year= f'20{yar}'
     period = 'За %s %s года' % (app.config['MONTH'][mon-1], year)
-    
+
     mo_name, smo_name = get_mo_smo_name(app, qurs, insurer, imp_cfg)
-    
+
     wb = load_workbook(filename = xlr)
     wb.active
     sheet = wb[sh1]
@@ -44,7 +44,7 @@ def calc_pmu(app: object, insurer: str, month: str, yar: str, typ: int, inv_path
         top=Side(border_style='thin', color=colors.BLACK),
         bottom=Side(border_style='thin', color=colors.BLACK)
     )
-    
+
     get_talon = config.GET_TALON
     get_code = config.GET_CODE
 
@@ -62,7 +62,7 @@ def calc_pmu(app: object, insurer: str, month: str, yar: str, typ: int, inv_path
         qurs.close()
         qonn.close()
         return 0, ''
-        
+
     get_tarif= config.GET_TARIF % tarif_config.VZAIMO_PMU_TABLE[1]
     qurs.execute(get_tarif)
     tarif = {}
@@ -79,7 +79,7 @@ def calc_pmu(app: object, insurer: str, month: str, yar: str, typ: int, inv_path
         if usl is not None:
             price= usl[0]
             _name= usl[1]
-        
+
         #data = [ code, name, price, kol, kol*price ]
         kol = codes[code]
         data = ( code, _name,  price, kol, kol*price)
@@ -87,9 +87,9 @@ def calc_pmu(app: object, insurer: str, month: str, yar: str, typ: int, inv_path
             for xcol in range(1, 6):
                 c = sheet.cell(column=xcol, row=xrow, value= data[ xcol-1 ])
                 c.border = border
-        cnt += 1  
+        cnt += 1
         rc += 1
-    
+
     for xcol in range(1, 6):
         val=''
         if xcol==1:
@@ -102,10 +102,10 @@ def calc_pmu(app: object, insurer: str, month: str, yar: str, typ: int, inv_path
             val=f'=SUM(E21:E{cnt-1})'
         c = sheet.cell(column=xcol, row=cnt, value= val)
         c.border = border
-    
+
     sheet.cell(column=2, row=cnt+4, value= "Генеральный директор")
     sheet.cell(column=3, row=cnt+4, value= "ДЕНИСОВА С. А.")
-    sheet.cell(column=2, row=cnt+6, value= "Исполнитель   202-51-45   Чамбайшин Ю.А.")	
+    sheet.cell(column=2, row=cnt+6, value= "Исполнитель   202-51-45   Чамбайшин Ю.А.")
 
     wb.save(xlw)
     wb.close()
