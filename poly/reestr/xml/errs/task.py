@@ -11,7 +11,7 @@ from flask import current_app
 from werkzeug import datastructures
 from werkzeug.utils import secure_filename
 from poly.utils.sqlbase import SqlProvider
-from poly.reestr.task import RestTask
+from poly.task import RestTask
 from poly.reestr.xml.errs. sqlerrs import XmlErrors
 from poly.utils.files import allowed_file, get_name_tail
 from poly.reestr.xml.errs import config

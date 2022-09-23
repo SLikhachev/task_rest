@@ -2,7 +2,7 @@
 
 from psycopg2 import sql as psy_sql
 from poly.reestr.invoice.impex import config
-from .export_invoice import SqlExport
+from poly.reestr.invoice.impex.export_invoice import SqlExport
 
 
 class SqlExportPmus(SqlExport):

@@ -2,7 +2,7 @@
 
 from flask_restful import reqparse, inputs
 from barsxml.xmlprod.barsxml import BarsXml
-from poly.reestr.task import RestTask
+from poly.task import RestTask
 from poly.utils.fields import month_field
 
 # def requests args

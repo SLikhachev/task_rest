@@ -49,6 +49,10 @@ def create_app(site_dir, static_dir, config_class=Config):
     app.logger.addHandler(file_handler)
     app.logger.addHandler(console_handler)
 
+    # --- test api ---
+    from poly.test import bp as test_bp
+    app.register_blueprint(test_bp)
+
     # http GET for file download
     from poly.utils import bp as utils_bp
     app.register_blueprint(utils_bp)

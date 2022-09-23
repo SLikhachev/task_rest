@@ -3,7 +3,7 @@
 from typing import List, Tuple, NamedTuple
 from collections import namedtuple
 #import psycopg2
-import psycopg2.extras
+#import psycopg2.extras
 import xml.etree.cElementTree as ET
 from poly.utils.sqlbase import SqlProvider
 from poly.reestr.xml.errs import config
