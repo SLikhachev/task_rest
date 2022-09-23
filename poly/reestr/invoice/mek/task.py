@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import current_app
 from flask_restful import reqparse
 from poly.utils.sqlbase import SqlProvider
-from poly.reestr.task import RestTask
+from poly.task import RestTask
 from poly.utils.fields import month_field
 from poly.utils.files import get_name_tail
 from poly.reestr.invoice.mek import config
