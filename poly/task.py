@@ -55,6 +55,10 @@ class RestTask(Resource):
         if request.method not in ['GET', 'POST']:
             return super().dispatch_request(*args, **kwargs)
 
+        #print(f'root: {request.root_path}, path: {request.path}')
+        if request.path.startswith('/test'):
+            return super().dispatch_request(*args, **kwargs)
+
         role = user = None
 
         # authorize user with DB
