@@ -18,7 +18,7 @@ class XmlImport:
             @param: zipfile: str - abs path to the zip file of invoice
             @param: sql: context manager of the DB SqlProvider
             @praram: typ: int type of the invoce
-            @param: _ar: str 2 last digits of year
+            @param: _ar: str 2 last digits of the year
 
         """
         zip_fwd= Path(zipfile)
@@ -33,7 +33,7 @@ class XmlImport:
 
         self.zap= (
             'n_zap',
-            ('pacient', ('id_pac', 'spolis', 'npolis' ),),
+            ('pacient', ('id_pac', 'spolis', 'npolis', 'enp' ),),
             ('z_sl', (
                 'usl_ok', 'vidpom', 'for_pom', 'date_z_1', 'date_z_2', 'rslt', 'ishod',
                 ('sl', ( 'profil', 'nhistory', 'ds1', 'prvs',)),
@@ -93,6 +93,8 @@ class XmlImport:
 
         self.qurs.execute(config.GET_MEK_TABLE, ( int(self._ar),) )
         _t = self.qurs.fetchone()
+
+        # mek is not processed yet (not in if)
         if not _t is None:
             return 0, 0
         mek_read, mek_write = 0, 0

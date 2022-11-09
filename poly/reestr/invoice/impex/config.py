@@ -24,6 +24,7 @@ INVOICE='''
 id_pac int,
 spolis varchar(10),
 npolis varchar(16),
+enp varchar(16),
 usl_ok int,
 vidpom int,
 for_pom int,
@@ -73,12 +74,12 @@ _INS_USL= f'{_INS} {_USL}'
 
 # insert data definition to invoice table
 _DATA_HM= '''(
-    "n_zap", "id_pac", "spolis", "npolis",
+    "n_zap", "id_pac", "spolis", "npolis", "enp",
     "usl_ok", "vidpom", "for_pom", "date_z_1", "date_z_2", "rslt", "ishod",
     "profil", "nhistory", "ds1", "prvs",
     "idsp", "sumv", "sump"
 ) VALUES (
-    %s, %s, %s, %s,
+    %s, %s, %s, %s, %s,
     %s, %s, %s, %s, %s, %s, %s,
     %s, %s, %s, %s,
     %s, %s, %s
@@ -86,13 +87,13 @@ _DATA_HM= '''(
 
 # insert data definition to self calculated MO table
 _DATA_MO= '''(
-    n_zap, id_pac, spolis, npolis,
+    n_zap, id_pac, spolis, npolis, enp,
     usl_ok, vidpom, for_pom, date_z_1, date_z_2, rslt, ishod,
     profil, nhistory, ds1, prvs,
     idsp, sumv, sump,
     fam, im, ot, w, dr
 ) VALUES (
-    %s, %s, %s, %s,
+    %s, %s, %s, %s, %s,
     %s, %s, %s, %s, %s, %s, %s,
     %s, %s, %s, %s,
     %s, %s, %s,

@@ -124,11 +124,11 @@ class SqlExportInvoice(SqlExport):
     def extract_for_smo(self, row: NamedTuple) -> list:
         """ make the xlsx's row list for the SMO invoice's reestr"""
         prop = lambda attr: getattr(row, attr, '')
-        sprop = lambda attr: getattr(row, attr, ' ')
-        fst = lambda attr: sprop(attr)[0].upper()
+        sprop = lambda attr: getattr(row, attr, '  ')
+        fst = lambda attr: sprop(attr)[0].upper() if sprop(attr) else ''
         _d = [ '' for _ in range(20)]
         _d[0] = prop('nhistory')
-        _d[1] = f"{sprop('fam')} {fst('im')}. {fst('ot')}.)"
+        _d[1] = f"{sprop('fam')} {fst('im')}. {fst('ot')}."
         _d[2] = prop('w')
         _d[3] = prop('dr')
         #d[4] = ''
@@ -136,7 +136,7 @@ class SqlExportInvoice(SqlExport):
         #docnum = row.docnum or ' '
         #d[5] = '%s %s' % (docser, docnum)
         #d[6], d[7], d[8] = '', '', ''
-        _d[9] = f"{prop('spolis') or ''} {prop('npolis')}"
+        _d[9] = f"{prop('spolis')} {prop('npolis')} {prop('enp')}"
         #''.join(i for i in row.p_num if i.isdigit())
         # re.sub("\D", "", )
         _d[10] = prop('vidpom')
@@ -255,7 +255,13 @@ class SqlExportInvoice(SqlExport):
 
         for row in self.select_export_data():
 
-            data = self.extract_for_smo(row)
+            try:
+                data = self.extract_for_smo(row)
+            except Exception as _ex:
+                print(_ex)
+                print(row)
+                raise _ex
+
             if self.smo == 0:
                 data = self.extarct_for_foms(data, rc_total)
 
