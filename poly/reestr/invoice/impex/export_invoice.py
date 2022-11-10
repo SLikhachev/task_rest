@@ -136,7 +136,7 @@ class SqlExportInvoice(SqlExport):
         #docnum = row.docnum or ' '
         #d[5] = '%s %s' % (docser, docnum)
         #d[6], d[7], d[8] = '', '', ''
-        _d[9] = f"{prop('spolis')} {prop('npolis')} {prop('enp')}"
+        _d[9] = f"{prop('spolis')} {prop('npolis') or prop('enp')}"
         #''.join(i for i in row.p_num if i.isdigit())
         # re.sub("\D", "", )
         _d[10] = prop('vidpom')
