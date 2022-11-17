@@ -49,7 +49,7 @@ def calc_row(row: tuple):#  -> tuple:
     if not spolis:
         spolis = ''
     return (
-        row.n_zap, row.id_pac, spolis, row.npolis,
+        row.n_zap, row.id_pac, spolis, row.npolis, row.npolis,
         row.usl_ok, vidpom(row), row.for_pom,
         row.date_z_1, row.date_z_2, row.rslt, row.ishod,
         row.profil, row.nhistory, row.ds1, row.prvs, idsp(row),
