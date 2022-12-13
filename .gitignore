@@ -5,7 +5,7 @@ __pycache__/
 logs/
 static/logging/
 static/pkg/
-static/data
+static/data/
 instance/
 *.komodoproject
 *.target
@@ -15,5 +15,5 @@ instance/
 *.conf.py
 pytest_hokuto.ini
 pytest_zero.ini
-pytest_zero_auth.py
+pytest_zero_auth.ini
 

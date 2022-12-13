@@ -1,6 +1,0 @@
-
-pg_dump -U postgres -d dbname -t talonz_clin_20 -t para_clin_20 > tal_para_20.sql
-
-pg_dump -a -t cardz_clin -t talonz_clin_19 -t para_clin_19  -U postgres -d dbname > crd_tal_para.sql
-
-psql -f tal_para_20.sql -d dbname -U postgres

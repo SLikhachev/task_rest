@@ -1,1 +1,0 @@
-pg_probackup backup -B E:\pgsql\pg_backup --instance znap -b FULL --stream --temp-slot
