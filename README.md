@@ -6,4 +6,4 @@
 разбора протоколов ошибок и  оформления реестров к счетам для страховых компаний.
 Использует фреймворк Flask. Приложение является частью проекта <a href="http://omslite.site" target=_blank>omslite</a>.
 
-Более подробное описание библиотеки находится <a href="https://docs.omslite.site/admin/task_rest/" target=_blank>по ссылке</a>.
+Более подробное описание приложения находится <a href="https://docs.omslite.site/admin/task_rest/" target=_blank>по ссылке</a>.
