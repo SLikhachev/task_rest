@@ -131,7 +131,8 @@ class RestTask(Resource):
             return m['mo_code'], m['lpu'], smo, \
                m['year'], m['month']
         except Exception as e:
-            return f'Имя {_name} не соответсвует шаблону: {e}'
+            return ''
+            #return f'Имя {_name} не соответсвует шаблону: {e}'
 
     def perf(self):
         return f'Время: {round( (perf_counter() - self.time1), 2)} cek.'
