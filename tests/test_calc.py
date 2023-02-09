@@ -8,8 +8,8 @@ def test_create(app):
 
 
 def test_calc(client):
-    test_year = os.getenv('TEST_YEAR') or '2021'
-    test_month = os.getenv('TEST_MONTH') or '11'
+    test_year = os.getenv('TEST_YEAR') or '2023'
+    test_month = os.getenv('TEST_MONTH') or '01'
     month = f'{test_year}-{test_month}'
     resp = client.post('/reestr/inv/calc', data={
        'pack': 1,

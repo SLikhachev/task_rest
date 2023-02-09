@@ -204,22 +204,20 @@ class SqlExportInvoice(SqlExport):
     def check_tables_exists(self):
         """ check DB tables for export exists"""
 
-        if len(self.calc) == 0:
-            _data = psy_sql.SQL(config.COUNT_INV_TMP).format(self.sql.inv_table)
-        else:
-            _data= config.COUNT_MO
+        _data = psy_sql.SQL(config.COUNT_INV_TMP).format(self.sql.inv_table)
+        if len(self.calc) > 0:
+            pass
+            #_data= config.COUNT_MO
         self.qurs.execute(_data)
         return True if self.qurs.fetchone() else False
 
 
     def select_export_data(self):
         """ select all from DB """
-
-        if len(self.calc) == 0:
-            #_data = config.GET_ROW_INV
-            _data = psy_sql.SQL(config.GET_ROW_INV_TMP).format(self.sql.inv_table)
-        else:
-            _data= config.GET_ROW_MO
+        _data = psy_sql.SQL(config.GET_ROW_INV_TMP).format(self.sql.inv_table)
+        if len(self.calc) > 0:
+            pass
+            #_data= config.GET_ROW_MO
         self.qurs.execute(_data)
         return self.qurs.fetchall()
 

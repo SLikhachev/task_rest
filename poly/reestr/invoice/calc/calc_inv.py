@@ -78,14 +78,20 @@ def calc_inv(app: object, _sql: object, smo: int, month: str, year: str, typ: in
     # 2. process table
     # ---------------------------------------------
     ya= int(year[2:])
+    print(f'year: {ya}')
     #so = int(smo) + 25000
-    _sql.qurs.execute(config.GET_SMO_AMBUL, ( ya, month, smo ))
+    # select all records ignore SMO
+    #row_query = config.GET_SMO_AMBUL % ( ya, int(month), smo )
+    row_query = config.GET_SMO_AMBUL % ( ya, int(month))
+    print(row_query)
+    _sql.qurs.execute(row_query)
     rc= 0
     for row in _sql.qurs.fetchall():
         res= calc_row(row)
         _sql.qurs1.execute(insert_zap, res)
         rc += 1
 
+    print(f'rows: {rc}')
     _sql._db.commit()
     #qurs1.execute(imp_conf.COUNT_MO)
     #rc= qurs.fetchone()
