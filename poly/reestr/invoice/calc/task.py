@@ -38,7 +38,6 @@ class InvCalc(RestTask):
         cwd = self.catalog('', 'reestr', 'calc')
 
         self._year = year[2:]
-        print(f'year {year}')
         with SqlProvider(self) as _sql:
             try:
                 # PMU
