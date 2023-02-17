@@ -1,6 +1,6 @@
 """ module defines the class to parse BARS errors file and fill the errors table"""
 
-import os
+import os, platform
 from types import SimpleNamespace as NS
 from datetime import datetime
 from tempfile import gettempdir
@@ -90,22 +90,17 @@ class ErrsXml(RestTask):
 
             _date = str(datetime.now()).split(' ')[0]
             filename= f"ERR_{_date}_{get_name_tail(5)}.csv"
-            #_file = os.path.join(self.cwd, filename)
-            # _sql.execute has not rights to write to cwd (as postgres user i believe)
-            # so write to /tmp
-            _src = os.path.join(gettempdir(), filename)
-
+            _dst = os.path.join(self.cwd, filename)
             try:
-                print(f'\n -- SRC FILE: {_src}\n')
-                _sql.qurs.execute(config.TO_CSV % _src)
-                _sql._db.commit()
-
-                assert Path(_src).exists(), 'Ошибка экспотра в CSV не сформирован файл ошибок'
-
-                #os.chdir(str(self.cwd))
-                _dst = os.path.join(self.cwd, filename)
+                with open(_dst, 'w', encoding='UTF8') as _file:
+                    _sql.qurs.copy_to(_file,
+                        config.VMX_TBL,
+                        config.VMX_SEP,
+                        config.VMX_NULL,
+                        config.VMX_COLS
+                    )
+                assert Path(_dst).exists(), 'Ошибка экспотра в CSV не сформирован файл ошибок'
                 print(f'\n -- DST FILE: {_dst}\n')
-                copyfile(_src, _dst)
             except Exception as exc:
                 return self.abort(500, f"Не удалось сформировать файл ошибок: {exc}")
 
