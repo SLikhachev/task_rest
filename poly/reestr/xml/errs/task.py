@@ -99,8 +99,10 @@ class ErrsXml(RestTask):
                 _sql.qurs.execute(config.TO_CSV % _src)
                 _sql._db.commit()
                 assert Path(_src).exists(), 'Ошибка экспотра в CSV не сформирован файл ошибок'
-                os.chdir(str(self.cwd))
+                print(f'\n -- SRC FILE: {_src}\n')
+                #os.chdir(str(self.cwd))
                 _dst = os.path.join(self.cwd, filename)
+                print(f'\n -- DST FILE: {_dst}\n')
                 copyfile(_src, _dst)
             except Exception as exc:
                 return self.abort(500, f"Не удалось сформировать файл ошибок: {exc}")
