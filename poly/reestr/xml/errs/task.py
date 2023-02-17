@@ -5,6 +5,7 @@ from types import SimpleNamespace as NS
 from datetime import datetime
 from tempfile import gettempdir
 from tempfile import TemporaryDirectory as stmp
+from pathlib import Path
 from shutil import copyfile
 from flask_restful import reqparse
 from flask import current_app
@@ -89,12 +90,16 @@ class ErrsXml(RestTask):
 
             _date = str(datetime.now()).split(' ')[0]
             filename= f"ERR_{_date}_{get_name_tail(5)}.csv"
-            #os.chdir(str(self.cwd))
             #_file = os.path.join(self.cwd, filename)
+            # _sql.execute has not rights to write to cwd (as postgres user i believe)
+            # so write to /tmp
             _src = os.path.join(gettempdir(), filename)
 
             try:
                 _sql.qurs.execute(config.TO_CSV % _src)
+                _sql._db.commit()
+                assert Path(_src).exists(), 'Ошибка экспотра в CSV не сформирован файл ошибок'
+                os.chdir(str(self.cwd))
                 _dst = os.path.join(self.cwd, filename)
                 copyfile(_src, _dst)
             except Exception as exc:

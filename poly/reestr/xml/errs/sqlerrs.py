@@ -64,12 +64,12 @@ class XmlErrors:
 
     def __init__(self,
         config: object,
-        err_file: object,
+        err_file: str,
         mo_code: str, _year: str, month: str,
         ignore: tuple, errors_action='ignore'):
         """
         @param: config: object of the DB config
-        @param: error_file: opened error file descriptor
+        @param: error_file: string (full path) name of the errors' xml file saved
         @param: mo_code: str(6) code of MO
         @param: _year: str(2)
         @param: month: str(2)
