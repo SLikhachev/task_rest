@@ -55,7 +55,7 @@ class ErrsXml(RestTask):
         _tmp_dir= stmp(dir=self.cwd)
         up_file = os.path.join(_tmp_dir.name, filename)
         file.save(up_file)
-
+        print(f'\n -- ERR_FILE: {up_file}\n')
         try:
             xml_errors = XmlErrors(self,
                 up_file, mo_code, _ar, month, ('824',), 'ignore'

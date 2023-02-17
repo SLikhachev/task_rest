@@ -94,6 +94,7 @@ class XmlErrors:
         self.mark_talon= None
 
         self.qurs= None
+        print(f'\n --- ERR_FILE: {self.err_file}\n')
 
 
     def process_zap(self, zap) -> List[Tuple]:
