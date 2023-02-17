@@ -96,10 +96,12 @@ class ErrsXml(RestTask):
             _src = os.path.join(gettempdir(), filename)
 
             try:
+                print(f'\n -- SRC FILE: {_src}\n')
                 _sql.qurs.execute(config.TO_CSV % _src)
                 _sql._db.commit()
+
                 assert Path(_src).exists(), 'Ошибка экспотра в CSV не сформирован файл ошибок'
-                print(f'\n -- SRC FILE: {_src}\n')
+
                 #os.chdir(str(self.cwd))
                 _dst = os.path.join(self.cwd, filename)
                 print(f'\n -- DST FILE: {_dst}\n')
