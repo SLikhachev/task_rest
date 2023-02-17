@@ -56,7 +56,7 @@ class ErrsXml(RestTask):
         _tmp_dir= stmp(dir=self.cwd)
         up_file = os.path.join(_tmp_dir.name, filename)
         file.save(up_file)
-        print(f'\n -- ERR_FILE: {up_file}\n')
+        #print(f'\n -- ERR_FILE: {up_file}\n')
         try:
             xml_errors = XmlErrors(self,
                 up_file, mo_code, _ar, month, ('824',), 'ignore'
@@ -100,7 +100,7 @@ class ErrsXml(RestTask):
                         config.VMX_COLS
                     )
                 assert Path(_dst).exists(), 'Ошибка экспотра в CSV не сформирован файл ошибок'
-                print(f'\n -- DST FILE: {_dst}\n')
+                #print(f'\n -- DST FILE: {_dst}\n')
             except Exception as exc:
                 return self.abort(500, f"Не удалось сформировать файл ошибок: {exc}")
 
