@@ -24,7 +24,10 @@ parser.add_argument('files', required=True, type=datastructures.FileStorage,
     location='files',  action='append',  help="{Нет файла счета}"
 )
 #correct SMO flag not used
-#csmo = bool(request.form.get('csmo', 0))
+parser.add_argument('csmo', type=bool, default=False, location='form')
+#set MEK column in talonz_table
+parser.add_argument('cmek', type=bool, default=False, location='form')
+
 
 class InvImpex(RestTask):
     """ class def """
@@ -36,9 +39,11 @@ class InvImpex(RestTask):
     def post(self):
         try:
             args = parser.parse_args()
-            #correct SMO flag not used here
-            csmo = False
             pack_type = args['pack']
+            #correct SMO flag not used yet
+            csmo = False
+            cmek = args['cmek']
+            print(f'MEK: {cmek}')
         except Exception as exc:
             return self.abort(400, f'Неверные параметры запроса: {exc}')
 
@@ -74,7 +79,7 @@ class InvImpex(RestTask):
             with SqlProvider(self) as _sql:
 
                 # import either patients or pmus, as of the pack_type
-                _import = XmlImport(_sql, up_file, pack_type, _ar)
+                _import = XmlImport(_sql, up_file, pack_type, _ar, cmek)
                 imp_recs, done= _import.invoice()
                 if not done:
                     return self.exit(self.abort, 400 , config.FAIL[ imp_recs[0]])

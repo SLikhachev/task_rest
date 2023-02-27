@@ -11,14 +11,15 @@ from poly.reestr.invoice.impex import config
 from poly.reestr.invoice.impex.utils import get_text, tmp_table_name
 
 
-class XmlImport:
+class XmlImport(object):
 
-    def __init__(self, sql: object, zipfile: str, typ: int, _ar: str):
+    def __init__(self, sql: object, zipfile: str, typ: int, _ar: str, cmek: bool):
         """
             @param: zipfile: str - abs path to the zip file of invoice
             @param: sql: context manager of the DB SqlProvider
             @praram: typ: int type of the invoce
             @param: _ar: str 2 last digits of the year
+            @param: cmek: bool if True set the MEK columnt in talon table
 
         """
         zip_fwd= Path(zipfile)
@@ -30,6 +31,7 @@ class XmlImport:
 
         self.typ = typ
         self._ar = _ar
+        self.cmek= cmek
 
         self.zap= (
             'n_zap',
@@ -94,20 +96,23 @@ class XmlImport:
         self.qurs.execute(config.GET_MEK_TABLE, ( int(self._ar),) )
         _t = self.qurs.fetchone()
 
-        # mek is not processed yet (not in if)
-        if not _t is None:
+        # mek is processed if talonz's table present in DB
+        if _t is None:
             return 0, 0
+
         mek_read, mek_write = 0, 0
-        set_mek= (config.SET_MEK % self._ar) + '%s;'
+        set_mek_query= (config.SET_MEK % self._ar) + '%s;'
 
         self.qurs.execute(psy_sql.SQL(config.GET_MEK_TMP).format(self.inv_table))
         for row in self.qurs.fetchall():
             # read mek
             mek_read += 1
             try:
-                self.qurs.execute(set_mek, row)
-                # write mek
-                mek_write += 1
+                # if cmek flag is set (checkbox in form) then set flag in talonz table
+                if self.cmek:
+                    self.qurs.execute(set_mek_query, row)
+                    # write mek
+                    mek_write += 1
             except Exception as exc:
                 raise exc
 
@@ -162,8 +167,8 @@ class XmlImport:
             self.parse_xml(file, record)
             self.sql._db.commit()
 
-        _, mekw = self.set_mek()
-        #print(f'MEK invoice: {mekr} talonz: {mekw}')
+        mekr, mekw = self.set_mek()
+        print(f'MEK invoice: {mekr} talonz: {mekw}')
 
         # set temp invoice table name for DB session
         setattr(self.sql, 'inv_table', self.inv_table)
