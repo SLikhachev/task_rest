@@ -19,7 +19,8 @@ def test_xml_pack(client):
        'pack': 1,
        'test': 0,
        'sent': 0,
-       'fresh': 0
+       'fresh': 0,
+       'sign': 1
     })
     assert resp.status_code == 200
     assert resp.headers.get('Content-Type') == 'application/json'
