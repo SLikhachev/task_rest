@@ -25,15 +25,20 @@ parser.add_argument('sent', type=inputs.boolean, default=False,
 # if FRESH is false ignore already sent and accepted talons and produce full pack
 parser.add_argument('fresh', type=inputs.boolean, default=False,
     location=('json', 'form'), help='{Fresh flag}')
+# if SIGN is true then sign each file in packet with private key
+parser.add_argument('sign', type=inputs.boolean, default=False,
+    location=('json', 'form'), help='{Sign flag}')
 
 
 class MakeXml(RestTask):
+    """ main class to make xml package """
 
     def __init__(self):
         super().__init__()
-
+        self.base_xml_dir=self.catalog('BASE_XML_DIR')
 
     def post(self):
+        """ POST request handler """
         try:
             args = parser.parse_args()
         except Exception as exc:
@@ -41,7 +46,6 @@ class MakeXml(RestTask):
 
         try:
             self.year = args['month'][0] #String
-            self.base_xml_dir=self.catalog('BASE_XML_DIR')
             # init XmlReporter class
             xml = BarsXml(self,
                 args['type'], # String
@@ -52,15 +56,16 @@ class MakeXml(RestTask):
 
             # call main method
             _ph, _lm, file, errors = xml.make_xml(
-               args['sent'], args['fresh'], args['check']
+               args['sent'], args['fresh'], args['check'], args['sign']
             )
         except Exception as exc:
             raise exc
-            return self.abort(500, exc)
+            #return self.abort(500, exc)
 
         rslt = f'H записей: {_ph}, L записей: {_lm}. '
         error_msg = ''
-        if args['check']: file = ''
+        if args['check']:
+            file = ''
         done = True
         if errors > 0:
             error_msg = f'НАЙДЕНО ОШИБОК: {errors}. '

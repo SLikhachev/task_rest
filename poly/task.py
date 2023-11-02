@@ -30,6 +30,7 @@ fnames= dict(
 )
 
 class RestTask(Resource):
+    """ class definition """
 
     def __init__(self):
         super().__init__()
