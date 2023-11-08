@@ -168,26 +168,26 @@ MOS = {
 Для этого нужно в каталог (вариант для __RedHat bsed Linux distros__ )`/etc/systemd/system/` поместить файл
 с содержимым
 
-    ```ini
-    [Unit]
-    Description=Task Rset Flask web application
-    After=network.target
-    After=postgresql.service
-    Requires=postgresql.service
-    PartOf=task_ms.service
+```ini
+[Unit]
+Description=Task Rset Flask web application
+After=network.target
+After=postgresql.service
+Requires=postgresql.service
+PartOf=task_ms.service
 
-    [Service]
-    Group=task
-    User=task
-    WorkingDirectory=/home/user/venv/task_rest/webapp
-    ExecStart=/home/user/venv/bin/gunicorn --conf gunicorn.conf.py
-    Restart=on-failure
-    Environment="PATH=/home/user/venv/bin"
+[Service]
+Group=task
+User=task
+WorkingDirectory=/home/user/venv/task_rest/webapp
+ExecStart=/home/user/venv/bin/gunicorn --conf gunicorn.conf.py
+Restart=on-failure
+Environment="PATH=/home/user/venv/bin"
 
-    [Install]
-    WantedBy=multi-user.target
-    WantedBy=task_ms.service
-    ```
+[Install]
+WantedBy=multi-user.target
+WantedBy=task_ms.service
+```
 
 Конкретные значения параметров конфигурации сервиса исходя из актуальных настроек среды исполнения
 и дистрибутива __OS Linux__
