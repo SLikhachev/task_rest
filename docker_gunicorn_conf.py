@@ -1,4 +1,5 @@
-# Gunicorn config variables
+""" Docker image Gunicorn config variables """
+
 #user="task"
 #group="task"
 loglevel = "info"

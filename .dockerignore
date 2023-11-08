@@ -1,6 +1,8 @@
 .git/
 .idea/
 .vscode/
+.pytest_cache/
+__pycache__/
 .gitignore
 .dockerignore
 *.bat

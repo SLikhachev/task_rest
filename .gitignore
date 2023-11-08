@@ -13,6 +13,9 @@ instance/
 *.sh
 *.bat
 *.conf.py
+!flask_conf_local.sh
+!gunicorn.local.conf.py
+!gunicorn.conf.py
 pytest_hokuto.ini
 pytest_zero.ini
 pytest_zero_auth.ini

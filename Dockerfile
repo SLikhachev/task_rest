@@ -35,6 +35,6 @@ COPY . /opt/venv/app
 ENV PATH="/opt/venv/bin:$PATH"
 EXPOSE 8787
 
-CMD ["gunicorn", "--conf", "dgunicorn_conf.py", "--bind", "0.0.0.0:8787",  "main:app"]
+CMD ["gunicorn", "--conf", "docker_gunicorn_conf.py", "--bind", "0.0.0.0:8787",  "main:app"]
 
 

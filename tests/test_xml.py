@@ -11,6 +11,7 @@ def test_create(app):
 def test_xml_pack(client):
     test_year = os.getenv('TEST_YEAR') or '2021'
     test_month = os.getenv('TEST_MONTH') or '11'
+    test_sign = os.getenv('TEST_SIGN') or False
     month = f'{test_year}-{test_month}'
     resp = client.post('/reestr/xml/pack', data={
        'mo_code': os.getenv('MO_CODE') or '250796',
@@ -20,7 +21,7 @@ def test_xml_pack(client):
        'test': 0,
        'sent': 0,
        'fresh': 0,
-       'sign': 1
+       'sign': test_sign
     })
     assert resp.status_code == 200
     assert resp.headers.get('Content-Type') == 'application/json'
