@@ -13,6 +13,7 @@ instance/
 *.sh
 *.bat
 *.conf.py
+*.code-workspace
 !flask_conf_local.sh
 !gunicorn.local.conf.py
 !gunicorn.conf.py

@@ -16,6 +16,11 @@ parser.add_argument('type', default='xml',
     location=('json', 'form'), help='{Pack type to make. Default XML}')
 parser.add_argument('pack', type=int, default=1, dest='pack_num',
     location=('json', 'form'), help='{Pack number 0-9}' )
+# Number of records to slect from sql table as LIMIT sql clause (default 0 - all records)
+parser.add_argument('limit', type=int, default=0, dest='limit',
+    location=('json', 'form'), help='{Limit number of recors to select}')
+
+# Bolean values
 # if CHECK is True to check only, else make reestr ignore errors
 parser.add_argument('test', type=inputs.boolean, default=False, dest='check',
     location=('json', 'form'), help='{Test flag}')
@@ -56,7 +61,7 @@ class MakeXml(RestTask):
 
             # call main method
             _ph, _lm, file, errors = xml.make_xml(
-               args['sent'], args['fresh'], args['check'], args['sign']
+               args['limit'], args['sent'], args['fresh'], args['check'], args['sign']
             )
         except Exception as exc:
             raise exc

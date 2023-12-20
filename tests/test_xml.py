@@ -12,12 +12,16 @@ def test_xml_pack(client):
     test_year = os.getenv('TEST_YEAR') or '2021'
     test_month = os.getenv('TEST_MONTH') or '11'
     test_sign = os.getenv('TEST_SIGN') or False
+    test_limit = os.getenv('TEST_LIMIT') or 0
+    test_limit = int(test_limit)
+
     month = f'{test_year}-{test_month}'
     resp = client.post('/reestr/xml/pack', data={
        'mo_code': os.getenv('MO_CODE') or '250796',
        'month': month,
        'type': 'xml',
        'pack': 1,
+       'limit': test_limit,
        'test': 0,
        'sent': 0,
        'fresh': 0,
