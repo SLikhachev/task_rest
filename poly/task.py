@@ -102,7 +102,8 @@ class RestTask(Resource):
 
 
     def catalog(self, base: str, *args):
-        """ @param: base - name of the base in config object
+        """ @params
+            :base: str - name of the base in config object
             return path to the upload folder
         """
         if len(base) == 0:
@@ -111,8 +112,9 @@ class RestTask(Resource):
 
 
     def parse_fname(self, _name: str, _type: str) -> Tuple[str]:
-        """ @param: _name: name of the file
-            @param: _type: key in fnames dict ('errs', 'invs')
+        """ @params:
+            :_name: str - name of the file
+            :_type: str - key in fnames dict ('errs', 'invs')
             return tuple of (
                 'mo_code':str(6),
                 'lpu': str(3),
@@ -131,7 +133,7 @@ class RestTask(Resource):
             smo = int(m['smo'] if len(m['smo']) > 2 else '0') if _smo else 0
             return m['mo_code'], m['lpu'], smo, \
                m['year'], m['month']
-        except Exception as e:
+        except Exception:
             return ''
             #return f'Имя {_name} не соответсвует шаблону: {e}'
 

@@ -1,15 +1,13 @@
+""" mek task API handlers """
 
 import os
-from datetime import datetime
-from pathlib import Path
-from flask import current_app, request
+from flask import current_app
 from flask_restful import reqparse
-from poly.utils.sqlbase import SqlProvider
+
 from poly.task import RestTask
 from poly.utils.fields import month_field
-from poly.utils.files import get_name_tail
-from poly.reestr.invoice.mek import config
-from poly.reestr.invoice.mek.move_mek import move_mek
+from poly.reestr.invoice.mek.move_mek import CarryMek
+
 
 parser = reqparse.RequestParser()
 parser.add_argument('month', type=month_field, required=True,
@@ -19,103 +17,83 @@ parser.add_argument('target', type=month_field, required=True,
 
 
 class MoveMek(RestTask):
+    """ Move MEK records task class """
 
     def __init__(self):
         super().__init__()
-        self.mo_code = current_app.config['STUB_MO_CODE']
+        # self.this_year = from base class
+        # self.mo_code = current_app.config['STUB_MO_CODE']
+        self.from_year = None
+        self.to_year = None
+        self.from_month = None
+        self.to_month = None
+        self._year = None
+        self.test = os.getenv('TEST')
+        self.mek = None
+        self.mo_code = current_app.config.get('STUB_MO_CODE', '000000')
 
-    def month_val(self, val):
+    def month_to_int(self, month: str) -> int:
+        """ month string '01' - '12' to int """
         try:
-            m = int(val)
-        except:
-            m = 1
-        if m <= 0 or m > 12:
+            m = abs(int(month))
+            if m == 0 or m > 12:
+                return 1
+        except ValueError:
             return 1
         return m
 
-    def month_str(self, month=0):
-        m = month if bool(month) else self.from_month
-        return  f'{current_app.config["MONTH"][m-1]} {self.from_year}'
-
     def parse_dates(self):
+        """ parse request dates """
         args = parser.parse_args()
-        print(args)
+        #print(args)
         self.from_year, self.from_month = args['month']
         self.to_year, self.to_month= args['target']
-        self._year = self.from_year[2:]
+        self._year = int(self.from_year[2:])
         self.from_year = int(self.from_year)
         self.to_year = int(self.to_year)
-        self.from_month= self.month_val(self.from_month)
-        self.to_month = self.month_val(self.to_month)
-        print(self.from_year, self.from_month, self.to_month)
+        self.from_month= self.month_to_int(self.from_month)
+        self.to_month = self.month_to_int(self.to_month)
+        #print(self.from_year, self.from_month, self.to_month)
 
-
-    # move to next month task
-    def post(self):
-
+    def dispatch_request(self, *args, **kwargs):
         try:
             self.parse_dates()
         except Exception as exc:
             raise exc
             #return self.abort(400, exc)
+        self.mek = CarryMek(self)
+        # rerturn non empty string if meks not found
+        meks = self.mek.check_meks()
+        if meks:
+            return self.resp('', meks, False)
 
-        if self.this_year != self.to_year:
-            return self.abort(400, f'Переносить МЭК можно только в текущем году')
-        if self.to_month <= self.from_month:
-            return self.abort(400, f'Переносить МЭК можно только вперед')
+        return super().dispatch_request(*args, **kwargs)
 
-        with SqlProvider(self) as _sql:
-            try:
-                rc= move_mek(_sql, self.this_year, self.from_month, self.to_month)
-            except Exception as exc:
-                raise exc
-                return self.abort(500, f'Ошибка переноса МЭК {exc}')
-
-        if not bool(rc):
-            return self.resp('',
-                f'Нет МЭКов за {self.month_str()}', False)
-
-        return self.resp('',
-            f'Пернесли МЭКи на {self.month_str(self.to_month)} записей {rc}.',
-            True
-        )
-
-    # export to csv task
+    # export to csv file task
     def get(self):
-
+        """ extract the MEKs records from talonz_clin and output as
+            CSV file in the GET request
+        """
         try:
-            self.parse_dates()
+            file, msg = self.mek.meks_to_csv()
+            return self.resp(file, msg, True)
         except Exception as exc:
             raise exc
-            #return self.abort(400, exc))
+            #return self.abort(500, f'Ошибка формирования файла МЭК')
 
-        with SqlProvider(self) as _sql:
-            ar= self.from_year-2000
-            _sql.qurs.execute(config.COUNT_MEK, (ar, self.from_month))
-            mc= _sql.qurs.fetchone()
+    # move mek
+    def post(self):
+        """ move the MEKs to the next month task in the POST request
+            checks the correctness of the forms data to continue
+        """
 
-            if (mc is None) or mc[0] == 0:
-                #qurs.close()
-                return self.resp('',
-                    f'Нет записей с МЭК за месяц {self.month_str()}', True)
+        msg = self.mek.check_dates()
+        if msg:
+            return self.abort(400, msg)
 
-            mc= mc[0]
-            cwd = self.catalog('', 'reestr', 'mek')
-            df= str(datetime.now()).split(' ')[0]
-            copy_to = config.COPY_TO % (ar, self.from_month)
-            copy_to = f'{copy_to} {config.STDOUT} ({config.CSV_OPTS});'
-            #print(f'\n{copy_to}\n')
-            filename= f"MEK_{df}_{get_name_tail(4)}.csv"
-            file = os.path.join(cwd, filename)
-            try:
-                with open(file, 'w', encoding='UTF8') as _file:
-                    _sql.qurs.copy_expert(copy_to, _file)
-                assert Path(file).exists(), 'Ошибка экспотра в CSV файл не сформирован'
-            except Exception as exc:
-                raise exc
-                return self.abort(500, f'Ошибка формирования файла МЭК')
-            else:
-                return self.resp(file,  f"МЭК за месяц {self.month_str()}, записей в файле {mc}", True)
-            finally:
-                pass
-                #qurs.close()
+        try:
+            msg = self.mek.move_mek()
+            return self.resp('', msg, True)
+        except Exception as exc:
+            raise exc
+            #return self.abort(500, f'Ошибка переноса МЭК {exc}')
