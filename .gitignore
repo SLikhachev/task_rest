@@ -20,4 +20,6 @@ instance/
 pytest_hokuto.ini
 pytest_zero.ini
 pytest_zero_auth.ini
+pytest_mek.ini
+
 
