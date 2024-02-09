@@ -7,6 +7,8 @@ static/logging/
 static/pkg/
 static/data/
 instance/
+flask/
+pytest/
 *.komodoproject
 *.target
 *.service

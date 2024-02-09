@@ -1,8 +1,10 @@
 """ mek task API handlers """
 
 import os
-from flask import current_app
+
 from flask_restful import reqparse
+from flask import current_app, request
+
 
 from poly.task import RestTask
 from poly.utils.fields import month_field
@@ -11,9 +13,9 @@ from poly.reestr.invoice.mek.move_mek import CarryMek
 
 parser = reqparse.RequestParser()
 parser.add_argument('month', type=month_field, required=True,
-    location=('form', 'values'), help='{From month date in YYYY-MM format required}')
+    location=('form', 'values'), help='{From source month date in YYYY-MM format required}')
 parser.add_argument('target', type=month_field, required=True,
-    location=('form', 'values'), help='{To month date in YYYY-MM format required}')
+    location=('form', 'values'), help='{To target month date in YYYY-MM format required}')
 
 
 class MoveMek(RestTask):
@@ -45,7 +47,6 @@ class MoveMek(RestTask):
     def parse_dates(self):
         """ parse request dates """
         args = parser.parse_args()
-        #print(args)
         self.from_year, self.from_month = args['month']
         self.to_year, self.to_month= args['target']
         self._year = int(self.from_year[2:])
@@ -56,11 +57,15 @@ class MoveMek(RestTask):
         #print(self.from_year, self.from_month, self.to_month)
 
     def dispatch_request(self, *args, **kwargs):
+        """ init CarryMek class and check mek dates
+        """
+        if request.method not in ['GET', 'POST']:
+            return super().dispatch_request(*args, **kwargs)
         try:
             self.parse_dates()
         except Exception as exc:
-            raise exc
-            #return self.abort(400, exc)
+            #raise exc
+            return self.abort(400, exc)
         self.mek = CarryMek(self)
         # rerturn non empty string if meks not found
         meks = self.mek.check_meks()

@@ -4,4 +4,4 @@
 # Preffered way to start is to mke use of a systemd service unit
 #
 #gunicorn --conf gunicorn.local.conf.py
-gunicorn --conf gunicorn.zerodemo_local.conf.py
+gunicorn --conf flask/gunicorn.zerodemo_local.conf.py

@@ -1,11 +1,11 @@
 # run this script in development mode
-# firstly run for set ENV vars
+# firstly sh flask/flask_conf_hokuto[zerodemo].sh  for set ENV vars
 #
 # $ sh flask_conf_local.sh
 # here "flask_conf_*.sh" contains an actual environment's variables
 #
 # then
-# $ sh rums.sh
+# $ sh runs.sh
 #
 # static data will be write to webapp/static/data/reestr
 #

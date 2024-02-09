@@ -4,8 +4,10 @@ from typing import Tuple
 import os, re
 from datetime import date
 from time import perf_counter
-from flask import request, make_response, current_app
+
 from flask_restful import Resource, fields, marshal
+from flask import request, make_response, current_app
+
 from poly.utils.parse_jwt import parse_jwt_token
 
 
@@ -149,15 +151,16 @@ class RestTask(Resource):
 
     def result(self, filename, message, done=False):
         """ make result dict"""
-        return dict(
-            file=self.fname(filename),
-            message=f'{message} {self.perf()}',
-            done=done
-        )
+        return {
+            'file': self.fname(filename),
+            'message': f'{message} {self.perf()}',
+            'done': done
+        }
 
     def resp(self, file: str, msg: str, done: bool):
         """ return JSON payload for rsponse """
-        return marshal(self.result(file, msg, done), response_json), 200, current_app.config['CORS']
+        _ma = marshal(self.result(file, msg, done), response_json)
+        return _ma, 200, current_app.config['CORS']
 
     def abort(self, code: int, msg: str):
         """ return JSON payload for rsponse with error code """
