@@ -155,24 +155,26 @@ class CarryMek:
     def move_mek_from_prev_year(self) -> int:
         """ transefr mek records from prev to current year
         """
-        inserted = self.insert_talonz()
-        assert inserted, "Неудалось внести талоны в текущий год"
+        inserted_this_year = self.insert_talonz()
+        assert inserted_this_year, "Неудалось внести талоны в текущий год"
 
         # insert pmu from old to new table
         # select tal_nums from old talonz table
         self.qurs.execute(config.SELECT_TAL_NUMS.format(table=self.from_table))
-        idx=0
-        for tal_from in self.qurs.fetchall():
+        fetched_prev_year = self.qurs.fetchall()
+        assert len(inserted_this_year) == len(fetched_prev_year), "Разное количество талонов в годах"
+
+        for idx, tal_from in enumerate(fetched_prev_year):
             tal_num_from = tal_from.tal_num
             # should be same records with differnt tal_nums from old and new tables
-            tal_num_to = inserted[idx].tal_num
+            tal_num_to = inserted_this_year[idx].tal_num
 
             # then fetch all pmu with that tal_num (from old table)
             self.qurs.execute(config.SELECT_PMU.format(
                 from_pmu=self.from_pmu, tal_num=tal_num_from))
             pmus = self.qurs.fetchall()
             assert len(pmus) > 0, \
-                f"Ошибка: для талона {tal_num_from} нет записей в таблице ПМУ {self.from_pmu}"
+                f"Ошибка: для старого талона {tal_num_from} нет записей в таблице ПМУ {self.from_pmu}"
 
             # then insert all fetched to the new table with new tal_num ref
             for pmu in pmus:
@@ -189,13 +191,13 @@ class CarryMek:
 
             # commit trans and increase index
             self.db.commit()
-            idx += 1
 
     # and finally update month in target table
         self.qurs.execute(config.UPDATE_MONTH.format(to_table=self.to_table))
         self.db.commit()
 
-        return idx
+        return len(fetched_prev_year)
+
 
     def db_close(self):
         """ close sql provider """

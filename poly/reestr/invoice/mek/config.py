@@ -24,13 +24,16 @@ we use talon_type=1 flag, after insert we set this flag to 2 (closed talon),
 so we need to update this flag to 1 manually if we need
 insert ones time again (maybe some errors were there)
 """
+SELECT_PREV_COND = '''
+WHERE mek=1 AND talon_month=12 AND talon_type=1
+ORDER BY tal_num
+'''
 INSERT_MEK='''
 INSERT INTO {to_table} ({fields})
-    SELECT {fields} FROM {from_table} as t
-    WHERE t.mek=1 AND t.talon_month=12 AND t.talon_type=1
-    ORDER BY tal_num
+    SELECT {fields} FROM {from_table} %s
     RETURNING tal_num;
-'''
+''' % SELECT_PREV_COND
+
 
 """ The moved talons will been have talon_month = 12 (dec),
 (as from table of the previuos year, 12 month),
@@ -45,9 +48,8 @@ WHERE talon_month=12 AND mek=1;
 from the prev year table
 """
 SELECT_TAL_NUMS = '''
-SELECT tal_num FROM {table}
-WHERE talon_month=12 and mek=1 ORDER BY tal_num;
-'''
+SELECT tal_num FROM {table} %s;
+''' % SELECT_PREV_COND
 
 """ close the talons with MEK in the prev year 12 month
 """

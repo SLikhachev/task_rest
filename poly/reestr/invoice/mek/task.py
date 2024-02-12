@@ -1,9 +1,10 @@
 """ mek task API handlers """
 
 import os
+import functools
 
 from flask_restful import reqparse
-from flask import current_app, request
+from flask import current_app
 
 
 from poly.task import RestTask
@@ -16,6 +17,26 @@ parser.add_argument('month', type=month_field, required=True,
     location=('form', 'values'), help='{From source month date in YYYY-MM format required}')
 parser.add_argument('target', type=month_field, required=True,
     location=('form', 'values'), help='{To target month date in YYYY-MM format required}')
+
+def check_meks(method):
+    """ Check have a meks
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        try:
+            self.parse_dates()
+        except Exception as exc:
+            #raise exc
+            return self.abort(400, exc)
+
+        self.mek = CarryMek(self)
+        # rerturn non empty string if meks not found
+        meks = self.mek.check_meks()
+        if meks:
+            return self.resp('',meks, False)
+
+        return method(self, *args, **kwargs)
+    return wrapper
 
 
 class MoveMek(RestTask):
@@ -56,25 +77,8 @@ class MoveMek(RestTask):
         self.to_month = self.month_to_int(self.to_month)
         #print(self.from_year, self.from_month, self.to_month)
 
-    def dispatch_request(self, *args, **kwargs):
-        """ init CarryMek class and check mek dates
-        """
-        if request.method not in ['GET', 'POST']:
-            return super().dispatch_request(*args, **kwargs)
-        try:
-            self.parse_dates()
-        except Exception as exc:
-            #raise exc
-            return self.abort(400, exc)
-        self.mek = CarryMek(self)
-        # rerturn non empty string if meks not found
-        meks = self.mek.check_meks()
-        if meks:
-            return self.resp('', meks, False)
-
-        return super().dispatch_request(*args, **kwargs)
-
     # export to csv file task
+    @check_meks
     def get(self):
         """ extract the MEKs records from talonz_clin and output as
             CSV file in the GET request
@@ -87,11 +91,11 @@ class MoveMek(RestTask):
             #return self.abort(500, f'Ошибка формирования файла МЭК')
 
     # move mek
+    @check_meks
     def post(self):
         """ move the MEKs to the next month task in the POST request
             checks the correctness of the forms data to continue
         """
-
         msg = self.mek.check_dates()
         if msg:
             return self.abort(400, msg)
