@@ -69,9 +69,8 @@ def create_app(site_dir, static_dir, config_class=Config):
     #from poly.clinic import bp as clinic_bp
     #app.register_blueprint(clinic_bp)
 
-    # --- sprav don't served now ---
-    #from poly.sprav import bp as sprav_bp
-    #app.register_blueprint(sprav_bp)
+    from poly.sprav import bp as sprav_bp
+    app.register_blueprint(sprav_bp)
 
     return app
 

@@ -1,10 +1,10 @@
+
 from flask import Blueprint
 from flask_restful import Api
 
-bp = Blueprint('sparv', __name__, url_prefix='/sprav')
+bp = Blueprint('sprav', __name__, url_prefix='/sprav')
 api = Api(bp)
 
-from poly.sprav.test.apps import task as test_task
-api.add_resource(test_task.TaskTest, '/test/task', endpoint='test_task')
-
-
+# correct pmu tarifs
+from poly.sprav.tarif.pmu import task as tarif_pmu
+api.add_resource(tarif_pmu.UpsertTarifs, '/tarif/pmu', endpoint='tarif_pmu')
