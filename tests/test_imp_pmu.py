@@ -30,7 +30,7 @@ def db():
     _db = psycopg2.connect(db_uri)
     # init DB tables
 
-    test_db = os.getenv('TEST_DB')
+    #test_db = os.getenv('TEST_DB')
     if test_db:
         with open(init_db_file, encoding='utf-8') as fd:
             _sql = fd.read()
