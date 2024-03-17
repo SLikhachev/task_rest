@@ -40,7 +40,7 @@ class InvImpex(RestTask):
         self._tmp_dir = None
         self._year = None
         self.mo_code= None
-        self.int_month= 1
+        self.int_month= None
 
     # upload file
     def post(self):
@@ -72,7 +72,7 @@ class InvImpex(RestTask):
             return self.abort(400, f"Код МО: {mo_code}, не зарегистрирован")
 
         self.year= f'20{_ar}'
-        self.int_month = int(self.month)
+        #self.int_month = int(self.month)
 
         # save file to disk
         self.cwd = self.catalog('', 'reestr', 'inv')
