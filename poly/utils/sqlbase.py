@@ -4,7 +4,7 @@
 from barsxml.sql import get_sql_provider
 
 # Postgres Sql PROVIDER
-class SqlProvider(object):
+class SqlProvider:
     """ SQL connection class can be used as context manager """
 
     def __init__(self, config):

@@ -2,15 +2,17 @@
 
 import os
 from tempfile import TemporaryDirectory as stmp
-from flask import current_app
-from werkzeug.utils import secure_filename
 from werkzeug import datastructures
+from werkzeug.utils import secure_filename
 from flask_restful import reqparse
-from poly.utils.sqlbase import SqlProvider
-from poly.utils.files import allowed_file
-from poly.task import RestTask
-from poly.reestr.invoice.impex import config
 
+from flask import current_app
+
+from poly.task import RestTask
+from poly.utils.files import allowed_file
+from poly.utils.sqlbase import SqlProvider
+
+from poly.reestr.invoice.impex import config
 from poly.reestr.invoice.impex.import_invoice import XmlImport
 from poly.reestr.invoice.impex.export_invoice import SqlExportInvoice
 from poly.reestr.invoice.impex.export_pmus import SqlExportPmus
@@ -34,6 +36,10 @@ class InvImpex(RestTask):
 
     def __init__(self):
         super().__init__()
+        self.cwd = None
+        self._tmp_dir = None
+        self._year = None
+        self.mo_code= None
 
     # upload file
     def post(self):
@@ -41,7 +47,7 @@ class InvImpex(RestTask):
             args = parser.parse_args()
             pack_type = args['pack']
             #correct SMO flag not used yet
-            csmo = False
+            #csmo = args['csmo']
             cmek = args['cmek']
             print(f'MEK: {cmek}')
         except Exception as exc:
@@ -58,10 +64,9 @@ class InvImpex(RestTask):
 
         mo_code, _, self.smo, _ar, self.month = fname
         if mo_code not in current_app.config['MOS'].keys():
-            """ in the moment the 'mo_code' must be key in config dict kind of
-                MOS: {'250999': ('3334445556667',)}
-                where keys: mo_code, values: tuple('MO OGRN',)
-            """
+            # in the moment the 'mo_code' must be key in config dict kind of
+            # MOS: {'250999': ('3334445556667',)}
+            # where keys: mo_code, values: tuple('MO OGRN',)
             return self.abort(400, f"Код МО: {mo_code}, не зарегистрирован")
 
         self.year= f'20{_ar}'
