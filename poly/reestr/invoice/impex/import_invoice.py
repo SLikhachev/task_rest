@@ -11,7 +11,7 @@ from poly.reestr.invoice.impex import config
 from poly.reestr.invoice.impex.utils import get_text, tmp_table_name
 
 
-class XmlImport(object):
+class XmlImport:
 
     def __init__(self, sql: object, zipfile: str, typ: int, _ar: str, cmek: bool):
         """
@@ -53,7 +53,9 @@ class XmlImport(object):
         )
         self.pmu_rec= ('KOL_USL', 'TARIF', 'PROFIL', 'PRVS', )
 
-
+        self.inv_table = None
+        self.insert_zap = None
+        self.insert_pers = None
 
     # TODO here may be generator yelding text chunk
     def read_zp(self, elem: ET.Element, tags: tuple, rec: list):

@@ -40,6 +40,7 @@ class InvImpex(RestTask):
         self._tmp_dir = None
         self._year = None
         self.mo_code= None
+        self.int_month= 1
 
     # upload file
     def post(self):
@@ -62,6 +63,7 @@ class InvImpex(RestTask):
         if len(fname) == 0:
             return self.abort(400, f"Имя файла не соответствует шаблону: {filename}")
 
+        # str(6), str(3), int, str(2), str(2)
         mo_code, _, self.smo, _ar, self.month = fname
         if mo_code not in current_app.config['MOS'].keys():
             # in the moment the 'mo_code' must be key in config dict kind of
@@ -70,6 +72,7 @@ class InvImpex(RestTask):
             return self.abort(400, f"Код МО: {mo_code}, не зарегистрирован")
 
         self.year= f'20{_ar}'
+        self.int_month = int(self.month)
 
         # save file to disk
         self.cwd = self.catalog('', 'reestr', 'inv')

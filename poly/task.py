@@ -120,7 +120,7 @@ class RestTask(Resource):
             return tuple of (
                 'mo_code':str(6),
                 'lpu': str(3),
-                'smo': str,
+                'smo': int,
                 'year': str(2),
                 'month': str(2)
             ) | error: str
