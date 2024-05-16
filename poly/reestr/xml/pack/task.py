@@ -69,8 +69,8 @@ class MakeXml(RestTask):
 
         rslt = f'H записей: {_ph}, L записей: {_lm}. '
         error_msg = ''
-        if args['check']:
-            file = ''
+        #if args['check']:
+        #    file = ''
         done = True
         if errors > 0:
             error_msg = f'НАЙДЕНО ОШИБОК: {errors}. '
