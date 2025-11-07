@@ -1,12 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Конфигурационный файл для статики на серввере IIS7.5 OS MS Windows -->
 <configuration>
     <system.webServer>
         <handlers>
            <clear />
-            <add 
-                name="StaticFile" 
-                path="*" verb="*" 
-                modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule" 
-                resourceType="Either" 
+            <add
+                name="StaticFile"
+                path="*" verb="*"
+                modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule"
+                resourceType="Either"
                 requireAccess="Read" />
         </handlers>
         <staticContent>
@@ -26,13 +28,13 @@
           <environmentVariables>
             <environmentVariable name="RAILS_ENV" value="production" />
             <environmentVariable name="SECRET_KEY_BASE" value="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" />
-          </environmentVariables>            
+          </environmentVariables>
         </httpPlatform> -->
         <httpPlatform stdoutLogEnabled="true" stdoutLogFile="rails.log" startupTimeLimit="20" processPath="c:\ruby\Ruby21\bin\ruby.exe" arguments="C:\inetpub\wwwroot\personal_site\bin\rails server -p %HTTP_PLATFORM_PORT% -b 127.0.0.1">
             <environmentVariables>
               <environmentVariable name="RAILS_ENV" value="production" />
               <environmentVariable name="SECRET_KEY_BASE" value="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" />
-            </environmentVariables>            
+            </environmentVariables>
         </httpPlatform>
         <rewrite>
             <rules>
@@ -62,16 +64,16 @@
       	<rule name="wwwroot-static" stopProcessing="true">
           <match url="([\S]+[.](html|htm|svg|js|css|png|gif|jpg|jpeg))" />
           <action type="Rewrite" url="wwwroot/{R:1}" />
-        </rule> 
-        
+        </rule>
+
         <rule name="empty-root-index" stopProcessing="true">
           <match url="^$" />
           <action type="Rewrite" url="wwwroot/index.html" />
         </rule>
-      
-        <!-- 
-             Make sure you have a <base href="/" /> tag to fix the root path 
-             or all relative links will break on rewrite 
+
+        <!--
+             Make sure you have a <base href="/" /> tag to fix the root path
+             or all relative links will break on rewrite
         -->
     	<rule name="AngularJS-Html5-Routes" stopProcessing="true">
           <match url=".*" />
@@ -81,7 +83,7 @@
                 <add input="{REQUEST_URI}" pattern="api/" negate="true" />
           </conditions>
           <action type="Rewrite" url="wwwroot/index.html"  />
-        </rule> 
+        </rule>
       </rules>
     </rewrite>
 
@@ -96,7 +98,7 @@
       <add name="StaticFileModuleGif" path="*.gif" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
       <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModule" resourceType="Unspecified" />
     </handlers>
-    <aspNetCore processPath="dotnet" arguments=".\AlbumViewerNetCore.dll" stdoutLogEnabled="false" 
+    <aspNetCore processPath="dotnet" arguments=".\AlbumViewerNetCore.dll" stdoutLogEnabled="false"
                 stdoutLogFile=".\logs\stdout" forwardWindowsAuthToken="false" />
   </system.webServer>
 </configuration>
@@ -108,7 +110,7 @@
 
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
- 
+
   <system.webServer>
     <security>
       <authorization>
@@ -119,26 +121,26 @@
       </authorization>
     </security>
   </system.webServer>
- 
+
   <location path="Public" allowOverride="false">
     <system.webServer>
       <directoryBrowse enabled="true"
                        showFlags="Date, Time, Size, Extension" />
       <defaultDocument>
         <files>
-          <!-- When requesting a file listing, don't serve up the default 
+          <!-- When requesting a file listing, don't serve up the default
                index.html file if it exists. -->
           <clear />
         </files>
       </defaultDocument>
- 
+
       <security>
         <authorization>
           <!-- Allow all users access to the Public folder -->
           <remove users="*" roles="" verbs="" />
           <add accessType="Allow" users="*" roles="" />
         </authorization>
- 
+
         <!-- Unblock all sourcecode related extensions (.cs, .aspx, .mdf)
              and files/folders (web.config, \bin) -->
         <requestFiltering>
@@ -150,9 +152,9 @@
           </fileExtensions>
         </requestFiltering>
       </security>
- 
+
       <!-- Remove all ASP.NET file extension associations.
-           Only include this if you have the ASP.NET feature installed, 
+           Only include this if you have the ASP.NET feature installed,
            otherwise this produces an Invalid configuration error. -->
       <handlers>
         <clear />
@@ -160,7 +162,7 @@
              modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule"
              resourceType="Either" requireAccess="Read" />
       </handlers>
- 
+
       <!-- Map all extensions to the same MIME type, so all files can be
            downloaded. -->
       <staticContent>
@@ -169,5 +171,5 @@
       </staticContent>
     </system.webServer>
   </location>
- 
+
 </configuration>

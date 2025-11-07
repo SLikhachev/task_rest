@@ -31,4 +31,3 @@ MOS = {
     '250796': ('1112539013696',)
 }
 
-LOGGING_FOLDER = "/home/user/folder/www/logs/task_rest"

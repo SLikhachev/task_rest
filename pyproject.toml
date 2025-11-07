@@ -1,0 +1,23 @@
+[project]
+name = "task_rest"
+version = "0.1.0"
+description = "Application for BARS MIS data exchange integration"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  #"basrxml",
+  "werkzeug==2.0.2",
+  "Flask==2.0.2",
+  "Flask-RESTful==0.3.9",
+  "openpyxl==3.0.9",
+  "psycopg2-binary==2.9.11",
+  "requests==2.27.1",
+  "gunicorn==20.1.0",
+  "pyjwt==2.3.0"
+]
+
+[dependency-groups]
+dev = [
+  "pytest==6.2.5",
+  "pytest-env"
+]
