@@ -9,4 +9,5 @@
 #
 # static data will be write to webapp/static/data/reestr
 #
+# START HERE (run.py called from flask)
 python -m flask run --port 8787

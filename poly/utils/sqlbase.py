@@ -31,20 +31,22 @@ class SqlProvider:
         """ create sql connection """
         if not self._sql:
             self._sql = get_sql_provider(self).SqlProvider(self)
-        return self._sql
+        return self._sql # sql object.(_db: Connection, qurs: Cursor)
 
     def close(self):
         """ close sql connection """
         if self._sql:
-            self._sql.close()
+            self._sql._db.close()
 
     def commit(self):
+        # commit pending transactions
         self._sql._db.commit()
 
     # to use the class as context manager
     def __enter__(self):
-        return self.connect()
+        return self.connect() # returns SQL object not DB.connection
 
     def __exit__(self, type, value, traceback):
+        self.commit()
         self.close()
 

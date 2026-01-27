@@ -34,3 +34,7 @@ def client(app):
 def runner(app):
     return app.test_cli_runner()
 
+
+@pytest.fixture
+def test_data_path() -> Path:
+    return Path(__file__).parent / 'data'

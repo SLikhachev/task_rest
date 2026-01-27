@@ -3,11 +3,11 @@ name = "task_rest"
 version = "0.1.0"
 description = "Application for BARS MIS data exchange integration"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "==3.12.12"
 dependencies = [
   #"basrxml",
-  "werkzeug==2.0.2",
   "Flask==2.0.2",
+  "werkzeug==2.0.2",
   "Flask-RESTful==0.3.9",
   "openpyxl==3.0.9",
   "psycopg2-binary==2.9.11",

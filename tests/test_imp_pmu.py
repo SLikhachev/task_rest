@@ -7,43 +7,57 @@ import psycopg2.extras
 
 
 @pytest.fixture
-def csv_fname():
-    return os.getenv('PMU_CSV_FILE') or ''
+def tarifs_file_name():
+    file = os.getenv("TARIFS_CSV_FILE")
+    assert file, "Should set `TARIFS_CSV_FILE` config param"
+    return file
 
 @pytest.fixture
-def csv_invf(csv_fname):
-    return Path(__file__).parent / 'data' / 'tarif' / csv_fname
+def sql_init_file_name():
+    file = os.getenv("DB_INIT_FILE")
+    assert file, "Should set `DB_INIT_FILE` config param"
+    return file
 
-@pytest.fixture(scope='module')
-def db():
-    """ craete db connection object """
+@pytest.fixture
+def tarifs_file(test_data_path, tarifs_file_name):
+    return test_data_path / 'tarifs' / tarifs_file_name
+
+@pytest.fixture
+def db_init_file(test_data_path, sql_init_file_name):
+    return test_data_path / 'sql' / sql_init_file_name
+
+# TODO create db if absent
+"""
+CREATE DATABASE omslite_test
+  WITH
+  ENCODING = 'UTF8'
+  LC_COLLATE = 'ru_RU.UTF-8'
+  LC_CTYPE = ' ru_RU.UTF-8'
+  TEMPLATE = template0;
+"""
+@pytest.fixture()
+def db(db_init_file):
+    """ craete db connection object to test DB """
     #print(os.getcwd())
-    test_db = os.getenv('TEST_DB')
-    if test_db:
-        db_uri=test_db
-    else:
-        db_uri = os.getenv('DB_URI')
-    init_db_file = os.getenv('DB_INIT_FILE')
+    db_uri = os.getenv('DB_URI')
     assert db_uri, "For TARIFS UPDATE tests we should set `DB_URI` config param"
-    assert init_db_file, "For TRAIFS UPDATE tests we should set `DB_INIT_FILE` config param"
 
     _db = psycopg2.connect(db_uri)
     # init DB tables
+    with open(db_init_file, encoding='utf-8') as fd:
+        assert fd, "DB_INIT_FILE not found"
+        _sql = fd.read()
 
-    #test_db = os.getenv('TEST_DB')
-    if test_db:
-        with open(init_db_file, encoding='utf-8') as fd:
-            _sql = fd.read()
-        with _db.cursor() as curs:
-            curs.execute(_sql)
-            _db.commit()
+    with _db.cursor() as curs:
+        curs.execute(_sql)
+        _db.commit()
 
     yield _db
     _db.commit()
     _db.close()
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def qurs(db):
     """ create cursor DB connection object """
     print("\n")
@@ -54,15 +68,16 @@ def qurs(db):
 
 def test_create(app, qurs):
     """ Test application object created """
-    assert app.testing, "No application object found"
-    assert qurs, "No DB connection cursor supplied"
+    assert app.testing, "Application object is not created"
+    assert qurs, "DB connection cursor is not created"
 
 
-def test_imp_pmu(client, csv_invf, csv_fname):
+def test_imp_pmu(client, tarifs_file_name, tarifs_file):
     """ testing import pmu tarifs file """
-
-    resp = client.post('/sprav/tarif/pmu', data={
-        'files': (open(csv_invf, 'rb'), csv_fname)
+    table = tarifs_file_name.split('.')[0]
+    resp = client.post('/sprav/tarifs/update', data={
+        'files': (open(tarifs_file, 'rb'), tarifs_file_name),
+        'table': table
     })
     assert resp.status_code == 200
     assert resp.headers.get('Content-Type') == 'application/json'

@@ -1,5 +1,7 @@
 """ Run Flask application locally in development mode
 
+    DO NOT RUN THIS SCRIPT AS IS USE runs.sh INSTERAD
+
     To run you should:
     1. run script flask_conf_local.sh with actual environment variables
     2. run script runs.sh

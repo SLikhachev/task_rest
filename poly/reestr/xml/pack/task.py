@@ -9,7 +9,7 @@ from poly.utils.fields import month_field
 parser = reqparse.RequestParser(bundle_errors=True)
 #parser.add_argument('db_srv', type=inputs.url, default=None)
 parser.add_argument('mo_code', required=False, default='250796',
-    location=('json', 'form'), help='{MO CODE in 250795 format required}')
+    location=('json', 'form'), help='{MO CODE in 250796 format required}')
 parser.add_argument('month', type=month_field, required=True,
     location=('json', 'form'), help='{Date in YYYY-MM format required}')
 parser.add_argument('type', default='xml',
