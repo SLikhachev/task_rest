@@ -10,4 +10,5 @@
 # static data will be write to webapp/static/data/reestr
 #
 # START HERE (run.py called from flask)
+source ./flask/flask_conf_hokuto.sh
 python -m flask run --port 8787

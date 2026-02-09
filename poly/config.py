@@ -21,7 +21,7 @@ class BaseConfig(object):
              'Апрель', 'Май', 'Июнь',
              'Июль', 'Август', 'Сентябрь',
              'Октябрь', 'Ноябрь', 'Декабрь')
-    LOGGING_FOLDER=f'{os.environ['HOME']}/var/logs/task_rest'
+    LOGGING_FOLDER=f"{os.environ['HOME']}/var/logs/task_rest"
 
 class DevConfig(BaseConfig):
     'Staging specific config'
