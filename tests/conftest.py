@@ -2,6 +2,8 @@ import os
 import sys
 #import tempfile
 from pathlib import Path
+import psycopg2
+import psycopg2.extras
 import pytest
 
 
@@ -38,3 +40,31 @@ def runner(app):
 @pytest.fixture
 def test_data_path() -> Path:
     return Path(__file__).parent / 'data'
+
+# TODO create db if absent
+"""
+CREATE DATABASE omslite_test
+  WITH
+  ENCODING = 'UTF8'
+  LC_COLLATE = 'ru_RU.UTF-8'
+  LC_CTYPE = ' ru_RU.UTF-8'
+  TEMPLATE = template0;
+"""
+@pytest.fixture()
+def db():
+    """ craete db connection object to test DB """
+    #print(os.getcwd())
+    db_uri = os.getenv('DB_URI')
+    assert db_uri, "For TARIFS UPDATE tests we should set `DB_URI` config param"
+    _db = psycopg2.connect(db_uri)
+    yield _db
+    _db.commit()
+    _db.close()
+
+@pytest.fixture()
+def qurs(db):
+    """ create cursor DB connection object """
+    print("\n")
+    _qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    yield _qurs
+    _qurs.close()

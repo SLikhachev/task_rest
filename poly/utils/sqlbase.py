@@ -31,6 +31,8 @@ class SqlProvider:
         """ create sql connection """
         if not self._sql:
             self._sql = get_sql_provider(self).SqlProvider(self)
+        # self.qurs =
+        #   self._db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
         return self._sql # sql object.(_db: Connection, qurs: Cursor)
 
     def close(self):
