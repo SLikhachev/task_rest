@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS pmu (
 );
 CREATE TABLE tarifs_pmu_vzaimoras (
     id serial PRIMARY KEY,
-    code character varying(32) not null,
+    code character varying(32) not null unique,
     tarif real,
     name character varying(512),
     updated date,

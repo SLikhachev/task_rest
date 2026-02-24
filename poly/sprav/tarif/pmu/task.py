@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory as stmp
 from werkzeug.utils import secure_filename
 from werkzeug import datastructures
 
-from flask_restful import reqparse
+from flask_restful import reqparse, inputs
 from flask import current_app
 
 from poly.utils.sqlbase import SqlProvider
@@ -20,10 +20,14 @@ parser = reqparse.RequestParser()
 parser.add_argument('files', required=True, type=datastructures.FileStorage,
     location='files',  action='append', help="{Нет файла тарифов}"
 )
+# This param is not used yet just for future if any
 parser.add_argument('table', required=True, type=str,
     choices=['tarifs_pmu_vzaimoras'],
     location=('json', 'form'), help='{Название таблицы тарифов для обоновления}'
 )
+# checkbox: copy table from existed one ?
+parser.add_argument('copy', type=inputs.boolean, default=False, dest='copy',
+    location=('json', 'form'), help='{Копировать существующую таблицу}')
 
 class UpdateTarifs(RestTask):
     """ class def """
@@ -57,6 +61,7 @@ class UpdateTarifs(RestTask):
 
                 # import either patients or pmus, as of the pack_type
                 _import = PmuImport(_sql, up_file)
+                _import.prepare_table(args.get('copy', False))
                 pmus, tarifs= _import.update()
         except Exception as exc:
             raise exc

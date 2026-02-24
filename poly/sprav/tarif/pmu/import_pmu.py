@@ -1,5 +1,6 @@
 """ a tarifs pmu file import class definition """
 
+from datetime import date
 import re
 import csv
 from psycopg2 import sql as psy_sql
@@ -14,13 +15,26 @@ class PmuImport:
             :param: sql: context manager of the DB SqlProvider
             :param: csvfile: str - abs path to the csv file
         """
+        self.date1 = date.today().strftime('%Y-%m-%d')
         self.file= csvfile
         self.conn = sql._db # sql connection
         # print(self.conn)
         self.qurs = sql.qurs # sql connection cursor
         # self.trans = str.maketrans("\"\'&{}[]%()", "")
 
-    def cleanup(self, line: int, rec: dict):
+
+    def prepare_table(self, copy: bool):
+        year = date.today().year % 100 - 1
+        if copy:
+            self.qurs.execute(cfg.RENAME_TARIF_TABLE, (year, year))
+            self.qurs.execute(cfg.COPY_TARIF_TABLE, (year,))
+
+        # truncate table anyway
+        self.qurs.execute(cfg.TRUNCATE_TARIF_TABLE)
+        self.conn.commit()
+
+    def cleanup_csv_line(self, line: int, rec: dict):
+        rec['code_usl'] = rec['code_usl'].strip().upper()
         assert code.match(rec['code_usl']), f"Некорректный код услуги {rec['code_usl']}, строка {line}"
         # re.sub(r'[\"\'\&\{\}\[\]\%\(\)]', '', r'"\'&{}[]%(){}()**+_+')
         rec['name'] = re.sub(esc, '', rec['name'].strip())
@@ -34,17 +48,16 @@ class PmuImport:
             else records count and meta info
         """
         with open(self.file, encoding='utf-8') as csvfile:
-            self.qurs.execute(cfg.TRUNCATE_TARIFS)
-            self.conn.commit()
             reader = csv.DictReader(csvfile,
                 fieldnames=cfg.FIELD_NAMES,
                 delimiter=';'
             )
             pmu = tarif = 0
             for row in reader:
-                self.cleanup(reader.line_num, row)
+                self.cleanup_csv_line(reader.line_num, row)
                 row.update(cfg.EXTRA_DICT)
                 row['code'] = row['code_usl']
+                row['updated'] = self.date1
                 stmt = cfg.GET_PMU.format(**row)
                 self.qurs.execute(stmt)
                 res = self.qurs.fetchone()
@@ -55,8 +68,9 @@ class PmuImport:
                         pmu +=1
                     stmt = cfg.INSERT_TARIF.format(**row)
                     self.qurs.execute(stmt)
-                except:
-                    raise f"Некорректная строка \
+                except Exception as exc:
+                    raise exc
+                    raise f"Ошибка {exc}  строка \
                         {reader.line_num}: {row['code_usl']}, {row['name']}, {row['tarif']}"
                     #print(stmt)
                 self.conn.commit()

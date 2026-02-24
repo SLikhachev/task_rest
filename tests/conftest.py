@@ -68,3 +68,27 @@ def qurs(db):
     _qurs = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     yield _qurs
     _qurs.close()
+
+@pytest.fixture
+def sql_init_file_name():
+    file = os.getenv("DB_INIT_FILE")
+    assert file, "Should set `DB_INIT_FILE` config param"
+    return file
+
+@pytest.fixture
+def db_init_file(test_data_path, sql_init_file_name):
+    return test_data_path / 'sql' / sql_init_file_name
+
+@pytest.fixture()
+def init_app(app, db_init_file, db, qurs):
+    """ Test application object created """
+    assert app.testing, "Application object is not created"
+    assert qurs, "DB connection cursor is not created"
+
+    with open(db_init_file, encoding='utf-8') as fd:
+        assert fd, "DB_INIT_FILE not found"
+        _sql = fd.read()
+
+        qurs.execute(_sql)
+        db.commit()
+        return True
