@@ -20,7 +20,7 @@ parser.add_argument('smo', type=int, default=0)
 parser.add_argument('month', type=month_field, required=True,
     location=('json', 'form'), help='{Date in YYYY-MM format required}')
 
-class InvCalc(RestTask):
+class SelfCalc(RestTask):
 
     def __init__(self):
         super().__init__()

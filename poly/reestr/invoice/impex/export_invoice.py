@@ -18,7 +18,7 @@ class SqlExport:
 
     def __init__(self,
         flask_app: object, sql: object, mo_code: str, smo: int,
-        month: str, year: str, typ: int, export_folder: str, is_calc=''):
+        month: str, year: str, typ: int, export_folder: str, is_calc: str=''):
         """
            @param: flask_app: object - current flask app object
            @param: sql: object - Sql provider context manager
@@ -29,6 +29,7 @@ class SqlExport:
            @param: typ: int, - 1-5 package type
            @param: export_folder: str, path to the folder where file will be stored
            @param: is_calc='': str - if not empty then self calculated reestr
+            used for substring in output file name
         """
         self.app = flask_app
         self.sql = sql
@@ -46,8 +47,8 @@ class SqlExport:
         self.calc = is_calc
 
 
-    def check_table_name(self, name):
-        assert hasattr(self.sql, name), f"Экспорт реестра: имя таблицы: {name} БД не определено"
+    def check_table_name(self, table_name):
+        assert hasattr(self.sql, table_name), f"Экспорт реестра: имя таблицы: {table_name} БД не определено"
 
 
     def get_mo_smo_name(self):
@@ -71,6 +72,7 @@ class SqlExport:
             smo_name= ''
 
         return mo_name, smo_name
+
 
     def border(self):
         return Border(
@@ -118,15 +120,15 @@ class SqlExportInvoice(SqlExport):
         super().__init__(flask_app, sql, mo_code, smo,
             month, year, typ, export_folder, is_calc)
 
-        self.check_table_name('inv_table')
+        #self.check_table_name('inv_table')
 
 
-    def extract_for_smo(self, row: NamedTuple) -> list:
+    def extract_for_smo(self, row: NamedTuple, cells_in_row) -> list:
         """ make the xlsx's row list for the SMO invoice's reestr"""
         prop = lambda attr: getattr(row, attr, '')
         sprop = lambda attr: getattr(row, attr, '  ')
         fst = lambda attr: sprop(attr)[0].upper() if sprop(attr) else ''
-        _d = [ '' for _ in range(20)]
+        _d = [ '' for _ in range(cells_in_row)]
         _d[0] = prop('nhistory')
         _d[1] = f"{sprop('fam')} {fst('im')}. {fst('ot')}."
         _d[2] = prop('w')
@@ -162,10 +164,10 @@ class SqlExportInvoice(SqlExport):
         return _d
 
 
-    def extarct_for_foms(self, smo_row: list, record_num: int):
+    def extarct_for_foms(self, smo_row: list, record_num: int, cells_in_row: int):
         """ make xlsx's row list for TFOMS invoice's reestr"""
         # smo_row - list from extract_for_smo
-        _d = ['' for _ in range(20)]
+        _d = ['' for _ in range(cells_in_row)]
 
         _d[0] = record_num
 
@@ -204,13 +206,13 @@ class SqlExportInvoice(SqlExport):
     def check_tables_exists(self):
         """ check DB tables for export exists"""
 
+        self.check_table_name('inv_table')
         _data = psy_sql.SQL(config.COUNT_INV_TMP).format(self.sql.inv_table)
         if len(self.calc) > 0:
             pass
             #_data= config.COUNT_MO
         self.qurs.execute(_data)
         return True if self.qurs.fetchone() else False
-
 
     def select_export_data(self):
         """ select all from DB """
@@ -221,6 +223,32 @@ class SqlExportInvoice(SqlExport):
         self.qurs.execute(_data)
         return self.qurs.fetchall()
 
+    def prepare_to_foms(self, sheet):
+        sheet['C4'].value = self.period
+        # begin from 17th string
+        return 17, 20
+
+    def prepare_to_smo(self, sheet):
+        mo_name, smo_name = self.get_mo_smo_name()
+        # ======= code for SMO ==========
+        # local config has MOS dict with mo_code as KEY and tuple(OGRN, ) as value
+        sheet['E2'].value = f"{mo_name} ОГРН {self.app.config['MOS'][self.mo_code][0]}"
+        sheet['E7'].value = smo_name
+        sheet['J1'].value = self.period
+        # begin from 13th string
+        return 13, 20
+
+    def prepare_sheet(self, sheet):
+        if self.smo == 0:
+            return self.prepare_to_foms(sheet)
+        else:
+            return self.prepare_to_smo(sheet)
+
+    def extract_data(self, row, cells_in_row):
+        data = self.extract_for_smo(row, cells_in_row)
+        if self.smo == 0:
+            data = self.extarct_for_foms(data, self.rc_total, cells_in_row)
+        return data
 
     def export(self) -> tuple:
         """ main func """
@@ -228,40 +256,20 @@ class SqlExportInvoice(SqlExport):
         if not self.check_tables_exists():
             return (-1, "Нет экспотрной таблицы БД")
 
-        mo_name, smo_name = self.get_mo_smo_name()
-
         sheet = self.init_workbook()
 
-        if self.smo == 0:
-            # ======= code for TFOMS =========
-            sheet['C4'].value = self.period
-            # begin from 17 string
-            current_row = 17
-        else:
-            # ======= code for SMO ==========
-            # local config has MOS dict with mo_code as KEY and tuple(OGRN, ) as value
-            sheet['E2'].value = f"{mo_name} ОГРН {self.app.config['MOS'][self.mo_code][0]}"
-            sheet['E7'].value = smo_name
-            sheet['J1'].value = self.period
-            # begin from 13 string
-            current_row = 13
+        current_row, cells_in_row = self.prepare_sheet(sheet)
+        # cells in row = real cols + 1
 
         border = self.border()
-
         rc_total = 1
-        cells_in_row=20 # 20 cells in row
-
         for row in self.select_export_data():
-
             try:
-                data = self.extract_for_smo(row)
+                data = self.extract_data(row, cells_in_row)
             except Exception as _ex:
                 print(_ex)
                 print(row)
                 raise _ex
-
-            if self.smo == 0:
-                data = self.extarct_for_foms(data, rc_total)
 
             for xrow in range(current_row, current_row+1):
                 for xcol in range(1, cells_in_row):

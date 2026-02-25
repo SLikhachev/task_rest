@@ -16,6 +16,10 @@ def get_text(elem: ET.Element, tag: str) -> str:
     return ''
 
 
-def tmp_table_name():
-    """ return random alhpa-num string, used as tail of the file name """
+def tmp_table_name() -> sql.Identifier:
+    """
+    Return a random alhpa-num string, used as tail of the file name.
+
+    This string is used as a table name in the database.
+    """
     return sql.Identifier(f'az{get_name_tail(10)}')
