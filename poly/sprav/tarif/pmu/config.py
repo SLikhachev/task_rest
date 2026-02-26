@@ -5,18 +5,18 @@ SELECT tablename AS table FROM pg_tables
   WHERE tablename ilike 'tarifs_pmu_vzaimoras%';
 '''
 
-RENAME_TARIF_TABLE='''
+COPY_TARIF_TABLE='''
 DO $$
 BEGIN
 IF NOT EXISTS (
   SELECT 1 FROM pg_tables WHERE tablename = 'tarifs_pmu_vzaimoras_%s'
 ) THEN EXECUTE
-  'ALTER TABLE tarifs_pmu_vzaimoras RENAME TO tarifs_pmu_vzaimoras_%s';
+  'CREATE TABLE tarifs_pmu_vzaimoras_%s AS TABLE tarifs_pmu_vzaimoras';
 END IF;
 END$$;
 '''
 
-COPY_TARIF_TABLE='''
+_COPY_TARIF_TABLE='''
 BEGIN;
 CREATE TABLE IF NOT EXISTS tarifs_pmu_vzaimoras
   (LIKE tarifs_pmu_vzaimoras_%s INCLUDING ALL);

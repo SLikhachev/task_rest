@@ -16,16 +16,20 @@ def tarifs_file_name():
 def tarifs_file(test_data_path, tarifs_file_name):
     return test_data_path / 'tarifs' / tarifs_file_name
 
+@pytest.fixture
+def tarifs_table():
+    return 'tarifs_pmu_vzaimoras'
+
+
 def test_app(init_app):
     """ Test application object created """
     assert init_app, "Application object does not inited"
 
-def test_update_pmu(client, tarifs_file_name, tarifs_file):
+def test_update_pmu(client, tarifs_file_name, tarifs_file, tarifs_table):
     """ testing import pmu tarifs file """
-    table = tarifs_file_name.split('.')[0]
     resp = client.post('/sprav/tarifs/update', data={
         'files': (open(tarifs_file, 'rb'), tarifs_file_name),
-        'table': table
+        'table': tarifs_table
     })
     assert resp.status_code == 200
     assert resp.headers.get('Content-Type') == 'application/json'
@@ -34,12 +38,11 @@ def test_update_pmu(client, tarifs_file_name, tarifs_file):
     for k, v in resp.get_json().items():
         print(f'{k}: {v}\n')
 
-def test_create_pmu(client, tarifs_file_name, tarifs_file):
+def test_create_pmu(client, tarifs_file_name, tarifs_file, tarifs_table):
     """ testing import pmu tarifs file """
-    table = tarifs_file_name.split('.')[0]
     resp = client.post('/sprav/tarifs/update', data={
         'files': (open(tarifs_file, 'rb'), tarifs_file_name),
-        'table': table,
+        'table': tarifs_table,
         'copy': True
     })
     assert resp.status_code == 200

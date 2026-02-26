@@ -3,6 +3,7 @@
 from datetime import date
 import re
 import csv
+from decimal import getcontext, Decimal, ROUND_HALF_UP
 from psycopg2 import sql as psy_sql
 from poly.sprav.tarif.pmu import config as cfg
 
@@ -26,22 +27,24 @@ class PmuImport:
     def prepare_table(self, copy: bool):
         year = date.today().year % 100 - 1
         if copy:
-            self.qurs.execute(cfg.RENAME_TARIF_TABLE, (year, year))
-            self.qurs.execute(cfg.COPY_TARIF_TABLE, (year,))
+            self.qurs.execute(cfg.COPY_TARIF_TABLE, (year, year))
 
         # truncate table anyway
         self.qurs.execute(cfg.TRUNCATE_TARIF_TABLE)
         self.conn.commit()
 
     def cleanup_csv_line(self, line: int, rec: dict):
+        getcontext().prec = 2
         rec['code_usl'] = rec['code_usl'].strip().upper()
         assert code.match(rec['code_usl']), f"Некорректный код услуги {rec['code_usl']}, строка {line}"
         # re.sub(r'[\"\'\&\{\}\[\]\%\(\)]', '', r'"\'&{}[]%(){}()**+_+')
         rec['name'] = re.sub(esc, '', rec['name'].strip())
         try:
-            rec['tarif'] = float(rec['tarif'])
-        except:
-            raise f"Некорректный тариф {rec['tarif']}, строка {line}"
+            rec['tarif'] = format(Decimal(rec['tarif']), '.2f')
+            #print (tarif)
+            #rec['tarif'] = Decimal(tarif)
+        except Exception as exc:
+            raise exc #Exception(f"Некорректный тариф {rec['tarif']}, строка {line}") from exc
 
     def update(self) -> tuple:
         """ returns tuple of 1 if any errors occured

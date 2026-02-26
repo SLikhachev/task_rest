@@ -43,6 +43,7 @@ class UpdateTarifs(RestTask):
     def post(self):
         try:
             args = parser.parse_args()
+            #print(args)
         except Exception as exc:
             return self.abort(400, f'Неверные параметры запроса: {exc}')
 
