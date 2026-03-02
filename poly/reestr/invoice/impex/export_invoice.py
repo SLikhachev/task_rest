@@ -279,6 +279,8 @@ class SqlExportInvoice(SqlExport):
                     try:
                         cell = sheet.cell(column=xcol, row=xrow, value= data[ xcol-1 ])
                         cell.border = border
+                        if type(cell.value) == float:
+                            cell.number_format = '# ##0.00'
                     except Exception as exc:
                         self.app.logger.debug(f"\n row {rc_total} {exc}")
                         self.app.logger.debug(data)

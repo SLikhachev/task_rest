@@ -14,7 +14,7 @@ def test_formos(client):
     resp = client.post('/reestr/inv/formo', data={
        'month': month,
        'sent': True,
-       'fresh': True
+       'fresh': False
     })
     assert resp.status_code == 200
     assert resp.headers.get('Content-Type') == 'application/json'
