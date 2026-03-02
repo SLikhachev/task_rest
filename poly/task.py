@@ -97,9 +97,13 @@ class RestTask(Resource):
     def options(self):
         """ return response to OPTIONS request """
         response = make_response()
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,  GET,  POST'
-        response.headers['Access-Control-Allow-Headers'] = 'Authorization'
+        response.headers['Access-Control-Allow-Origin'] = "*"
+        response.headers['Access-Control-Allow-Methods'] = "OPTIONS,  GET,  POST"
+        response.headers['Access-Control-Allow-Headers'] = "Authorization, Origin, X-Requested-With, Content-Type, Accept"
+        response.headers['Referrer-Policy'] = "unsafe-url" #(не рекомендуется для продакшена)
+        #response.headers['Referrer-Policy'] = "no-referrer-when-downgrade"
+        # В html SPA добавить
+        #<meta name="referrer" content="no-referrer-when-downgrade">.
         return response
 
 

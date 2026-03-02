@@ -57,14 +57,20 @@ FROM
 WHERE
     tal.talon_month={month} AND -- int
     tal.npr_mo={mo_code} AND -- int
-    tal.talon_type > 0 AND
     tal.crd_num=crd.crd_num AND
     pmu.tal_num=tal.tal_num AND
-    pmu.code_usl=tar.code;
+    pmu.code_usl=tar.code AND
+    {fresh};
 '''
+
+FRESH='tal.talon_type=1'
+ALLTYPES='tal.talon_type > 0'
+
 GET_MOS= '''
 select
 distinct tal.npr_mo as mo_code, mo.name as mo_name
 from talonz_clin_{year} as tal, mo_local as mo
 where talon_month={month} and mo.scode=tal.npr_mo;
 '''
+
+SET_SENT="update talonz_clin_{year} set talon_type=2 where tal_num={tal_num};"

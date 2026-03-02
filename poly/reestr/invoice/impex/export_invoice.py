@@ -94,6 +94,7 @@ class SqlExport:
 
         self.xlsout_fname = \
             f'{self._tpl_name}{self.calc}_{self.smo}_{self.month}_{self.year}_{get_name_tail(5)}.xlsx'
+
         self.xlsout_abspath = os.path.join(self.export_dir, self.xlsout_fname)
 
         self.period = f"За {self.app.config['MONTH'][int(self.month)-1]} {self.year} года"
@@ -103,6 +104,8 @@ class SqlExport:
 
         return self.workbook["Лист1"]
 
+    def set_sent(self, talon_row: NamedTuple):
+        pass
 
     def close(self, rows):
         self.workbook.save(self.xlsout_abspath)
@@ -250,7 +253,7 @@ class SqlExportInvoice(SqlExport):
             data = self.extarct_for_foms(data, self.rc_total, cells_in_row)
         return data
 
-    def export(self) -> tuple:
+    def export(self, sent: bool=False) -> tuple:
         """ main func """
 
         if not self.check_tables_exists():
@@ -267,8 +270,8 @@ class SqlExportInvoice(SqlExport):
             try:
                 data = self.extract_data(row, cells_in_row)
             except Exception as _ex:
-                print(_ex)
-                print(row)
+                #print(_ex)
+                #print(row)
                 raise _ex
 
             for xrow in range(current_row, current_row+1):
@@ -282,5 +285,8 @@ class SqlExportInvoice(SqlExport):
                         raise exc
                 current_row += 1
                 rc_total += 1
+
+            if sent:
+                self.set_sent(row)
 
         return self.close(rc_total-1)

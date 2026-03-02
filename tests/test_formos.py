@@ -13,6 +13,8 @@ def test_formos(client):
     month = f'{test_year}-{test_month}'
     resp = client.post('/reestr/inv/formo', data={
        'month': month,
+       'sent': True,
+       'fresh': True
     })
     assert resp.status_code == 200
     assert resp.headers.get('Content-Type') == 'application/json'

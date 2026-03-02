@@ -7,7 +7,7 @@ TYPE= (
     #('dsc', 'Дневной стационар', 'reestr_dsc'),
     #('prof', 'Профосмотр', 'reestr_pro'),
     ('foms', 'Инокраевые', 'reestr_foms'),
-    ('formo', 'Для МО по заявкам', 'reestr_mo'),
+    ('formo', 'Для МО по направлениям', 'reestr_mo'),
     ('pmu', 'Тарифы ПМУ', 'tarifs'),
 )
 
