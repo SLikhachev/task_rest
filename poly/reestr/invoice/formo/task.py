@@ -51,8 +51,7 @@ class CalcFormo(RestTask):
                     exporter.mo_code = mo_code
                     exporter.payer = mo_name
                     exporter.calc = mo_code
-
-                    _recs, _reestr = exporter.export(sent)
+                    _recs, _reestr = exporter.export(sent=sent)
                     rmos.append({
                         'mo': mo_code,
                         'name': mo_name,

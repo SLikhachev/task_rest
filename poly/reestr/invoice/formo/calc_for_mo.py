@@ -43,7 +43,7 @@ class ExportMoInvoce(SqlExportInvoice):
         sheet['B2'].value = self.period
         sheet['E3'].value = self.payer
         # begin from 17th string
-        return 9, 11
+        return 9, 10
 
     def select_export_data(self):
         fresh = config.FRESH if self.fresh else config.ALLTYPES

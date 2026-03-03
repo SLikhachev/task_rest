@@ -45,6 +45,8 @@ class SqlExport:
         self.typ = typ
         self.export_dir = export_folder
         self.calc = is_calc
+        self.workbook = None
+        self.sheet_title = 'Лист1'
 
 
     def check_table_name(self, table_name):
@@ -83,7 +85,7 @@ class SqlExport:
         )
 
 
-    def init_workbook(self):
+    def init_workbook(self, sheet_title=None):
 
         self._tpl_name = config.TYPE[self.typ-1][2]
         self.tpl_name = f'{self._tpl_name}.xlsx'
@@ -102,14 +104,15 @@ class SqlExport:
         self.workbook = load_workbook(filename = self.tpl_abspath)
         self.workbook.active
 
-        return self.workbook["Лист1"]
+        return self.workbook
 
     def set_sent(self, talon_row: NamedTuple):
         pass
 
-    def close(self, rows):
+    def close_workbook(self, rows, close_workbook: bool=True):
         self.workbook.save(self.xlsout_abspath)
-        self.workbook.close()
+        if close_workbook:
+            self.workbook.close()
         return rows, self.xlsout_fname
 
 
@@ -253,13 +256,17 @@ class SqlExportInvoice(SqlExport):
             data = self.extarct_for_foms(data, self.rc_total, cells_in_row)
         return data
 
-    def export(self, sent: bool=False) -> tuple:
+    def export(self,
+        sheet_title: str="Лист1",
+        sent: bool=False,
+        close_workbook: bool=True) -> tuple:
         """ main func """
 
         if not self.check_tables_exists():
             return (-1, "Нет экспотрной таблицы БД")
 
-        sheet = self.init_workbook()
+        wb = self.init_workbook()
+        sheet = wb[sheet_title]
 
         current_row, cells_in_row = self.prepare_sheet(sheet)
         # cells in row = real cols + 1
@@ -273,10 +280,10 @@ class SqlExportInvoice(SqlExport):
                 #print(_ex)
                 #print(row)
                 raise _ex
-
             for xrow in range(current_row, current_row+1):
-                for xcol in range(1, cells_in_row):
+                for xcol in range(1, cells_in_row+1):
                     try:
+
                         cell = sheet.cell(column=xcol, row=xrow, value= data[ xcol-1 ])
                         cell.border = border
                         if type(cell.value) == float:
@@ -291,4 +298,4 @@ class SqlExportInvoice(SqlExport):
             if sent:
                 self.set_sent(row)
 
-        return self.close(rc_total-1)
+        return self.close_workbook(rc_total-1, close_workbook=close_workbook)

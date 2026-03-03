@@ -8,6 +8,7 @@ TYPE= (
     #('prof', 'Профосмотр', 'reestr_pro'),
     ('foms', 'Инокраевые', 'reestr_foms'),
     ('formo', 'Для МО по направлениям', 'reestr_mo'),
+    ('bymonth', 'Расчет услуг за месяц', 'bymonth'),
     ('pmu', 'Тарифы ПМУ', 'tarifs'),
 )
 
