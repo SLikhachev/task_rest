@@ -40,7 +40,8 @@ class PmuImport:
         # re.sub(r'[\"\'\&\{\}\[\]\%\(\)]', '', r'"\'&{}[]%(){}()**+_+')
         rec['name'] = re.sub(esc, '', rec['name'].strip())
         try:
-            rec['tarif'] = Decimal(rec['tarif'])
+            pass
+            #rec['tarif'] = Decimal(rec['tarif'])
             #print (tarif)
             #rec['tarif'] = Decimal(tarif)
         except Exception as exc:
