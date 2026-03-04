@@ -34,13 +34,13 @@ class PmuImport:
         self.conn.commit()
 
     def cleanup_csv_line(self, line: int, rec: dict):
-        getcontext().prec = 2
+        #getcontext().prec = 2
         rec['code_usl'] = rec['code_usl'].strip().upper()
         assert code.match(rec['code_usl']), f"Некорректный код услуги {rec['code_usl']}, строка {line}"
         # re.sub(r'[\"\'\&\{\}\[\]\%\(\)]', '', r'"\'&{}[]%(){}()**+_+')
         rec['name'] = re.sub(esc, '', rec['name'].strip())
         try:
-            rec['tarif'] = format(Decimal(rec['tarif']), '.2f')
+            rec['tarif'] = Decimal(rec['tarif'])
             #print (tarif)
             #rec['tarif'] = Decimal(tarif)
         except Exception as exc:

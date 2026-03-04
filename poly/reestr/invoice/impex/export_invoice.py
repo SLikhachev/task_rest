@@ -2,9 +2,7 @@
 
 import os
 from typing import NamedTuple
-from datetime import date
-from pathlib import Path
-import psycopg2.extras
+from decimal import getcontext, Decimal
 from psycopg2 import sql as psy_sql
 from flask import g
 from openpyxl import load_workbook
@@ -47,7 +45,8 @@ class SqlExport:
         self.calc = is_calc
         self.workbook = None
         self.sheet_title = 'Лист1'
-
+        self.total_sum = Decimal(0.00)
+        self.total_sum_column=-1
 
     def check_table_name(self, table_name):
         assert hasattr(self.sql, table_name), f"Экспорт реестра: имя таблицы: {table_name} БД не определено"
@@ -126,11 +125,9 @@ class SqlExportInvoice(SqlExport):
         super().__init__(flask_app, sql, mo_code, smo,
             month, year, typ, export_folder, is_calc)
 
-        #self.check_table_name('inv_table')
-
-
     def extract_for_smo(self, row: NamedTuple, cells_in_row) -> list:
         """ make the xlsx's row list for the SMO invoice's reestr"""
+        getcontext().prec = 2
         prop = lambda attr: getattr(row, attr, '')
         sprop = lambda attr: getattr(row, attr, '  ')
         fst = lambda attr: sprop(attr)[0].upper() if sprop(attr) else ''
@@ -153,7 +150,7 @@ class SqlExportInvoice(SqlExport):
         _d[13] = 1
         _d[14] = prop('profi')
         _d[15] = prop('prvs')
-        _d[16] = price = prop('sumv')
+        _d[16] = price = Decimal(prop('sump'))
         #d[17] = row.foms_price
         if prop('sump') == 0.00:
             #price -= row.sank_it
@@ -167,6 +164,7 @@ class SqlExportInvoice(SqlExport):
         _d[18] = prop('rslt')
         #d[19] = row.ishod
 
+        self.total_sum += Decimal(price)
         return _d
 
 
@@ -231,6 +229,7 @@ class SqlExportInvoice(SqlExport):
 
     def prepare_to_foms(self, sheet):
         sheet['C4'].value = self.period
+        #self.total_sum_column=20
         # begin from 17th string
         return 17, 20
 
@@ -241,6 +240,7 @@ class SqlExportInvoice(SqlExport):
         sheet['E2'].value = f"{mo_name} ОГРН {self.app.config['MOS'][self.mo_code][0]}"
         sheet['E7'].value = smo_name
         sheet['J1'].value = self.period
+        self.total_sum_column=20
         # begin from 13th string
         return 13, 20
 
@@ -259,18 +259,18 @@ class SqlExportInvoice(SqlExport):
     def export(self,
         sheet_title: str="Лист1",
         sent: bool=False,
-        close_workbook: bool=True) -> tuple:
+        close_workbook: bool=True
+    ) -> tuple:
         """ main func """
 
         if not self.check_tables_exists():
             return (-1, "Нет экспотрной таблицы БД")
-
         wb = self.init_workbook()
         sheet = wb[sheet_title]
 
         current_row, cells_in_row = self.prepare_sheet(sheet)
-        # cells in row = real cols + 1
 
+        self.total_sum = Decimal(0.00)
         border = self.border()
         rc_total = 1
         for row in self.select_export_data():
@@ -281,12 +281,12 @@ class SqlExportInvoice(SqlExport):
                 #print(row)
                 raise _ex
             for xrow in range(current_row, current_row+1):
-                for xcol in range(1, cells_in_row+1):
+                for xcol in range(1, cells_in_row+1): # +1 because of range is [1..n) interval
                     try:
 
                         cell = sheet.cell(column=xcol, row=xrow, value= data[ xcol-1 ])
                         cell.border = border
-                        if type(cell.value) == float:
+                        if type(cell.value) == Decimal:
                             cell.number_format = '# ##0.00'
                     except Exception as exc:
                         self.app.logger.debug(f"\n row {rc_total} {exc}")
@@ -295,7 +295,21 @@ class SqlExportInvoice(SqlExport):
                 current_row += 1
                 rc_total += 1
 
+            ## mark as sent if used
             if sent:
                 self.set_sent(row)
+
+        ## insert sum total
+        if self.total_sum_column > 0:
+            #print(f"Total sum: {self.total_sum}")
+            sheet.cell(
+                column=self.total_sum_column-1, # prev columnt
+                row=current_row+2, value= "ИТОГО:",
+            )
+            cell = sheet.cell(
+                column=self.total_sum_column,
+                row=current_row+2, value=self.total_sum,
+            )
+            cell.number_format = '# ### ##0.00'
 
         return self.close_workbook(rc_total-1, close_workbook=close_workbook)

@@ -1,15 +1,6 @@
 
 
-import os
-import shutil
-from typing import NamedTuple
-from pathlib import Path
-from datetime import date
-
-#from psycopg2 import sql as psy_sql
-#import psycopg2.extras
-#from poly.reestr.invoice.impex import config as imp_conf
-from poly.utils.files import get_name_tail
+from decimal import getcontext, Decimal
 from poly.reestr.invoice.bymonth import config
 from poly.reestr.invoice.impex.export_invoice import SqlExportInvoice
 
@@ -42,7 +33,8 @@ class CalcMonth(SqlExportInvoice):
     def prepare_sheet(self, sheet):
         sheet['B1'].value = self.period
         sheet['C1'].value = self.sheet_title
-        # begin from 6th string
+        self.total_sum_column=4
+        # begin from 6th string (row)
         return 6, 4
 
     def select_export_data(self):
@@ -58,12 +50,12 @@ class CalcMonth(SqlExportInvoice):
     def extract_data(self, row, cells_in_row):
         """ make the xlsx's row list for the MO invoice's reestr"""
         prop = lambda attr: getattr(row, attr, '')
-        sprop = lambda attr: getattr(row, attr, '  ')
         _d = [ '' for _ in range(cells_in_row)]
         _d[0] = prop('mo_code')
         _d[1] = prop('mo_name')
         _d[2] = prop('ntal')
-        _d[3] = float(prop('sum_usl'))
+        _d[3] = Decimal(prop('sum_usl'))
+        self.total_sum += _d[3]
         return _d
 
 

@@ -5,10 +5,7 @@ import shutil
 from typing import NamedTuple
 from pathlib import Path
 from datetime import date
-
-#from psycopg2 import sql as psy_sql
-#import psycopg2.extras
-#from poly.reestr.invoice.impex import config as imp_conf
+from decimal import getcontext, Decimal
 from poly.utils.files import get_name_tail
 from poly.reestr.invoice.formo import config
 from poly.reestr.invoice.impex.export_invoice import SqlExportInvoice
@@ -42,6 +39,7 @@ class ExportMoInvoce(SqlExportInvoice):
     def prepare_sheet(self, sheet):
         sheet['B2'].value = self.period
         sheet['E3'].value = self.payer
+        self.total_sum_column=10
         # begin from 17th string
         return 9, 10
 
@@ -68,8 +66,9 @@ class ExportMoInvoce(SqlExportInvoice):
         _d[5] = prop('napr')
         _d[6] = prop('ds')
         _d[7] = f"{prop('open_date')}~{prop('close_date')}"
-        _d[8] = float(prop('sum_usl'))
-        _d[9] = _d[8]
+        _d[8] = prop('code_usl')
+        _d[9] = Decimal(prop('sum_usl'))
+        self.total_sum += _d[9]
         return _d
 
     def set_sent(self, talon_row: NamedTuple):

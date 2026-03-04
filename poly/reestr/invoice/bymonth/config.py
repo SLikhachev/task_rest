@@ -14,6 +14,7 @@ FROM {talons_table} as tal,
 WHERE
     tal.talon_month={month} AND --int
     tal.tal_num=para.tal_num AND
+    tal.talon_type>0 AND
     mo_local.scode=tal.npr_mo AND
     para.code_usl=tarp.code AND
     para.code_usl ilike '{icode}'
