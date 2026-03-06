@@ -207,7 +207,7 @@ class SqlExportInvoice(SqlExport):
         return _d
 
 
-    def check_tables_exists(self):
+    def check_tables_exists(self, table_name: str=''):
         """ check DB tables for export exists"""
 
         self.check_table_name('inv_table')
@@ -287,7 +287,7 @@ class SqlExportInvoice(SqlExport):
                         cell = sheet.cell(column=xcol, row=xrow, value= data[ xcol-1 ])
                         cell.border = border
                         if type(cell.value) == Decimal:
-                            cell.number_format = '# ##0.00'
+                            cell.number_format = '### ### ##0.00'
                     except Exception as exc:
                         self.app.logger.debug(f"\n row {rc_total} {exc}")
                         self.app.logger.debug(data)

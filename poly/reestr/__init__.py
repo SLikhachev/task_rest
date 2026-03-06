@@ -32,6 +32,10 @@ api.add_resource(formo_calc.CalcFormo, '/inv/formo', endpoint='formo_calc')
 from poly.reestr.invoice.bymonth import task as bymonth_calc
 api.add_resource(bymonth_calc.CalcBymonth, '/inv/bymonth', endpoint='bymonth_calc')
 
+# calculate usl by year
+from poly.reestr.invoice.byusl import task as byusl_calc
+api.add_resource(byusl_calc.CalcByusl, '/inv/byusl', endpoint='byusl_calc')
+
 # export/move MEK records
 from poly.reestr.invoice.mek import task as move_mek
 api.add_resource(move_mek.MoveMek, '/inv/mek', endpoint='inv_mek')
