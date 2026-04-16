@@ -107,12 +107,22 @@ class InvImpex(RestTask):
 
 
     def export(self, sql, pack_type, mo_code):
+        """
+        Export DB table to xlsx file according to the pack_type
+
+        :param sql: object - Sql provider context manager
+        :param pack_type: int, - 1-5 package type
+        :param mo_code: str, - full MO_CODE i.e '250799'
+        :return: tuple (int, str) - count of exported records, file name
+        """
         if pack_type == 6:
+            # 6 is a special package type, which represent PMUS
             return SqlExportPmus(
                 current_app, sql, mo_code, self.smo,
                 self.month, self.year, 6, self.cwd
             ).export()
 
+        # all other package types are invoice types
         return SqlExportInvoice(
             current_app, sql, mo_code, self.smo,
             self.month, self.year, pack_type, self.cwd

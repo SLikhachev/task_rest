@@ -1,6 +1,5 @@
+""" by month task API handlers """
 
-#from datetime import datetime
-#from pathlib import Path
 from collections import namedtuple
 from flask import current_app
 from flask_restful import reqparse, inputs
@@ -17,7 +16,15 @@ parser.add_argument('month', type=month_field, required=True,
 
 class CalcBymonth(RestTask):
 
+    """
+    CalcBymonth class is used to generate in month report
+    """
     def __init__(self):
+        """
+        Initialize the CalcBymonth class
+
+        This class is used to generate by month report
+        """
         super().__init__()
 
     def post(self):

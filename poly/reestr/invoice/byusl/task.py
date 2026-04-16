@@ -1,6 +1,5 @@
+""" by usl task API handlers """
 
-#from datetime import datetime
-#from pathlib import Path
 from collections import namedtuple
 from flask import current_app
 from flask_restful import reqparse, inputs

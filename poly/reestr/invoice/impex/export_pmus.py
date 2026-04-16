@@ -1,4 +1,4 @@
-""" The paraclinic services file geberator """
+""" The paraclinic services file generator """
 
 from psycopg2 import sql as psy_sql
 from poly.reestr.invoice.impex import config

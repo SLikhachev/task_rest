@@ -60,6 +60,7 @@ WHERE
     tal.crd_num=crd.crd_num AND
     pmu.tal_num=tal.tal_num AND
     pmu.code_usl=tar.code AND
+    pmu.code_usl ilike '{icode}' AND
     {fresh};
 '''
 

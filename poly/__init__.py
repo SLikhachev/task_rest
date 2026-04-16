@@ -18,6 +18,14 @@ else:
 
 # with Blueprint and factory
 def create_app(site_dir, static_dir, config_class=Config):
+    """
+    Create Flask application with specified config and directories
+
+    :param site_dir: path to the site directory
+    :param static_dir: path to the static directory
+    :param config_class: class with configuration
+    :return: Flask application
+    """
     app = Flask(
         __name__,
         instance_path=site_dir / 'instance',
@@ -31,7 +39,7 @@ def create_app(site_dir, static_dir, config_class=Config):
     else:
         app.config.from_pyfile('config_dev.py')
 
-    # folder for files aupload (errors, invoice)
+    # folder for files upload (errors, invoice)
     app.config['UPLOAD_FOLDER'] = os.path.join(static_dir, app.config['DATA_FOLDER'])
     xmldir = Path(app.config['UPLOAD_FOLDER'])
     app.config['BASE_XML_DIR'] = xmldir / 'reestr'
@@ -53,13 +61,13 @@ def create_app(site_dir, static_dir, config_class=Config):
     from poly.test import bp as test_bp
     app.register_blueprint(test_bp)
 
-    # http GET for file download
+    # http GET for file downloads for every task
     from poly.utils import bp as utils_bp
     app.register_blueprint(utils_bp)
 
     # --- reports don't served now ---
-    #from poly.report import bp as report_bp
-    #app.register_blueprint(report_bp)
+    # from poly.report import bp as report_bp
+    # app.register_blueprint(report_bp)
 
     # REST reestr only
     from poly.reestr import bp as reestr_bp

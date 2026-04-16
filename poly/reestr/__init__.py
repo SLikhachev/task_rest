@@ -1,3 +1,5 @@
+""" reestr API handlers """
+
 from flask import Blueprint
 from flask_restful import Api
 
@@ -12,7 +14,7 @@ api = Api(bp)
 from poly.reestr.xml.pack import task as xml_pack
 api.add_resource(xml_pack.MakeXml, '/xml/pack', endpoint='xml_pack')
 
-# parce xml errors file
+# parse xml errors file from BARS site
 from poly.reestr.xml.errs import task as xml_errs
 api.add_resource(xml_errs.ErrsXml, '/xml/errf', endpoint='xml_errs')
 
@@ -24,15 +26,15 @@ api.add_resource(inv_impex.InvImpex, '/inv/impex', endpoint='inv_impex')
 from poly.reestr.invoice.calc import task as inv_calc
 api.add_resource(inv_calc.SelfCalc, '/inv/calc', endpoint='inv_calc')
 
-# calculate reestr formo
+# calculate reestr for-mo as to beginning of 2026
 from poly.reestr.invoice.formo import task as formo_calc
 api.add_resource(formo_calc.CalcFormo, '/inv/formo', endpoint='formo_calc')
 
-# calculate usl by month
+# calculate usl in month
 from poly.reestr.invoice.bymonth import task as bymonth_calc
 api.add_resource(bymonth_calc.CalcBymonth, '/inv/bymonth', endpoint='bymonth_calc')
 
-# calculate usl by year
+# calculate usl in year
 from poly.reestr.invoice.byusl import task as byusl_calc
 api.add_resource(byusl_calc.CalcByusl, '/inv/byusl', endpoint='byusl_calc')
 

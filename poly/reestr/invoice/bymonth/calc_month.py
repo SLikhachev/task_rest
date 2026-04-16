@@ -1,34 +1,43 @@
-
+""" definition of the calss for export data to the XLSX file """
 
 from decimal import getcontext, Decimal
 from poly.reestr.invoice.bymonth import config
 from poly.reestr.invoice.impex.export_invoice import SqlExportInvoice
 
 class CalcMonth(SqlExportInvoice):
+    """
+    Initialize the class for export data to the XLSX file
+
+    This class is used for export data to the XLSX file
+    """
     def __init__(self,
         flask_app: object, sql: object, mo_code: str, smo: int,
         month: str, year: str, typ: int, export_folder: str, is_calc='',
     ):
         """
-        @param: is_calc='': here is the self MO short code
+        Initialize the class for export data to the XLSX file
+
+        @param: flask_app: object - current flask app object
+        @param: sql: object - Sql provider context manager
+        @param: mo_code: str - full MO_CODE i.e '250799'
+        @param: smo: int, code of (0,  25011, 25016 )
+        @param: month: str(2) - 01..12
+        @param: year: str(4) - '2020'
+        @param: typ: int, - 1-5 package type
+        @param: export_folder: str, path to the folder where file will be stored
+        @param: is_calc='': str - here is the self MO short code
           used for substring in output file name
         """
         super().__init__(flask_app, sql, mo_code, smo,
             month, year, typ, export_folder, is_calc)
 
+        # year is saved as int with two digits
         self._year = int(year) % 100
+        # month is saved as int with two digits
         self._month = int(month)
-        self.icode=''
 
     def check_tables_exists(self):
         return True
-
-    def init_workbook(self):
-        """ Init workbook once """
-        if self.workbook is None:
-            super().init_workbook()
-        # return same workbook
-        return self.workbook
 
     def prepare_sheet(self, sheet):
         sheet['B1'].value = self.period
@@ -53,6 +62,7 @@ class CalcMonth(SqlExportInvoice):
         _d = [ '' for _ in range(cells_in_row)]
         _d[0] = prop('mo_code')
         _d[1] = prop('mo_name')
+        # number of talonz
         _d[2] = prop('ntal')
         _d[3] = Decimal(prop('sum_usl'))
         self.total_sum += _d[3]

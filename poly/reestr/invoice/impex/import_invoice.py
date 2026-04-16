@@ -1,4 +1,4 @@
-""" invoice XML file import class definition """
+""" BARS invoice XML file import class definition """
 
 import os
 import xml.etree.cElementTree as ET
@@ -15,11 +15,13 @@ class XmlImport:
 
     def __init__(self, sql: object, zipfile: str, typ: int, _ar: str, cmek: bool):
         """
-            @param: zipfile: str - abs path to the zip file of invoice
-            @param: sql: context manager of the DB SqlProvider
-            @praram: typ: int type of the invoce
-            @param: _ar: str 2 last digits of the year
-            @param: cmek: bool if True set the MEK columnt in talon table
+        Initialize the XmlImport class object
+
+        @param: sql: context manager of the DB SqlProvider
+        @param: zipfile: str - abs path to the zip file of invoice
+        @param: typ: int type of the invoce
+        @param: _ar: str 2 last digits of the year
+        @param: cmek: bool if True set the MEK columnt in talon table
 
         """
         zip_fwd= Path(zipfile)
@@ -33,9 +35,10 @@ class XmlImport:
         self._ar = _ar
         self.cmek= cmek
 
+        # tuples of the ZAP and PERS tags
         self.zap= (
-            'n_zap',
-            ('pacient', ('id_pac', 'spolis', 'npolis', 'enp' ),),
+            'n_zap', # first element is the name of the column
+            ('pacient', ('id_pac', 'spolis', 'npolis', 'enp' ),), # second element is the tuple of the tags
             ('z_sl', (
                 'usl_ok', 'vidpom', 'for_pom', 'date_z_1', 'date_z_2', 'rslt', 'ishod',
                 ('sl', ( 'profil', 'nhistory', 'ds1', 'prvs',)),
@@ -43,15 +46,16 @@ class XmlImport:
             ))
         )
         self.pers= ( 'id_pac', 'fam', 'im', 'ot', 'w', 'dr')
-        self.zp_tags = ('ZAP', 'PERS',)
+        self.zp_tags = ('ZAP', 'PERS',) # tuple of the ZAP and PERS tags
+
         self.meta= {}
 
         self.usl= (
-            ('PROFIL', int), ('CODE_USL', str),
-            ('KOL_USL', lambda s: int(s.split('.')[0])),
-            ('TARIF', str), ('PRVS', int)
+            ('PROFIL', int), # type of the field, field name
+            ('CODE_USL', str),
+            ('KOL_USL', lambda s: int(s.split('.')[0])) # field name, type of the field, field name
         )
-        self.pmu_rec= ('KOL_USL', 'TARIF', 'PROFIL', 'PRVS', )
+        self.pmu_rec= ('KOL_USL', 'TARIF', 'PROFIL', 'PRVS', ) # tuple of the field names of the PMU record
 
         self.inv_table = None
         self.insert_zap = None

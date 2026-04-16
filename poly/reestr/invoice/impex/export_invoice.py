@@ -47,10 +47,11 @@ class SqlExport:
         self.sheet_title = 'Лист1'
         self.total_sum = Decimal(0.00)
         self.total_sum_column=-1
+        # icode for select SQL statement "A05%", "A06%"
+        self.icode = ''
 
     def check_table_name(self, table_name):
         assert hasattr(self.sql, table_name), f"Экспорт реестра: имя таблицы: {table_name} БД не определено"
-
 
     def get_mo_smo_name(self):
         """ select and return (SMO, MO) names from DB """
@@ -74,7 +75,6 @@ class SqlExport:
 
         return mo_name, smo_name
 
-
     def border(self):
         return Border(
             left=Side(border_style='thin', color=colors.BLACK),
@@ -83,24 +83,41 @@ class SqlExport:
             bottom=Side(border_style='thin', color=colors.BLACK)
         )
 
-
     def init_workbook(self, sheet_title=None):
+        """
+        Init workbook once
+
+        If the workbook has already been initialized, return it immediately.
+        Otherwise, load the template workbook and set up the output file name and path.
+        """
+        if self.workbook is not None:
+            return self.workbook
+
+        # Get the template name from the type config
 
         self._tpl_name = config.TYPE[self.typ-1][2]
+
+        # Set up the template file name and path
         self.tpl_name = f'{self._tpl_name}.xlsx'
         self.tpl_abspath = os.path.join(self.export_dir, 'tpl', self.tpl_name)
 
+        # Check if the template file exists
         if not os.path.exists(self.tpl_abspath):
-            raise AttributeError(f"Шаблон {self.tpl_abspath} не найден")
+            raise AttributeError(f"Шаблон {self.tpl_abspath} не найден")
 
+        # Set up the output file name and path
         self.xlsout_fname = \
             f'{self._tpl_name}{self.calc}_{self.smo}_{self.month}_{self.year}_{get_name_tail(5)}.xlsx'
 
         self.xlsout_abspath = os.path.join(self.export_dir, self.xlsout_fname)
 
+        # Set up the period string
         self.period = f"За {self.app.config['MONTH'][int(self.month)-1]} {self.year} года"
 
+        # Load the template workbook
         self.workbook = load_workbook(filename = self.tpl_abspath)
+
+        # Set the active sheet
         self.workbook.active
 
         return self.workbook
@@ -109,9 +126,11 @@ class SqlExport:
         pass
 
     def close_workbook(self, rows, close_workbook: bool=True):
+        assert self.workbook is not None, "Workbook is not initialized"
         self.workbook.save(self.xlsout_abspath)
         if close_workbook:
             self.workbook.close()
+            self.workbook = None
         return rows, self.xlsout_fname
 
 
@@ -261,10 +280,20 @@ class SqlExportInvoice(SqlExport):
         sent: bool=False,
         close_workbook: bool=True
     ) -> tuple:
-        """ main func """
+        """
+        Main function to export data to xlsx file.
 
+        Args:
+            sheet_title (str): title of the sheet
+            sent (bool): mark as sent if used
+            close_workbook (bool): close workbook after export
+
+        Returns:
+            tuple: result of the export operation
+        """
         if not self.check_tables_exists():
             return (-1, "Нет экспотрной таблицы БД")
+
         wb = self.init_workbook()
         sheet = wb[sheet_title]
 
@@ -283,7 +312,6 @@ class SqlExportInvoice(SqlExport):
             for xrow in range(current_row, current_row+1):
                 for xcol in range(1, cells_in_row+1): # +1 because of range is [1..n) interval
                     try:
-
                         cell = sheet.cell(column=xcol, row=xrow, value= data[ xcol-1 ])
                         cell.border = border
                         if type(cell.value) == Decimal:
