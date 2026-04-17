@@ -61,7 +61,7 @@ class CalcUsl(SqlExportInvoice):
             tarifs=f'_{self._year}'
         # prepare tables names
         for tbl, name in self.tables.items():
-            self.tables[tbl]=name.format(year=self._year, tariffs=tarifs)
+            self.tables[tbl]=name.format(year=self._year, tarifs=tarifs)
             # check if table exists
             self.qurs.execute(
                 config.TEST_TABLE_EXISTS.format(self.tables[tbl])
