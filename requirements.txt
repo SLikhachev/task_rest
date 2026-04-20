@@ -8,4 +8,4 @@ requests==2.27.1
 pytest==6.2.5
 pytest-env
 gunicorn==20.1.0
-pyjwt==2.3.0
+pyjwt==2.4.0
