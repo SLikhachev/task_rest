@@ -61,7 +61,8 @@ WHERE
     pmu.tal_num=tal.tal_num AND
     pmu.code_usl=tar.code AND
     pmu.code_usl ilike '{icode}' AND
-    {fresh};
+    {fresh}
+    ORDER BY tal.tal_num;
 '''
 
 FRESH='tal.talon_type=1'
