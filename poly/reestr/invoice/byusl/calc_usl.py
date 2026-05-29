@@ -164,7 +164,7 @@ class CalcUsl(SqlExportInvoice):
         _data = config.GET_YEAR_USL.format(
             **self.tables
         )
-        print(_data)
+        #print(_data)
         self.qurs.execute(_data)
         return self.qurs.fetchall()
 

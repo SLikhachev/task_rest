@@ -43,7 +43,7 @@ class CalcByusl(RestTask):
     def post(self):
         try:
             args = parser.parse_args()
-            print(f'CalcbyUsl args: {args}')
+            #print(f'CalcbyUsl args: {args}')
             self.year, self.month = args['month']
             self.date_beg = args['date_beg']
             self.date_end = args['date_end']
