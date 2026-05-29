@@ -51,7 +51,8 @@ class SqlExport:
         self.icode = ''
 
     def check_table_name(self, table_name):
-        assert hasattr(self.sql, table_name), f"Экспорт реестра: имя таблицы: {table_name} БД не определено"
+        assert hasattr(self.sql, table_name), \
+            f"Экспорт реестра: имя таблицы: {table_name} БД не определено"
 
     def get_mo_smo_name(self):
         """ select and return (SMO, MO) names from DB """

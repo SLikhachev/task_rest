@@ -12,10 +12,10 @@ FROM
     LEFT OUTER JOIN {tarifs_table} AS tar ON (tar.code = para.code_usl)
 WHERE
     para.tal_num=tal.tal_num AND
---  tar.code = para.code_usl AND
     para.code_usl ILIKE '{icode}' AND
     tal.talon_type {talon_type}
-    {by_month}
+    {period}
+    {talon_npr_mo}
 GROUP BY (para.code_usl, tar.name, tar.tarif)
 ORDER BY para.code_usl;
 '''
@@ -43,4 +43,13 @@ SELECT EXISTS (
 
 BY_MONTH='''
 AND tal.talon_month={month}
+'''
+
+BY_PERIOD='''
+AND tal.open_date >= '{open_date}'
+AND tal.close_date <= '{close_date}'
+'''
+
+TALON_NPR_MO='''
+AND tal.npr_mo={npr_mo}
 '''

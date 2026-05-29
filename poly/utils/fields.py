@@ -7,11 +7,11 @@ def month_field(date_str: str) -> Tuple[str, str]:
     """
     get (year, month) strings from date string
     @params
-        :val: str - wait string of date format as 'YYYY-MM-DD' (ISO format: 2023-01-23)
+        :date_str: str - wait string of date format as 'YYYY-MM-DD' (ISO format: 2023-01-23)
     returns
         tuple('2023', '01')
     """
-
+    print(date_str)
     if date_str != '':
         try:
             dm = list(date_str.split('-'))
@@ -23,7 +23,6 @@ def month_field(date_str: str) -> Tuple[str, str]:
     # return current YYYY-MM
     dm = list(date.today().isoformat().split('-'))
     return dm[0], dm[1]
-
 
 def pack_field(val: int) -> str:
     """ Package number validator
